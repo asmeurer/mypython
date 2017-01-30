@@ -5,7 +5,7 @@ from pygments.formatters import TerminalFormatter
 from pygments.styles.monokai import MonokaiStyle
 from pygments import highlight
 
-from prompt_toolkit.buffer import Buffer
+from prompt_toolkit.buffer import Buffer, AcceptAction
 from prompt_toolkit.interface import Application
 from prompt_toolkit.shortcuts import run_application, create_prompt_layout
 from prompt_toolkit.layout.lexers import PygmentsLexer
@@ -69,6 +69,7 @@ if __name__ == '__main__':
                 is_multiline=multiline,
                 validator=PythonSyntaxValidator(),
                 history=history,
+                accept_action=AcceptAction.RETURN_DOCUMENT,
                 )
             application = Application(
                 create_prompt_layout(
