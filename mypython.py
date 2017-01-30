@@ -55,6 +55,10 @@ def define_custom_keys(manager):
         if event.current_buffer.cursor_position < len(event.current_buffer.text):
             event.current_buffer.cursor_position += 1
 
+    @manager.registry.add_binding(Keys.ControlD)
+    def exit(event):
+        raise EOFError("Control-D")
+
 class PythonSyntaxValidator(Validator):
     def validate(self, document):
         text = document.text
