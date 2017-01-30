@@ -95,6 +95,7 @@ if __name__ == '__main__':
             try:
                 res = exec(command, _globals, _locals)
             except BaseException as e:
+                # TODO: Don't show syntax error traceback
                 print(highlight(format_exc(), PythonTracebackLexer(), TerminalFormatter(bg='dark')))
             else:
                 prompt_number += 1
