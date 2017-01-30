@@ -2,10 +2,12 @@
 
 from pygments.lexers import PythonLexer, PythonTracebackLexer
 from pygments.formatters import TerminalFormatter
+from pygments.styles.monokai import MonokaiStyle
 from pygments import highlight
 
 from prompt_toolkit.shortcuts import prompt
 from prompt_toolkit.layout.lexers import PygmentsLexer
+from prompt_toolkit.styles import style_from_pygments
 
 from traceback import format_exc
 
@@ -15,7 +17,8 @@ if __name__ == '__main__':
     _locals = {}
     while True:
         try:
-            command = prompt('In [%s]: ' % prompt_number, lexer=PygmentsLexer(PythonLexer))
+            command = prompt('In [%s]: ' % prompt_number,
+                lexer=PygmentsLexer(PythonLexer), style=style_from_pygments(MonokaiStyle))
         except EOFError:
             break
 
