@@ -131,6 +131,7 @@ if __name__ == '__main__':
         except EOFError:
             break
         except KeyboardInterrupt:
+            # TODO: Keep it in the history
             print("KeyboardInterrupt")
             continue
 
