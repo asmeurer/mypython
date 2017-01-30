@@ -75,7 +75,7 @@ if __name__ == '__main__':
                 create_prompt_layout(
                     message='In [%s]: ' % prompt_number,
                     lexer=PygmentsLexer(PythonLexer),
-                    multiline=Condition(lambda cli: multiline())
+                    multiline=True,
                     ),
                 buffer=buffer,
                 style=style_from_pygments(MonokaiStyle),
