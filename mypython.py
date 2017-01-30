@@ -11,6 +11,7 @@ from prompt_toolkit.styles import style_from_pygments
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.keys import Keys
+from prompt_toolkit.validation import Validator, ValidationError
 
 from traceback import format_exc
 
@@ -33,6 +34,14 @@ def define_custom_keys(manager):
         finally:
             event.current_buffer.enable_history_search = prev_enable_history_search
 
+class PythonSyntaxValidator(Validator):
+    def validate(self, document):
+        text = document.text
+        try:
+            compile(text, "<None>", 'exec')
+        except SyntaxError as e:
+            raise ValidationError(message="SyntaxError: %s" % e.args[0], cursor_position=e.offset)
+
 if __name__ == '__main__':
     prompt_number = 1
     _globals = globals().copy()
@@ -48,7 +57,8 @@ if __name__ == '__main__':
                 lexer=PygmentsLexer(PythonLexer),
                 style=style_from_pygments(MonokaiStyle), true_color=True,
                 history=history, enable_history_search=False,
-                key_bindings_registry=manager.registry)
+                key_bindings_registry=manager.registry,
+                validator=PythonSyntaxValidator())
         except EOFError:
             break
 
