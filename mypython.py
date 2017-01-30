@@ -46,16 +46,16 @@ def define_custom_keys(manager):
         """
         Left that wraps around in multiline.
         """
-        if event.current_buffer.cursor_position > 0:
-            event.current_buffer.cursor_position -= 1
+        if event.current_buffer.cursor_position - event.arg >= 0:
+            event.current_buffer.cursor_position -= event.arg
 
     @manager.registry.add_binding(Keys.Right)
     def right_multiline(event):
         """
         Right that wraps around in multiline.
         """
-        if event.current_buffer.cursor_position < len(event.current_buffer.text):
-            event.current_buffer.cursor_position += 1
+        if event.current_buffer.cursor_position + event.arg <= len(event.current_buffer.text):
+            event.current_buffer.cursor_position += event.arg
 
     @manager.registry.add_binding(Keys.ControlD)
     def exit(event):
