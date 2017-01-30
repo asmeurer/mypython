@@ -5,13 +5,18 @@ from pygments.formatters import TerminalFormatter
 from pygments.styles.monokai import MonokaiStyle
 from pygments import highlight
 
-from prompt_toolkit.shortcuts import prompt
+from prompt_toolkit.buffer import Buffer
+from prompt_toolkit.interface import Application
+from prompt_toolkit.shortcuts import run_application, create_prompt_layout
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.styles import style_from_pygments
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.validation import Validator, ValidationError
+from prompt_toolkit.filters import Condition
+
+from multiline import document_is_multiline_python
 
 from traceback import format_exc
 
@@ -37,6 +42,8 @@ def define_custom_keys(manager):
 class PythonSyntaxValidator(Validator):
     def validate(self, document):
         text = document.text
+        if document_is_multiline_python(document):
+            return
         try:
             compile(text, "<None>", 'exec')
         except SyntaxError as e:
@@ -53,12 +60,29 @@ if __name__ == '__main__':
 
     while True:
         try:
-            command = prompt('In [%s]: ' % prompt_number,
-                lexer=PygmentsLexer(PythonLexer),
-                style=style_from_pygments(MonokaiStyle), true_color=True,
-                history=history, enable_history_search=False,
+            def is_buffer_multiline():
+                return True
+                return document_is_multiline_python(buffer.document)
+
+            multiline = Condition(is_buffer_multiline)
+            buffer = Buffer(
+                enable_history_search=False,
+                is_multiline=multiline,
+                validator=PythonSyntaxValidator(),
+                history=history,
+                )
+            application = Application(
+                create_prompt_layout(
+                    message='In [%s]: ' % prompt_number,
+                    lexer=PygmentsLexer(PythonLexer),
+                    multiline=Condition(lambda cli: multiline())
+                    ),
+                buffer=buffer,
+                style=style_from_pygments(MonokaiStyle),
                 key_bindings_registry=manager.registry,
-                validator=PythonSyntaxValidator(), mouse_support=True)
+                mouse_support=True,
+            )
+            command = run_application(application, true_color=True)
         except EOFError:
             break
         except KeyboardInterrupt:
