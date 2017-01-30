@@ -75,6 +75,7 @@ def define_custom_keys(manager):
 
         multiline = '\n' in text or document_is_multiline_python(event.current_buffer.document)
         if text.replace(' ', '').endswith('\n') or not multiline:
+            # XXX: Should we be more careful if the cursor is not at the end?
             accept_line(event)
         else:
             event.current_buffer.newline()
