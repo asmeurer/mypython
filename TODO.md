@@ -4,3 +4,12 @@
 - Jedi completion
 - Automatic execution in multiline mode
 - Ctrl-D always exits
+- Make sure bracketed paste works
+- iTerm2 shell integration
+- Color theme
+- Figure out how to color the prompt
+- Continuation prompt
+- Force multiline with M-Enter
+- Make sure left/right arrow keys do line wrapping
+- Some kind of isympy support
+- https://github.com/jonathanslenders/python-prompt-toolkit/issues/416
