@@ -61,7 +61,6 @@ if __name__ == '__main__':
     while True:
         try:
             def is_buffer_multiline():
-                return True
                 return document_is_multiline_python(buffer.document)
 
             multiline = Condition(is_buffer_multiline)
