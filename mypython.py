@@ -61,6 +61,8 @@ if __name__ == '__main__':
                 validator=PythonSyntaxValidator(), mouse_support=True)
         except EOFError:
             break
+        except KeyboardInterrupt:
+            continue
 
         try:
             res = eval(command, _globals, _locals)
