@@ -12,9 +12,11 @@ from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.styles import style_from_pygments
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.key_binding.manager import KeyBindingManager
+from prompt_toolkit.key_binding.bindings.named_commands import accept_line
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.validation import Validator, ValidationError
 from prompt_toolkit.filters import Condition
+
 
 from multiline import document_is_multiline_python
 
@@ -58,6 +60,29 @@ def define_custom_keys(manager):
     @manager.registry.add_binding(Keys.ControlD)
     def exit(event):
         raise EOFError("Control-D")
+
+
+    is_returnable = Condition(
+        lambda cli: cli.current_buffer.accept_action.is_returnable)
+
+    @manager.registry.add_binding(Keys.Enter, filter=is_returnable)
+    def multiline_enter(event):
+        """
+        When not in multiline, execute. When in multiline, add a newline,
+        unless there is already blank line.
+        """
+        text = event.current_buffer.text
+
+        multiline = '\n' in text or document_is_multiline_python(event.current_buffer.document)
+        if text.replace(' ', '').endswith('\n') or not multiline:
+            accept_line(event)
+        else:
+            event.current_buffer.newline()
+
+    @manager.registry.add_binding(Keys.Escape, Keys.Enter)
+    def insert_newline(event):
+        event.current_buffer.newline()
+
 
 class PythonSyntaxValidator(Validator):
     def validate(self, document):
