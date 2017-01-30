@@ -145,7 +145,8 @@ if __name__ == '__main__':
                 # TODO: Don't show syntax error traceback
                 print(highlight(format_exc(), PythonTracebackLexer(), TerminalFormatter(bg='dark')))
             else:
-                prompt_number += 1
+                if command.strip():
+                    prompt_number += 1
         except BaseException as e:
             print(highlight(format_exc(), PythonTracebackLexer(), TerminalFormatter(bg='dark')))
         else:
