@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
-from pygments.lexers import PythonLexer
+from pygments.lexers import PythonLexer, PythonTracebackLexer
+from pygments.formatters import TerminalFormatter
+from pygments import highlight
+
 from prompt_toolkit.shortcuts import prompt
 from prompt_toolkit.layout.lexers import PygmentsLexer
 
-from traceback import print_exc
+from traceback import format_exc
 
 if __name__ == '__main__':
     prompt_number = 1
@@ -22,11 +25,11 @@ if __name__ == '__main__':
             try:
                 res = exec(command, _globals, _locals)
             except BaseException as e:
-                print_exc()
+                print(highlight(format_exc(), PythonTracebackLexer(), TerminalFormatter(bg='dark')))
             else:
                 prompt_number += 1
         except BaseException as e:
-            print_exc()
+            print(highlight(format_exc(), PythonTracebackLexer(), TerminalFormatter(bg='dark')))
         else:
             print(res)
             prompt_number += 1
