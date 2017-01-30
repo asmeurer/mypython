@@ -10,6 +10,5 @@
 - Figure out how to color the prompt
 - Continuation prompt
 - Force multiline with M-Enter
-- Make sure left/right arrow keys do line wrapping
 - Some kind of isympy support
 - https://github.com/jonathanslenders/python-prompt-toolkit/issues/416

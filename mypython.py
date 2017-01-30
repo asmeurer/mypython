@@ -39,6 +39,22 @@ def define_custom_keys(manager):
         finally:
             event.current_buffer.enable_history_search = prev_enable_history_search
 
+    @manager.registry.add_binding(Keys.Left)
+    def left_multiline(event):
+        """
+        Left that wraps around in multiline.
+        """
+        if event.current_buffer.cursor_position > 0:
+            event.current_buffer.cursor_position -= 1
+
+    @manager.registry.add_binding(Keys.Right)
+    def right_multiline(event):
+        """
+        Right that wraps around in multiline.
+        """
+        if event.current_buffer.cursor_position < len(event.current_buffer.text):
+            event.current_buffer.cursor_position += 1
+
 class PythonSyntaxValidator(Validator):
     def validate(self, document):
         text = document.text
