@@ -58,7 +58,7 @@ if __name__ == '__main__':
                 style=style_from_pygments(MonokaiStyle), true_color=True,
                 history=history, enable_history_search=False,
                 key_bindings_registry=manager.registry,
-                validator=PythonSyntaxValidator())
+                validator=PythonSyntaxValidator(), mouse_support=True)
         except EOFError:
             break
 
