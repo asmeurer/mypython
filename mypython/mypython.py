@@ -119,11 +119,11 @@ def get_continuation_tokens(cli, width):
     return [(Token, '.' * (width - 1) + ' ')]
 
 prompt_style = {
-    Token.In: '#ansigreen bold',
-    Token.Space: '#ansigreen bold',
-    Token.Bracket: '#ansigreen bold',
-    Token.InNumber: '#ansiblue bold',
-    Token.Colon: '#ansigreen bold',
+    Token.In: '#ansiwhite',
+    Token.Space: '#ansiwhite',
+    Token.Bracket: '#ansiwhite',
+    Token.InNumber: '#ansiblue',
+    Token.Colon: '#ansiwhite',
     }
 
 def get_prompt_tokens(cli):
