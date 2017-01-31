@@ -1,0 +1,114 @@
+"""
+Taken from ptpython.completer and ptpython.util
+
+Copyright (c) 2015, Jonathan Slenders
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice, this
+  list of conditions and the following disclaimer in the documentation and/or
+  other materials provided with the distribution.
+
+* Neither the name of the {organization} nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+from prompt_toolkit.completion import Completer, Completion
+
+def get_jedi_script_from_document(document, locals, globals):
+    import jedi  # We keep this import in-line, to improve start-up time.
+                 # Importing Jedi is 'slow'.
+
+    try:
+        return jedi.Interpreter(
+            document.text,
+            column=document.cursor_position_col,
+            line=document.cursor_position_row + 1,
+            path='input-text',
+            namespaces=[locals, globals])
+    except ValueError:
+        # Invalid cursor position.
+        # ValueError('`column` parameter is not in a valid range.')
+        return None
+    except AttributeError:
+        # Workaround for #65: https://github.com/jonathanslenders/python-prompt-toolkit/issues/65
+        # See also: https://github.com/davidhalter/jedi/issues/508
+        return None
+    except IndexError:
+        # Workaround Jedi issue #514: for https://github.com/davidhalter/jedi/issues/514
+        return None
+    except KeyError:
+        # Workaroud for a crash when the input is "u'", the start of a unicode string.
+        return None
+    except Exception:
+        # Workaround for: https://github.com/jonathanslenders/ptpython/issues/91
+        return None
+
+class PythonCompleter(Completer):
+    """
+    Completer for Python code.
+    """
+    def __init__(self, get_globals, get_locals):
+        super(PythonCompleter, self).__init__()
+
+        self.get_globals = get_globals
+        self.get_locals = get_locals
+
+    def _complete_python_while_typing(self, document):
+        char_before_cursor = document.char_before_cursor
+        return document.text and (
+            char_before_cursor.isalnum() or char_before_cursor in '_.')
+
+    def get_completions(self, document, complete_event):
+        """
+        Get Python completions.
+        """
+        # Do Jedi Python completions.
+        if complete_event.completion_requested or self._complete_python_while_typing(document):
+            script = get_jedi_script_from_document(document, self.get_locals(), self.get_globals())
+
+            if script:
+                try:
+                    completions = script.completions()
+                except TypeError:
+                    # Issue #9: bad syntax causes completions() to fail in jedi.
+                    # https://github.com/jonathanslenders/python-prompt-toolkit/issues/9
+                    pass
+                except UnicodeDecodeError:
+                    # Issue #43: UnicodeDecodeError on OpenBSD
+                    # https://github.com/jonathanslenders/python-prompt-toolkit/issues/43
+                    pass
+                except AttributeError:
+                    # Jedi issue #513: https://github.com/davidhalter/jedi/issues/513
+                    pass
+                except ValueError:
+                    # Jedi issue: "ValueError: invalid \x escape"
+                    pass
+                except KeyError:
+                    # Jedi issue: "KeyError: u'a_lambda'."
+                    # https://github.com/jonathanslenders/ptpython/issues/89
+                    pass
+                except IOError:
+                    # Jedi issue: "IOError: No such file or directory."
+                    # https://github.com/jonathanslenders/ptpython/issues/71
+                    pass
+                else:
+                    for c in completions:
+                        yield Completion(c.name_with_symbols, len(c.complete) - len(c.name_with_symbols),
+                                         display=c.name_with_symbols)

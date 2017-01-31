@@ -19,6 +19,7 @@ from prompt_toolkit.filters import Condition
 from prompt_toolkit.token import Token
 
 from .multiline import document_is_multiline_python, auto_newline
+from .completion import PythonCompleter
 
 from traceback import format_exc
 from textwrap import dedent
@@ -120,6 +121,7 @@ def main():
                 validator=PythonSyntaxValidator(),
                 history=history,
                 accept_action=AcceptAction.RETURN_DOCUMENT,
+                completer=PythonCompleter(lambda: _globals, lambda: _locals),
                 )
             application = Application(
                 create_prompt_layout(
