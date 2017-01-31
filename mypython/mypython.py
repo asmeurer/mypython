@@ -234,7 +234,7 @@ def main():
                 print(highlight(format_exc(), PythonTracebackLexer(), TerminalFormatter(bg='dark')))
                 o.set_command_status(1)
             else:
-                print(res)
+                print(repr(res))
 
 if __name__ == '__main__':
     main()
