@@ -9,7 +9,7 @@ from prompt_toolkit.interface import Application
 from prompt_toolkit.shortcuts import run_application, create_prompt_layout
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.styles import style_from_pygments
-from prompt_toolkit.history import InMemoryHistory
+from prompt_toolkit.history import FileHistory
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.key_binding.bindings.named_commands import accept_line
 from prompt_toolkit.keys import Keys
@@ -21,6 +21,8 @@ from .multiline import document_is_multiline_python, auto_newline
 from .completion import PythonCompleter
 from .theme import OneAM
 
+import os
+import sys
 import inspect
 from traceback import format_exc
 from textwrap import dedent
@@ -150,7 +152,14 @@ del sys
 def main():
     _globals = globals().copy()
     _locals = {}
-    history = InMemoryHistory()
+    os.makedirs(os.path.expanduser('~/.mypython/history'), exist_ok=True)
+    try:
+        tty_name = os.path.basename(os.ttyname(sys.stdout.fileno()))
+    except OSError:
+        tty_name = 'unknown'
+
+    history = FileHistory(os.path.expanduser('~/.mypython/history/%s_history'
+        % tty_name))
 
     manager = KeyBindingManager.for_prompt()
     define_custom_keys(manager)
