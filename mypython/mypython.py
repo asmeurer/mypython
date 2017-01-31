@@ -17,6 +17,8 @@ from prompt_toolkit.validation import Validator, ValidationError
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.token import Token
 
+import iterm2_tools
+
 from .multiline import document_is_multiline_python, auto_newline
 from .completion import PythonCompleter
 from .theme import OneAM
@@ -128,6 +130,7 @@ prompt_style = {
 
 def get_prompt_tokens(cli):
     return [
+        (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
         (Token.In, 'In'),
         (Token.Space, ' '),
         (Token.Bracket, '['),
@@ -135,6 +138,7 @@ def get_prompt_tokens(cli):
         (Token.Bracket, ']'),
         (Token.Colon, ':'),
         (Token.Space, ' '),
+        (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
     ]
 
 def normalize(command, _globals, _locals):
@@ -215,19 +219,22 @@ def main():
             continue
 
         command = normalize(command, _globals, _locals)
-        try:
-            res = eval(command, _globals, _locals)
-        except SyntaxError:
+        with iterm2_tools.Output() as o:
             try:
-                res = exec(command, _globals, _locals)
+                res = eval(command, _globals, _locals)
+            except SyntaxError:
+                try:
+                    res = exec(command, _globals, _locals)
+                except BaseException as e:
+                    # TODO: Don't show syntax error traceback
+                    # Also, the syntax error is in the frames (run 'a = sys.exc_info()')
+                    print(highlight(format_exc(), PythonTracebackLexer(), TerminalFormatter(bg='dark')))
+                    o.set_command_status(1)
             except BaseException as e:
-                # TODO: Don't show syntax error traceback
-                # Also, the syntax error is in the frames (run 'a = sys.exc_info()')
                 print(highlight(format_exc(), PythonTracebackLexer(), TerminalFormatter(bg='dark')))
-        except BaseException as e:
-            print(highlight(format_exc(), PythonTracebackLexer(), TerminalFormatter(bg='dark')))
-        else:
-            print(res)
+                o.set_command_status(1)
+            else:
+                print(res)
 
 if __name__ == '__main__':
     main()
