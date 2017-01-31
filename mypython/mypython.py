@@ -20,6 +20,7 @@ from prompt_toolkit.token import Token
 
 from .multiline import document_is_multiline_python, auto_newline
 from .completion import PythonCompleter
+from .theme import OneAM
 
 from traceback import format_exc
 from textwrap import dedent
@@ -149,7 +150,7 @@ def main():
                     get_continuation_tokens=get_continuation_tokens,
                     ),
                 buffer=buffer,
-                style=style_from_pygments(MonokaiStyle, prompt_style),
+                style=style_from_pygments(OneAM, {**prompt_style}),
                 key_bindings_registry=manager.registry,
                 mouse_support=True,
             )
