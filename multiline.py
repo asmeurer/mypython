@@ -97,3 +97,41 @@ def document_is_multiline_python(document):
         return True
 
     return False
+
+def auto_newline(buffer):
+    r"""
+    Insert \n at the cursor position. Also add necessary padding.
+    """
+    insert_text = buffer.insert_text
+
+    if buffer.document.current_line_after_cursor:
+        # When we are in the middle of a line. Always insert a newline.
+        insert_text('\n')
+    else:
+        # Go to new line, but also add indentation.
+        current_line = buffer.document.current_line_before_cursor.rstrip()
+        insert_text('\n')
+
+        unindent_keywords = ['pass', 'continue', 'break', 'return', 'raise']
+        # Unident if the last line ends with 'pass', remove four spaces.
+        for keyword in unindent_keywords:
+            begin = current_line.lstrip()
+            if begin.startswith(keyword + ' ') or begin == keyword:
+                unindent = True
+                break
+        else:
+            unindent = False
+
+        # Copy whitespace from current line
+        current_line2 = current_line[4:] if unindent else current_line
+
+        for c in current_line2:
+            if c.isspace():
+                insert_text(c)
+            else:
+                break
+
+        # If the last line ends with a colon, add four extra spaces.
+        if current_line[-1:] == ':':
+            for x in range(4):
+                insert_text(' ')

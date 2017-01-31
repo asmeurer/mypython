@@ -18,7 +18,7 @@ from prompt_toolkit.validation import Validator, ValidationError
 from prompt_toolkit.filters import Condition
 
 
-from multiline import document_is_multiline_python
+from multiline import document_is_multiline_python, auto_newline
 
 from traceback import format_exc
 
@@ -78,7 +78,7 @@ def define_custom_keys(manager):
             # XXX: Should we be more careful if the cursor is not at the end?
             accept_line(event)
         else:
-            event.current_buffer.newline()
+            auto_newline(event.current_buffer)
 
     @manager.registry.add_binding(Keys.Escape, Keys.Enter)
     def insert_newline(event):
