@@ -141,6 +141,13 @@ def normalize(command, _globals, _locals):
     else:
         return command
 
+def startup(_globals, _locals):
+    exec("""
+import sys
+sys.path.insert(0, '.')
+del sys
+""", _globals, _locals)
+
 def main():
     _globals = globals().copy()
     _locals = {}
@@ -148,6 +155,8 @@ def main():
 
     manager = KeyBindingManager.for_prompt()
     define_custom_keys(manager)
+
+    startup(_globals, _locals)
 
     while True:
         try:
