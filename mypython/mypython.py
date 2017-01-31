@@ -151,7 +151,7 @@ del sys
 
 def main():
     _globals = globals().copy()
-    _locals = {}
+    _locals = _globals
     os.makedirs(os.path.expanduser('~/.mypython/history'), exist_ok=True)
     try:
         tty_name = os.path.basename(os.ttyname(sys.stdout.fileno()))
