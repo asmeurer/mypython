@@ -11,3 +11,4 @@
 - ??
 - Better packaging
 - Tests?
+- Word boundaries for things like M-arrow
