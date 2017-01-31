@@ -13,3 +13,4 @@
 - Tests?
 - Word boundaries for things like M-arrow
 - Pygments thinks matmul @ is a decorator
+- Fallback to dir() completion on names when Jedi fails
