@@ -1,6 +1,5 @@
 # TODOs
 
-- Autoindent
 - Jedi completion
 - Make sure bracketed paste works
 - iTerm2 shell integration
