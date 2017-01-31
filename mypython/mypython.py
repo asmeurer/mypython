@@ -218,6 +218,7 @@ def main():
                 res = exec(command, _globals, _locals)
             except BaseException as e:
                 # TODO: Don't show syntax error traceback
+                # Also, the syntax error is in the frames (run 'a = sys.exc_info()')
                 print(highlight(format_exc(), PythonTracebackLexer(), TerminalFormatter(bg='dark')))
         except BaseException as e:
             print(highlight(format_exc(), PythonTracebackLexer(), TerminalFormatter(bg='dark')))
