@@ -2,7 +2,6 @@
 
 from pygments.lexers import PythonLexer, PythonTracebackLexer
 from pygments.formatters import TerminalFormatter
-from pygments.styles.monokai import MonokaiStyle
 from pygments import highlight
 
 from prompt_toolkit.buffer import Buffer, AcceptAction

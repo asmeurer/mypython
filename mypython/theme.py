@@ -3,8 +3,7 @@ Based on https://github.com/asmeurer/dotfiles/blob/master/.emacs.d/themes/1am-th
 
 Translated from http://raebear.net/comp/emacscolors.html
 """
-from pygments.token import Keyword, Name, Comment, String, Error, \
-     Number, Operator, Generic
+from pygments.token import Keyword, Name, Comment, String, Operator
 from pygments.style import Style
 
 class OneAM(Style):
