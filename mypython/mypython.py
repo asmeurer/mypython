@@ -36,6 +36,7 @@ def define_custom_keys(manager):
         buffer = event.current_buffer
         prev_enable_history_search = buffer.enable_history_search
         cursor_position = buffer.cursor_position
+        buffer.history_search_text = buffer.text[:cursor_position]
         try:
             buffer.enable_history_search = lambda: True
             buffer.history_backward(count=event.arg)
@@ -49,6 +50,7 @@ def define_custom_keys(manager):
         buffer = event.current_buffer
         prev_enable_history_search = buffer.enable_history_search
         cursor_position = buffer.cursor_position
+        buffer.history_search_text = buffer.text[:cursor_position]
         try:
             buffer.enable_history_search = lambda: True
             buffer.history_forward(count=event.arg)
