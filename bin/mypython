@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+
+import os
+import sys
+
+mypython_path = os.path.abspath(__file__)
+mypython_dir = os.path.dirname(mypython_path)
+mypython_top = os.path.split(mypython_dir)[0]
+mypython_dir = os.path.join(mypython_top, 'mypython')
+
+if os.path.isdir(mypython_dir):
+    sys.path.insert(0, mypython_top)
+
+from mypython.mypython import main
+
+if __name__ == '__main__':
+    main()

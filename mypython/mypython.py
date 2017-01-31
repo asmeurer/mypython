@@ -18,7 +18,7 @@ from prompt_toolkit.validation import Validator, ValidationError
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.token import Token
 
-from multiline import document_is_multiline_python, auto_newline
+from .multiline import document_is_multiline_python, auto_newline
 
 from traceback import format_exc
 from textwrap import dedent
@@ -99,7 +99,7 @@ class PythonSyntaxValidator(Validator):
 def get_continuation_tokens(cli, width):
     return [(Token, '.' * (width - 1) + ' ')]
 
-if __name__ == '__main__':
+def main():
     prompt_number = 1
     _globals = globals().copy()
     _locals = {}
@@ -158,3 +158,6 @@ if __name__ == '__main__':
         else:
             print(res)
             prompt_number += 1
+
+if __name__ == '__main__':
+    main()
