@@ -9,3 +9,4 @@
 - Fix scrolling with mouse support
 - ?
 - ??
+- Better packaging
