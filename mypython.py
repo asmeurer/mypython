@@ -16,7 +16,7 @@ from prompt_toolkit.key_binding.bindings.named_commands import accept_line
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.validation import Validator, ValidationError
 from prompt_toolkit.filters import Condition
-
+from prompt_toolkit.token import Token
 
 from multiline import document_is_multiline_python, auto_newline
 
@@ -95,6 +95,9 @@ class PythonSyntaxValidator(Validator):
         except SyntaxError as e:
             raise ValidationError(message="SyntaxError: %s" % e.args[0], cursor_position=e.offset)
 
+def get_continuation_tokens(cli, width):
+    return [(Token, '.' * (width - 1) + ' ')]
+
 if __name__ == '__main__':
     prompt_number = 1
     _globals = globals().copy()
@@ -122,6 +125,7 @@ if __name__ == '__main__':
                     message='In [%s]: ' % prompt_number,
                     lexer=PygmentsLexer(PythonLexer),
                     multiline=True,
+                    get_continuation_tokens=get_continuation_tokens,
                     ),
                 buffer=buffer,
                 style=style_from_pygments(MonokaiStyle),
