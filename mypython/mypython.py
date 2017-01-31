@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from pygments.lexers import PythonLexer, PythonTracebackLexer
+from pygments.lexers import Python3Lexer, Python3TracebackLexer
 from pygments.formatters import TerminalFormatter
 from pygments import highlight
 
@@ -153,7 +153,7 @@ def normalize(command, _globals, _locals):
         except Exception as e:
             print("Error: could not get source for '%s': %s" % (command[:-2], e))
         else:
-            print(highlight(source, PythonLexer(),
+            print(highlight(source, Python3Lexer(),
                 TerminalFormatter(style=OneAM)))
         return ''
     elif command.endswith('?'):
@@ -202,7 +202,7 @@ def main():
             application = Application(
                 create_prompt_layout(
                     get_prompt_tokens=get_prompt_tokens,
-                    lexer=PygmentsLexer(PythonLexer),
+                    lexer=PygmentsLexer(Python3Lexer),
                     multiline=True,
                     get_continuation_tokens=get_continuation_tokens,
                     ),
@@ -228,10 +228,10 @@ def main():
                 except BaseException as e:
                     # TODO: Don't show syntax error traceback
                     # Also, the syntax error is in the frames (run 'a = sys.exc_info()')
-                    print(highlight(format_exc(), PythonTracebackLexer(), TerminalFormatter(bg='dark')))
+                    print(highlight(format_exc(), Python3TracebackLexer(), TerminalFormatter(bg='dark')))
                     o.set_command_status(1)
             except BaseException as e:
-                print(highlight(format_exc(), PythonTracebackLexer(), TerminalFormatter(bg='dark')))
+                print(highlight(format_exc(), Python3TracebackLexer(), TerminalFormatter(bg='dark')))
                 o.set_command_status(1)
             else:
                 print(repr(res))
