@@ -28,23 +28,34 @@ from traceback import format_exc
 from textwrap import dedent
 
 def define_custom_keys(manager):
+    # XXX: These are a total hack. We should reimplement this manually, or
+    # upstream something better.
+
     @manager.registry.add_binding(Keys.Escape, 'p')
     def previous_history_search(event):
+        buffer = event.current_buffer
+        prev_enable_history_search = buffer.enable_history_search
+        cursor_position = buffer.cursor_position
         try:
-            prev_enable_history_search = event.current_buffer.enable_history_search
-            event.current_buffer.enable_history_search = lambda: True
-            event.current_buffer.history_backward(count=event.arg)
+            buffer.enable_history_search = lambda: True
+            buffer.history_backward(count=event.arg)
+            # Keep it from moving the cursor to the end of the line
+            buffer.cursor_position = cursor_position
         finally:
-            event.current_buffer.enable_history_search = prev_enable_history_search
+            buffer.enable_history_search = prev_enable_history_search
 
     @manager.registry.add_binding(Keys.Escape, 'P')
     def forward_history_search(event):
+        buffer = event.current_buffer
+        prev_enable_history_search = buffer.enable_history_search
+        cursor_position = buffer.cursor_position
         try:
-            prev_enable_history_search = event.current_buffer.enable_history_search
-            event.current_buffer.enable_history_search = lambda: True
-            event.current_buffer.history_forward(count=event.arg)
+            buffer.enable_history_search = lambda: True
+            buffer.history_forward(count=event.arg)
+            # Keep it from moving the cursor to the end of the line
+            buffer.cursor_position = cursor_position
         finally:
-            event.current_buffer.enable_history_search = prev_enable_history_search
+            buffer.enable_history_search = prev_enable_history_search
 
     @manager.registry.add_binding(Keys.Left)
     def left_multiline(event):
