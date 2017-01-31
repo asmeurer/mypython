@@ -120,7 +120,6 @@ def get_prompt_tokens(cli):
     ]
 
 def main():
-    prompt_number = 1
     _globals = globals().copy()
     _locals = {}
     history = InMemoryHistory()
@@ -145,7 +144,6 @@ def main():
             application = Application(
                 create_prompt_layout(
                     get_prompt_tokens=get_prompt_tokens,
-                    # message='In [%s]: ' % prompt_number,
                     lexer=PygmentsLexer(PythonLexer),
                     multiline=True,
                     get_continuation_tokens=get_continuation_tokens,
@@ -172,14 +170,10 @@ def main():
             except BaseException as e:
                 # TODO: Don't show syntax error traceback
                 print(highlight(format_exc(), PythonTracebackLexer(), TerminalFormatter(bg='dark')))
-            else:
-                if command.strip():
-                    prompt_number += 1
         except BaseException as e:
             print(highlight(format_exc(), PythonTracebackLexer(), TerminalFormatter(bg='dark')))
         else:
             print(res)
-            prompt_number += 1
 
 if __name__ == '__main__':
     main()
