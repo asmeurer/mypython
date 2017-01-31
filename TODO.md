@@ -12,3 +12,4 @@
 - Better packaging
 - Tests?
 - Word boundaries for things like M-arrow
+- Pygments thinks matmul @ is a decorator
