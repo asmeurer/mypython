@@ -190,7 +190,6 @@ def main():
                 buffer=buffer,
                 style=style_from_pygments(OneAM, {**prompt_style}),
                 key_bindings_registry=manager.registry,
-                mouse_support=True,
             )
             command = run_application(application, true_color=True)
         except EOFError:
