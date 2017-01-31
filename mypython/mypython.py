@@ -100,6 +100,25 @@ class PythonSyntaxValidator(Validator):
 def get_continuation_tokens(cli, width):
     return [(Token, '.' * (width - 1) + ' ')]
 
+prompt_style = {
+    Token.In: '#ansigreen bold',
+    Token.Space: '#ansigreen bold',
+    Token.Bracket: '#ansigreen bold',
+    Token.InNumber: '#ansiblue bold',
+    Token.Colon: '#ansigreen bold',
+    }
+
+def get_prompt_tokens(cli):
+    return [
+        (Token.In, 'In'),
+        (Token.Space, ' '),
+        (Token.Bracket, '['),
+        (Token.InNumber, str(len(cli.current_buffer.history)+1)),
+        (Token.Bracket, ']'),
+        (Token.Colon, ':'),
+        (Token.Space, ' '),
+    ]
+
 def main():
     prompt_number = 1
     _globals = globals().copy()
@@ -125,13 +144,14 @@ def main():
                 )
             application = Application(
                 create_prompt_layout(
-                    message='In [%s]: ' % prompt_number,
+                    get_prompt_tokens=get_prompt_tokens,
+                    # message='In [%s]: ' % prompt_number,
                     lexer=PygmentsLexer(PythonLexer),
                     multiline=True,
                     get_continuation_tokens=get_continuation_tokens,
                     ),
                 buffer=buffer,
-                style=style_from_pygments(MonokaiStyle),
+                style=style_from_pygments(MonokaiStyle, prompt_style),
                 key_bindings_registry=manager.registry,
                 mouse_support=True,
             )
