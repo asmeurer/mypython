@@ -22,6 +22,7 @@ from .multiline import document_is_multiline_python, auto_newline
 from .completion import PythonCompleter
 from .theme import OneAM
 
+import inspect
 from traceback import format_exc
 from textwrap import dedent
 
@@ -93,6 +94,8 @@ class PythonSyntaxValidator(Validator):
         text = dedent(document.text)
         if document_is_multiline_python(document):
             return
+        if text.endswith('?') and not text.endswith('???'):
+            return
         try:
             compile(text, "<None>", 'exec')
         except SyntaxError as e:
@@ -119,6 +122,24 @@ def get_prompt_tokens(cli):
         (Token.Colon, ':'),
         (Token.Space, ' '),
     ]
+
+def normalize(command, _globals, _locals):
+    command = dedent(command)
+    if command.endswith('???'):
+        # Too many
+        return command
+    elif command.endswith('??'):
+        try:
+            source = eval('inspect.getsource(%s)' % command[:-2], _globals,
+                {'inspect': inspect, **_locals})
+        except Exception as e:
+            print("Error: could not get source for '%s': %s" % (command[:-2], e))
+        else:
+            print(highlight(source, PythonLexer(),
+                TerminalFormatter(style=OneAM)))
+        return ''
+    else:
+        return command
 
 def main():
     _globals = globals().copy()
@@ -162,7 +183,7 @@ def main():
             print("KeyboardInterrupt")
             continue
 
-        command = dedent(command)
+        command = normalize(command, _globals, _locals)
         try:
             res = eval(command, _globals, _locals)
         except SyntaxError:
