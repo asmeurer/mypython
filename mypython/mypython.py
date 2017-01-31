@@ -150,6 +150,8 @@ def normalize(command, _globals, _locals):
             print(highlight(source, PythonLexer(),
                 TerminalFormatter(style=OneAM)))
         return ''
+    elif command.endswith('?'):
+        return 'help(%s)' % command[:-1]
     else:
         return command
 
