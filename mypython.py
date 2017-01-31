@@ -21,6 +21,7 @@ from prompt_toolkit.token import Token
 from multiline import document_is_multiline_python, auto_newline
 
 from traceback import format_exc
+from textwrap import dedent
 
 def define_custom_keys(manager):
     @manager.registry.add_binding(Keys.Escape, 'p')
@@ -87,7 +88,7 @@ def define_custom_keys(manager):
 
 class PythonSyntaxValidator(Validator):
     def validate(self, document):
-        text = document.text
+        text = dedent(document.text)
         if document_is_multiline_python(document):
             return
         try:
@@ -140,6 +141,7 @@ if __name__ == '__main__':
             print("KeyboardInterrupt")
             continue
 
+        command = dedent(command)
         try:
             res = eval(command, _globals, _locals)
         except SyntaxError:
