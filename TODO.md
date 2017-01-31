@@ -1,7 +1,5 @@
 # TODOs
 
-- Jedi completion
-- iTerm2 shell integration
 - Some kind of isympy support
 - https://github.com/jonathanslenders/python-prompt-toolkit/issues/416
 - Fix scrolling with mouse support
