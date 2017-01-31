@@ -7,3 +7,4 @@
 - Figure out how to color the prompt
 - Some kind of isympy support
 - https://github.com/jonathanslenders/python-prompt-toolkit/issues/416
+- Fix scrolling with mouse support
