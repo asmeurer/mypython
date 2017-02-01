@@ -14,3 +14,14 @@
 - pygments won't color variable names separately
 - PuDB integration
 - %timeit
+- Have to press TAB too many times to complete
+- Spellcheck on NameError
+- Highlight matching parens
+- Jedi completion within multiline inputs
+- Open command in EDITOR shortcut
+- Save Outs in _number
+- Better indication when no tab completions are found
+- Hard to tell left margin in multiline
+- Better history navigation in multiline
+- Better tracebacks from functions defined in the REPL
+- Tab at beginning of line in multiline should indent
