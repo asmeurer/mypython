@@ -169,7 +169,7 @@ def normalize(command, _globals, _locals):
         except Exception as e:
             print("Error: could not get source for '%s': %s" % (command[:-2], e))
         else:
-            print(highlight(source, Python3Lexer(),
+            pager(highlight(source, Python3Lexer(),
                 TerminalTrueColorFormatter(style=OneAMStyle)))
         return ''
     elif command.endswith('?'):
