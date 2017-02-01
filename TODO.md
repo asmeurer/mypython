@@ -13,3 +13,4 @@
 - pygments won't color True/False/None separately
 - pygments won't color variable names separately
 - PuDB integration
+- %timeit
