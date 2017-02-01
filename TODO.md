@@ -14,3 +14,4 @@
 - pygments won't color True/False/None separately
 - pygments won't color variable names separately
 - pygments coloring of tracebacks, ?? doesn't use theme
+- PuDB integration
