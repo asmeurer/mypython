@@ -6,7 +6,7 @@ from pygments import highlight
 
 from prompt_toolkit.buffer import Buffer, AcceptAction
 from prompt_toolkit.interface import Application
-from prompt_toolkit.shortcuts import run_application, create_prompt_layout
+from prompt_toolkit.shortcuts import run_application, create_prompt_layout, print_tokens
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.styles import style_from_pygments
 from prompt_toolkit.history import FileHistory
@@ -123,9 +123,13 @@ def get_continuation_tokens(cli, width):
 prompt_style = {
     Token.In: '#ansiwhite',
     Token.Space: '#ansiwhite',
-    Token.Bracket: '#ansiwhite',
+    Token.InBracket: '#ansiwhite',
     Token.InNumber: '#ansiblue',
-    Token.Colon: '#ansiwhite',
+    Token.InColon: '#ansiwhite',
+    Token.Out: '#ansired',
+    Token.OutBracket: '#ansired',
+    Token.OutNumber: '#ansiblue',
+    Token.OutColon: '#ansired',
     }
 
 def get_prompt_tokens(cli):
@@ -133,13 +137,24 @@ def get_prompt_tokens(cli):
         (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
         (Token.In, 'In'),
         (Token.Space, ' '),
-        (Token.Bracket, '['),
+        (Token.InBracket, '['),
         (Token.InNumber, str(len(cli.current_buffer.history)+1)),
-        (Token.Bracket, ']'),
-        (Token.Colon, ':'),
+        (Token.InBracket, ']'),
+        (Token.InColon, ':'),
         (Token.Space, ' '),
         (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
     ]
+
+def get_out_prompt_tokens(buffer):
+    return [
+        (Token.Out, 'Out'),
+        (Token.OutBracket, '['),
+        (Token.OutNumber, str(len(buffer.history)+1)),
+        (Token.OutBracket, ']'),
+        (Token.OutColon, ':'),
+        (Token.Space, ' '),
+    ]
+
 
 def normalize(command, _globals, _locals):
     command = dedent(command)
@@ -234,7 +249,9 @@ def main():
                 print(highlight(format_exc(), Python3TracebackLexer(), TerminalFormatter(bg='dark')))
                 o.set_command_status(1)
             else:
+                print_tokens(get_out_prompt_tokens(buffer), style=style_from_pygments(OneAM, {**prompt_style}))
                 print(repr(res))
+            print()
 
 if __name__ == '__main__':
     main()
