@@ -122,7 +122,6 @@ def get_continuation_tokens(cli, width):
 
 prompt_style = {
     Token.In: '#ansiwhite',
-    Token.Space: '#ansiwhite',
     Token.InBracket: '#ansiwhite',
     Token.InNumber: '#ansiblue',
     Token.InColon: '#ansiwhite',
