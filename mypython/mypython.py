@@ -18,6 +18,7 @@ from prompt_toolkit.filters import Condition
 from prompt_toolkit.token import Token
 
 import iterm2_tools
+import catimg
 
 from .multiline import document_is_multiline_python, auto_newline
 from .completion import PythonCompleter
@@ -181,6 +182,12 @@ import sys
 sys.path.insert(0, '.')
 del sys
 """, _globals, _locals)
+
+    print("Welcome to mypython.")
+    image = catimg.get_random_image()
+    if image:
+        print("Here is a cat:")
+        iterm2_tools.display_image_file(image)
 
 def main():
     _globals = globals().copy()
