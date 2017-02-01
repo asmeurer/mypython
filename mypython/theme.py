@@ -6,7 +6,8 @@ Translated from http://raebear.net/comp/emacscolors.html
 from pygments.token import Keyword, Name, Comment, String, Operator
 from pygments.style import Style
 
-class OneAM(Style):
+class OneAMStyle(Style):
+    default_style = ''
     styles = {
         String:              "#ff0000", # red
         String.Doc:          "#ffff00", # yellow
@@ -25,3 +26,12 @@ class OneAM(Style):
         Name.Variable:       "#a0522d", # sienna
 
     }
+
+# Uncomment this to register the style with pygments
+#
+# from pygments.styles import STYLE_MAP
+#
+# import sys
+#
+# STYLE_MAP['OneAM'] = 'OneAM::OneAMStyle'
+# sys.modules['pygments.styles.OneAM'] = sys.modules['mypython.theme']

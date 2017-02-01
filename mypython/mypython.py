@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from pygments.lexers import Python3Lexer, Python3TracebackLexer
-from pygments.formatters import TerminalFormatter
+from pygments.formatters import TerminalTrueColorFormatter
 from pygments import highlight
 
 from prompt_toolkit.buffer import Buffer, AcceptAction
@@ -22,13 +22,14 @@ import catimg
 
 from .multiline import document_is_multiline_python, auto_newline
 from .completion import PythonCompleter
-from .theme import OneAM
+from .theme import OneAMStyle
 
 import os
 import sys
 import inspect
 from traceback import format_exc
 from textwrap import dedent
+from pydoc import pager
 
 def define_custom_keys(manager):
     # XXX: These are a total hack. We should reimplement this manually, or
@@ -169,7 +170,7 @@ def normalize(command, _globals, _locals):
             print("Error: could not get source for '%s': %s" % (command[:-2], e))
         else:
             print(highlight(source, Python3Lexer(),
-                TerminalFormatter(style=OneAM)))
+                TerminalTrueColorFormatter(style=OneAMStyle)))
         return ''
     elif command.endswith('?'):
         return 'help(%s)' % command[:-1]
@@ -228,7 +229,7 @@ def main():
                     get_continuation_tokens=get_continuation_tokens,
                     ),
                 buffer=buffer,
-                style=style_from_pygments(OneAM, {**prompt_style}),
+                style=style_from_pygments(OneAMStyle, {**prompt_style}),
                 key_bindings_registry=manager.registry,
             )
             command = run_application(application, true_color=True)
@@ -249,13 +250,14 @@ def main():
                 except BaseException as e:
                     # TODO: Don't show syntax error traceback
                     # Also, the syntax error is in the frames (run 'a = sys.exc_info()')
-                    print(highlight(format_exc(), Python3TracebackLexer(), TerminalFormatter(bg='dark')))
+                    print(highlight(format_exc(), Python3TracebackLexer(),
+                        TerminalTrueColorFormatter(style=OneAMStyle)))
                     o.set_command_status(1)
             except BaseException as e:
-                print(highlight(format_exc(), Python3TracebackLexer(), TerminalFormatter(bg='dark')))
+                print(highlight(format_exc(), Python3TracebackLexer(), TerminalTrueColorFormatter(style=OneAMStyle)))
                 o.set_command_status(1)
             else:
-                print_tokens(get_out_prompt_tokens(buffer), style=style_from_pygments(OneAM, {**prompt_style}))
+                print_tokens(get_out_prompt_tokens(buffer), style=style_from_pygments(OneAMStyle, {**prompt_style}))
                 print(repr(res))
             print()
 
