@@ -40,6 +40,7 @@ without any additional work (unlike REPLs based on readline).
   without the need for any %paste magic or a special "paste" mode).
 - Emacs command editing keybindings.
 - Automatic syntax highlighting.
+- Matching parentheses highlighting.
 - Tab completion using [Jedi](https://github.com/davidhalter/jedi).
 - Per-terminal history.
 - A nice theme (the same one I use in emacs, called "1am", based on XCode's
