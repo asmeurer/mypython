@@ -27,6 +27,7 @@ from .theme import OneAMStyle
 import os
 import sys
 import inspect
+import re
 from traceback import format_exc
 from textwrap import dedent
 from pydoc import pager
@@ -144,6 +145,35 @@ def define_custom_keys(manager):
         Move to the beginning
         """
         event.current_buffer.cursor_position = len(event.current_buffer.text)
+
+    BLANK_LINES = re.compile(r'\S *(\n *\n)')
+    @manager.registry.add_binding(Keys.Escape, '}')
+    def forward_paragraph(event):
+        """
+        Move forward one paragraph of text
+        """
+        text = event.current_buffer.text
+        cursor_position = event.current_buffer.cursor_position
+        for m in BLANK_LINES.finditer(text):
+            if m.start(0) > cursor_position:
+                event.current_buffer.cursor_position = m.start(1)+1
+                return
+        event.current_buffer.cursor_position = len(text)
+
+
+    @manager.registry.add_binding(Keys.Escape, '{')
+    def back_paragraph(event):
+        """
+        Move back one paragraph of text
+        """
+        text = event.current_buffer.text
+        cursor_position = event.current_buffer.cursor_position
+
+        for m in BLANK_LINES.finditer(text[::-1]):
+            if m.start(0) > len(text) - cursor_position:
+                event.current_buffer.cursor_position = len(text) - m.end(1) + 1
+                return
+        event.current_buffer.cursor_position = 0
 
     @manager.registry.add_binding(Keys.Left)
     def left_multiline(event):
