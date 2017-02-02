@@ -8,14 +8,15 @@ from prompt_toolkit.buffer import Buffer, AcceptAction
 from prompt_toolkit.interface import Application
 from prompt_toolkit.shortcuts import run_application, create_prompt_layout, print_tokens
 from prompt_toolkit.layout.lexers import PygmentsLexer
-from prompt_toolkit.layout.processors import HighlightMatchingBracketProcessor
+from prompt_toolkit.layout.processors import (ConditionalProcessor,
+    HighlightMatchingBracketProcessor)
 from prompt_toolkit.styles import style_from_pygments
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.key_binding.bindings.named_commands import accept_line
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.validation import Validator, ValidationError
-from prompt_toolkit.filters import Condition
+from prompt_toolkit.filters import Condition, IsDone
 from prompt_toolkit.token import Token
 
 import iterm2_tools
@@ -341,9 +342,13 @@ def main():
                     multiline=True,
                     get_continuation_tokens=get_continuation_tokens,
                     display_completions_in_columns=True,
-                    # 20000 is ~most characters that fit on screen even with
-                    # really small font
-                    extra_input_processors=[HighlightMatchingBracketProcessor(max_cursor_distance=20000)],
+                    extra_input_processors=[
+                        ConditionalProcessor(
+                            # 20000 is ~most characters that fit on screen even with
+                            # really small font
+                            processor=HighlightMatchingBracketProcessor(max_cursor_distance=20000),
+                            filter=~IsDone()
+                        )],
                     ),
                 buffer=buffer,
                 style=style_from_pygments(OneAMStyle, {**prompt_style}),
