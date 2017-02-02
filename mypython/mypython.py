@@ -131,6 +131,20 @@ def define_custom_keys(manager):
         """
         event.current_buffer.history_forward(event.arg)
 
+    @manager.registry.add_binding(Keys.Escape, '<')
+    def beginning(event):
+        """
+        Move to the beginning
+        """
+        event.current_buffer.cursor_position = 0
+
+    @manager.registry.add_binding(Keys.Escape, '>')
+    def end(event):
+        """
+        Move to the beginning
+        """
+        event.current_buffer.cursor_position = len(event.current_buffer.text)
+
     @manager.registry.add_binding(Keys.Left)
     def left_multiline(event):
         """
