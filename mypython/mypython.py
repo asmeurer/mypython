@@ -278,8 +278,12 @@ def normalize(command, _globals, _locals):
         return command
     elif command.endswith('??'):
         try:
-            source = eval('inspect.getsource(%s)' % command[:-2], _globals,
-                {'inspect': inspect, **_locals})
+            try:
+                source = eval('inspect.getsource(%s)' % command[:-2], _globals,
+                    {'inspect': inspect, **_locals})
+            except TypeError:
+                source = eval('inspect.getsource(type(%s))' % command[:-2], _globals,
+                    {'inspect': inspect, **_locals})
         except Exception as e:
             print("Error: could not get source for '%s': %s" % (command[:-2], e))
         else:
