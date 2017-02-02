@@ -371,6 +371,8 @@ def main():
                 o.set_command_status(1)
             else:
                 print_tokens(get_out_prompt_tokens(buffer), style=style_from_pygments(OneAMStyle, {**prompt_style}))
+                _locals['_%s' % len(buffer.history)] = res
+                _locals['_'], _locals['__'], _locals['___'] = res, _locals.get('_'), _locals.get('__')
                 print(repr(res))
             print()
 
