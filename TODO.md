@@ -16,7 +16,6 @@
 - %timeit
 - Have to press TAB too many times to complete
 - Spellcheck on NameError
-- Highlight matching parens
 - Jedi completion within multiline inputs
 - Open command in EDITOR shortcut
 - Better indication when no tab completions are found
