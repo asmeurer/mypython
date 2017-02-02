@@ -224,7 +224,8 @@ def define_custom_keys(manager):
 class PythonSyntaxValidator(Validator):
     def validate(self, document):
         text = dedent(document.text)
-        if document_is_multiline_python(document):
+        if (document_is_multiline_python(document) and
+            not text.replace(' ', '').endswith('\n')):
             return
         if text.endswith('?') and not text.endswith('???'):
             return
