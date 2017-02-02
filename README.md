@@ -28,6 +28,11 @@ without any additional work (unlike REPLs based on readline).
 - Up arrow (at the top of the line) always goes to the previous command,
   regardless of the text before the cursor.
 - Same with down arrow.
+- You don't have to up/down arrow a bunch to navigate history with multiline
+  statements.
+- C-n/C-p always navigate history.
+- C-</C-> do what you'd expect from emacs.
+- C-{/C-} do what you'd expect from emacs.
 - M-p and M-P do reverse and forward history search (show previous commands
   that start with the text before the cursor).
 - Support for bracketed paste (pasting stuff in the terminal "just works"
@@ -38,7 +43,8 @@ without any additional work (unlike REPLs based on readline).
 - Per-terminal history.
 - A nice theme (the same one I use in emacs, called "1am", based on XCode's
   "midnight").
-- `stuff?` shows the help for `stuff`.
+- `stuff?` shows the help for `stuff`. Works even if `stuff` is a complex
+  expression.
 - `stuff??` shows the source for `stuff`.
 - Control-D always exits, regardless of where the cursor is.
 - Automatic "error" mode on syntax error. Move the cursor to the error.
