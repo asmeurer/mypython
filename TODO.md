@@ -25,3 +25,4 @@
 - End wants to add a newline after a \ in a string
 - M-;
 - https://github.com/jonathanslenders/python-prompt-toolkit/issues/455
+- Shift-arrow
