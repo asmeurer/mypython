@@ -304,6 +304,7 @@ del sys
 """, _globals, _locals)
 
     _locals['In'] = {}
+    _locals['Out'] = {}
 
     print("Welcome to mypython.")
     image = catimg.get_random_image()
@@ -392,6 +393,7 @@ def main():
                 print_tokens(get_out_prompt_tokens(buffer),
                     style=style_from_pygments(OneAMStyle, {**prompt_style}))
                 _locals['In'][prompt_number] = command
+                _locals['Out'][prompt_number] = res
                 _locals['_%s' % prompt_number] = res
                 _locals['_'], _locals['__'], _locals['___'] = res, _locals.get('_'), _locals.get('__')
                 print(repr(res))
