@@ -26,3 +26,7 @@
 - Better tracebacks from functions defined in the REPL
 - Tab at beginning of line in multiline should indent
 - Smarter multiline in a string literal
+- Syntax validation on multiline isn't working
+- Make M-p/M-P ignore leading whitespace
+- End wants to add a newline after a \ in a string
+- M-;
