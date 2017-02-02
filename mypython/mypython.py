@@ -150,7 +150,7 @@ def get_out_prompt_tokens(buffer):
     return [
         (Token.Out, 'Out'),
         (Token.OutBracket, '['),
-        (Token.OutNumber, str(len(buffer.history)+1)),
+        (Token.OutNumber, str(len(buffer.history))),
         (Token.OutBracket, ']'),
         (Token.OutColon, ':'),
         (Token.Space, ' '),
