@@ -31,6 +31,60 @@ from traceback import format_exc
 from textwrap import dedent
 from pydoc import pager
 
+class MyBuffer(Buffer):
+    """
+    Subclass of buffer that fixes some broken behavior of Buffer
+    """
+    def history_backward(self, count=1):
+        """
+        Move backwards through history.
+
+        Same as Buffer.history_backward except it moves the cursor to the
+        end of the first line.
+        """
+        self._set_history_search()
+
+        # Go back in history.
+        found_something = False
+
+        for i in range(self.working_index - 1, -1, -1):
+            if self._history_matches(i):
+                self.working_index = i
+                count -= 1
+                found_something = True
+            if count == 0:
+                break
+
+        # If we move to another entry, move the cursor to the beginning of the
+        # first line.
+        if found_something:
+            self.cursor_position = 0
+            self.cursor_position += self.document.get_end_of_line_position()
+
+    def history_forward(self, count=1):
+        """
+        Move forwards through the history.
+        :param count: Amount of items to move forward.
+
+        Same as Buffer.history_forward except it moves the cursor to the end.
+        """
+        self._set_history_search()
+
+        # Go forward in history.
+        found_something = False
+
+        for i in range(self.working_index + 1, len(self._working_lines)):
+            if self._history_matches(i):
+                self.working_index = i
+                count -= 1
+                found_something = True
+            if count == 0:
+                break
+
+        # If we found an entry, move the cursor to the end.
+        if found_something:
+            self.cursor_position = len(self.text)
+
 def define_custom_keys(manager):
     # XXX: These are a total hack. We should reimplement this manually, or
     # upstream something better.
@@ -62,6 +116,20 @@ def define_custom_keys(manager):
             buffer.cursor_position = cursor_position
         finally:
             buffer.enable_history_search = prev_enable_history_search
+
+    @manager.registry.add_binding(Keys.ControlP)
+    def history_backward(event):
+        """
+        Always backwards in history, even in multiline.
+        """
+        event.current_buffer.history_backward(event.arg)
+
+    @manager.registry.add_binding(Keys.ControlN)
+    def history_forward(event):
+        """
+        Always forwards in history, even in multiline.
+        """
+        event.current_buffer.history_forward(event.arg)
 
     @manager.registry.add_binding(Keys.Left)
     def left_multiline(event):
@@ -213,7 +281,7 @@ def main():
                 return document_is_multiline_python(buffer.document)
 
             multiline = Condition(is_buffer_multiline)
-            buffer = Buffer(
+            buffer = MyBuffer(
                 enable_history_search=False,
                 is_multiline=multiline,
                 validator=PythonSyntaxValidator(),
