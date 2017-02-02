@@ -339,6 +339,7 @@ def main():
                     lexer=PygmentsLexer(Python3Lexer),
                     multiline=True,
                     get_continuation_tokens=get_continuation_tokens,
+                    display_completions_in_columns=True,
                     ),
                 buffer=buffer,
                 style=style_from_pygments(OneAMStyle, {**prompt_style}),
