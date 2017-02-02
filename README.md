@@ -33,6 +33,7 @@ without any additional work (unlike REPLs based on readline).
 - C-n/C-p always navigate history.
 - C-</C-> do what you'd expect from emacs.
 - C-{/C-} do what you'd expect from emacs.
+- Outputs saved as `_NUM`. Previous outputs saved in `_`, `__`, and `___`.
 - M-p and M-P do reverse and forward history search (show previous commands
   that start with the text before the cursor).
 - Support for bracketed paste (pasting stuff in the terminal "just works"

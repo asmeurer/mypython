@@ -19,7 +19,6 @@
 - Highlight matching parens
 - Jedi completion within multiline inputs
 - Open command in EDITOR shortcut
-- Save Outs in _number
 - Better indication when no tab completions are found
 - Hard to tell left margin in multiline
 - Better history navigation in multiline
