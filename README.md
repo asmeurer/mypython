@@ -47,7 +47,8 @@ without any additional work (unlike REPLs based on readline).
   "midnight").
 - `stuff?` shows the help for `stuff`. Works even if `stuff` is a complex
   expression.
-- `stuff??` shows the source for `stuff`.
+- `stuff??` shows the source for `stuff`. Works even if `stuff` was defined
+  interactively.
 - Control-D always exits, regardless of where the cursor is.
 - Automatic "error" mode on syntax error. Move the cursor to the error.
 - [Shell integration](https://www.iterm2.com/documentation-shell-integration.html) with iTerm2.

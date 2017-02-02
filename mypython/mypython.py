@@ -30,6 +30,7 @@ import os
 import sys
 import inspect
 import re
+import linecache
 from traceback import format_exc
 from textwrap import dedent
 from pydoc import pager
@@ -271,6 +272,34 @@ def get_out_prompt_tokens(buffer):
         (Token.Space, ' '),
     ]
 
+def getsource(command, _globals, _locals):
+    # Enable getting the source for code defined in the REPL. Uses a similar
+    # pattern as the doctest module.
+    def _patched_linecache_getlines(filename, module_globals=None):
+        if filename == "<mypython>":
+            return '\n'.join(i for _, i in sorted(_locals['In'].items())).splitlines(keepends=True)
+        else:
+            return linecache._orig_getlines(filename, module_globals)
+
+    try:
+        linecache._orig_getlines = linecache.getlines
+        linecache.getlines = _patched_linecache_getlines
+        try:
+            source = eval('inspect.getsource(%s)' % command[:-2], _globals,
+                {'inspect': inspect, **_locals})
+        except TypeError:
+            source = eval('inspect.getsource(type(%s))' % command[:-2], _globals,
+                {'inspect': inspect, **_locals})
+    except Exception as e:
+        print("Error: could not get source for '%s': %s" % (command[:-2], e))
+    else:
+        pager(highlight(source, Python3Lexer(),
+            TerminalTrueColorFormatter(style=OneAMStyle)))
+    finally:
+        linecache.getlines = linecache._orig_getlines
+        del linecache._orig_getlines
+
+    return ''
 
 def normalize(command, _globals, _locals):
     command = dedent(command)
@@ -278,19 +307,7 @@ def normalize(command, _globals, _locals):
         # Too many
         return command
     elif command.endswith('??'):
-        try:
-            try:
-                source = eval('inspect.getsource(%s)' % command[:-2], _globals,
-                    {'inspect': inspect, **_locals})
-            except TypeError:
-                source = eval('inspect.getsource(type(%s))' % command[:-2], _globals,
-                    {'inspect': inspect, **_locals})
-        except Exception as e:
-            print("Error: could not get source for '%s': %s" % (command[:-2], e))
-        else:
-            pager(highlight(source, Python3Lexer(),
-                TerminalTrueColorFormatter(style=OneAMStyle)))
-        return ''
+        return getsource(command, _globals, _locals)
     elif command.endswith('?'):
         return 'help(%s)' % command[:-1]
     else:
@@ -374,10 +391,12 @@ def main():
         with iterm2_tools.Output() as o:
             prompt_number = len(buffer.history)
             try:
-                res = eval(command, _globals, _locals)
+                code = compile(command, '<mypython>', 'eval')
+                res = eval(code, _globals, _locals)
             except SyntaxError:
                 try:
-                    res = exec(command, _globals, _locals)
+                    code = compile(command, '<mypython>', 'exec')
+                    res = exec(code, _globals, _locals)
                 except BaseException as e:
                     # TODO: Don't show syntax error traceback
                     # Also, the syntax error is in the frames (run 'a = sys.exc_info()')
