@@ -25,3 +25,4 @@
 - Better history navigation in multiline
 - Better tracebacks from functions defined in the REPL
 - Tab at beginning of line in multiline should indent
+- Smarter multiline in a string literal
