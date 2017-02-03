@@ -26,3 +26,4 @@
 - M-;
 - https://github.com/jonathanslenders/python-prompt-toolkit/issues/455
 - Shift-arrow
+- Make it more unique in appearance
