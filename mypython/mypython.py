@@ -99,29 +99,44 @@ def define_custom_keys(manager):
     def previous_history_search(event):
         buffer = event.current_buffer
         prev_enable_history_search = buffer.enable_history_search
+        prev__history_matches = buffer.__class__._history_matches
         cursor_position = buffer.cursor_position
         buffer.history_search_text = buffer.text[:cursor_position]
         try:
             buffer.enable_history_search = lambda: True
+            buffer.__class__._history_matches = lambda self, i: (self.history_search_text is None or
+                dedent(self._working_lines[i]).startswith(dedent(self.history_search_text)))
+
             buffer.history_backward(count=event.arg)
             # Keep it from moving the cursor to the end of the line
             buffer.cursor_position = cursor_position
+            # Compensate for indented search results
+            buffer.text = dedent(buffer.text)
         finally:
             buffer.enable_history_search = prev_enable_history_search
+            buffer.__class__._history_matches = prev__history_matches
+
 
     @manager.registry.add_binding(Keys.Escape, 'P')
     def forward_history_search(event):
         buffer = event.current_buffer
         prev_enable_history_search = buffer.enable_history_search
+        prev__history_matches = buffer.__class__._history_matches
         cursor_position = buffer.cursor_position
         buffer.history_search_text = buffer.text[:cursor_position]
         try:
             buffer.enable_history_search = lambda: True
+            buffer.__class__._history_matches = lambda self, i: (self.history_search_text is None or
+                dedent(self._working_lines[i]).startswith(dedent(self.history_search_text)))
+
             buffer.history_forward(count=event.arg)
             # Keep it from moving the cursor to the end of the line
             buffer.cursor_position = cursor_position
+            # Compensate for indented search results
+            buffer.text = dedent(buffer.text)
         finally:
             buffer.enable_history_search = prev_enable_history_search
+            buffer.__class__._history_matches = prev__history_matches
 
     @manager.registry.add_binding(Keys.ControlP)
     def history_backward(event):
