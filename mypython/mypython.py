@@ -250,6 +250,13 @@ def define_custom_keys(manager):
         if indent:
             event.cli.current_buffer.cursor_position -= len(before_cursor) - indent.end(1)
 
+def dedent_return_document_handler(cli, buffer):
+    dedented_text = dedent(buffer.text)
+    buffer.cursor_position -= len(buffer.text) - len(dedented_text)
+    buffer.text = dedent(buffer.text)
+
+    return AcceptAction.RETURN_DOCUMENT.handler(cli, buffer)
+
 class PythonSyntaxValidator(Validator):
     def validate(self, document):
         text = dedent(document.text)
@@ -391,7 +398,7 @@ def main():
                 is_multiline=multiline,
                 validator=PythonSyntaxValidator(),
                 history=history,
-                accept_action=AcceptAction.RETURN_DOCUMENT,
+                accept_action=AcceptAction(dedent_return_document_handler),
                 completer=PythonCompleter(lambda: _globals, lambda: _locals),
                 )
             application = Application(

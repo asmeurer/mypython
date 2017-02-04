@@ -18,7 +18,6 @@
 - Open command in EDITOR shortcut
 - Better indication when no tab completions are found
 - Better tracebacks from functions defined in the REPL
-- Make M-p/M-P ignore leading whitespace
 - End wants to add a newline after a \ in a string
 - M-;
 - https://github.com/jonathanslenders/python-prompt-toolkit/issues/455
