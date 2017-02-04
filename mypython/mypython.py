@@ -22,7 +22,9 @@ from prompt_toolkit.token import Token
 import iterm2_tools
 import catimg
 
-from .multiline import document_is_multiline_python, auto_newline, TabShouldInsertWhitespaceFilter
+from .multiline import (ends_in_multiline_string,
+    document_is_multiline_python, auto_newline,
+    TabShouldInsertWhitespaceFilter)
 from .completion import PythonCompleter
 from .theme import OneAMStyle
 
@@ -209,10 +211,13 @@ def define_custom_keys(manager):
         unless there is already blank line.
         """
         text = event.current_buffer.text
-
-        multiline = '\n' in text or document_is_multiline_python(event.current_buffer.document)
-        if text.replace(' ', '').endswith('\n') or not multiline:
-            # XXX: Should we be more careful if the cursor is not at the end?
+        document = event.current_buffer.document
+        multiline = '\n' in text or document_is_multiline_python(document)
+        if ends_in_multiline_string(document):
+            auto_newline(event.current_buffer)
+        elif not multiline:
+            accept_line(event)
+        elif event.current_buffer.cursor_position == len(text) and text.replace(' ', '').endswith('\n'):
             accept_line(event)
         else:
             auto_newline(event.current_buffer)
@@ -246,6 +251,8 @@ def define_custom_keys(manager):
 class PythonSyntaxValidator(Validator):
     def validate(self, document):
         text = dedent(document.text)
+        if ends_in_multiline_string(document):
+            return
         if (document_is_multiline_python(document) and
             not text.replace(' ', '').endswith('\n')):
             return
