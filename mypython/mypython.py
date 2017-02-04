@@ -151,6 +151,8 @@ def define_custom_keys(manager):
         """
         event.current_buffer.cursor_position = len(event.current_buffer.text)
 
+    # Document.start_of_paragraph/end_of_paragraph don't treat multiple blank
+    # lines correctly.
     BLANK_LINES = re.compile(r'\S *(\n *\n)')
     @manager.registry.add_binding(Keys.Escape, '}')
     def forward_paragraph(event):
