@@ -62,24 +62,25 @@ def has_unclosed_brackets(text):
 
 _multiline_string_delims = re.compile('''[']{3}|["]{3}''')
 
+def ends_in_multiline_string(document):
+    """
+    ``True`` if we're inside a multiline string at the end of the text.
+    """
+    delims = _multiline_string_delims.findall(document.text)
+    opening = None
+    for delim in delims:
+        if opening is None:
+            opening = delim
+        elif delim == opening:
+            opening = None
+    return bool(opening)
+
 def document_is_multiline_python(document):
     """
     Determine whether this is a multiline Python document.
     """
-    def ends_in_multiline_string():
-        """
-        ``True`` if we're inside a multiline string at the end of the text.
-        """
-        delims = _multiline_string_delims.findall(document.text)
-        opening = None
-        for delim in delims:
-            if opening is None:
-                opening = delim
-            elif delim == opening:
-                opening = None
-        return bool(opening)
 
-    if '\n' in document.text or ends_in_multiline_string():
+    if '\n' in document.text or ends_in_multiline_string(document):
         return True
 
     def line_ends_with_colon():

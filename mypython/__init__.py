@@ -10,10 +10,11 @@ from .theme import OneAMStyle
 
 __all__ += ['OneAMStyle']
 
-from .multiline import (has_unclosed_brackets, document_is_multiline_python,
-    auto_newline, TabShouldInsertWhitespaceFilter)
+from .multiline import (has_unclosed_brackets, ends_in_multiline_string,
+    document_is_multiline_python, auto_newline,
+    TabShouldInsertWhitespaceFilter)
 
-__all__ += ['has_unclosed_brackets', 'document_is_multiline_python',
+__all__ += ['has_unclosed_brackets', 'ends_in_multiline_string', 'document_is_multiline_python',
     'auto_newline', 'TabShouldInsertWhitespaceFilter']
 
 from .completion import get_jedi_script_from_document, PythonCompleter
