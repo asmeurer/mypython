@@ -266,7 +266,10 @@ class PythonSyntaxValidator(Validator):
             raise ValidationError(message="SyntaxError: %s" % e.args[0], cursor_position=e.offset)
 
 def get_continuation_tokens(cli, width):
-    return [(Token, '\N{CLAPPING HANDS SIGN}'*((width - 1)//2) + ' ')]
+    return [
+        (Token.Clapping, '\N{CLAPPING HANDS SIGN}'*((width - 1)//2)),
+        (Token.VerticalLine, '⎢'),
+    ]
 
 prompt_style = {
     Token.In: '#ansiwhite',
@@ -277,6 +280,7 @@ prompt_style = {
     Token.OutBracket: '#ansired',
     Token.OutNumber: '#ansiblue',
     Token.OutColon: '#ansired',
+    Token.VerticalLine: '#757575', # grey50
     }
 
 def get_prompt_tokens(cli):

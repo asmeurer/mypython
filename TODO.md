@@ -17,7 +17,6 @@
 - Jedi completion within multiline inputs
 - Open command in EDITOR shortcut
 - Better indication when no tab completions are found
-- Hard to tell left margin in multiline
 - Better tracebacks from functions defined in the REPL
 - Make M-p/M-P ignore leading whitespace
 - End wants to add a newline after a \ in a string
