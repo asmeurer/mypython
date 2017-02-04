@@ -231,6 +231,18 @@ def define_custom_keys(manager):
         before_cursor = event.cli.current_buffer.document.current_line_before_cursor
         event.cli.current_buffer.insert_text(' '*(4 - len(before_cursor)%4))
 
+    LEADING_WHITESPACE = re.compile(r'( *)[^ ]?')
+    @manager.registry.add_binding(Keys.Escape, 'm')
+    def back_to_indentation(event):
+        """
+        Move back to the beginning of the line, ignoring whitespace.
+        """
+        current_line = event.cli.current_buffer.document.current_line
+        before_cursor = event.cli.current_buffer.document.current_line_before_cursor
+        indent = LEADING_WHITESPACE.search(current_line)
+        if indent:
+            event.cli.current_buffer.cursor_position -= len(before_cursor) - indent.end(1)
+
 class PythonSyntaxValidator(Validator):
     def validate(self, document):
         text = dedent(document.text)
