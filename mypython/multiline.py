@@ -1,5 +1,5 @@
 """
-Taken from ptpython.util
+Taken from ptpython.util and ptpython.key_bindings
 
 Copyright (c) 2015, Jonathan Slenders
 All rights reserved.
@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import re
 
+from prompt_toolkit.filters import Filter
 
 def has_unclosed_brackets(text):
     """
@@ -135,3 +136,17 @@ def auto_newline(buffer):
         if current_line[-1:] == ':':
             for x in range(4):
                 insert_text(' ')
+
+class TabShouldInsertWhitespaceFilter(Filter):
+    """
+    When the 'tab' key is pressed with only whitespace character before the
+    cursor, do autocompletion. Otherwise, insert indentation.
+    Except for the first character at the first line. Then always do a
+    completion. It doesn't make sense to start the first line with
+    indentation.
+    """
+    def __call__(self, cli):
+        b = cli.current_buffer
+        before_cursor = b.document.current_line_before_cursor
+
+        return bool(b.text and (not before_cursor or before_cursor.isspace()))
