@@ -266,7 +266,7 @@ class PythonSyntaxValidator(Validator):
             raise ValidationError(message="SyntaxError: %s" % e.args[0], cursor_position=e.offset)
 
 def get_continuation_tokens(cli, width):
-    return [(Token, '.' * (width - 1) + ' ')]
+    return [(Token, '\N{CLAPPING HANDS SIGN}'*((width - 1)//2) + ' ')]
 
 prompt_style = {
     Token.In: '#ansiwhite',
@@ -282,8 +282,8 @@ prompt_style = {
 def get_prompt_tokens(cli):
     return [
         (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
-        (Token.In, 'In'),
-        (Token.Space, ' '),
+        # The emoji messes up emacs, so use the escaped form
+        (Token.Snake, '\N{SNAKE}'*3),
         (Token.InBracket, '['),
         (Token.InNumber, str(len(cli.current_buffer.history)+1)),
         (Token.InBracket, ']'),
@@ -294,7 +294,7 @@ def get_prompt_tokens(cli):
 
 def get_out_prompt_tokens(buffer):
     return [
-        (Token.Out, 'Out'),
+        (Token.Computer, '\N{PERSONAL COMPUTER}'*3),
         (Token.OutBracket, '['),
         (Token.OutNumber, str(len(buffer.history))),
         (Token.OutBracket, ']'),

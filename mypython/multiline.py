@@ -79,7 +79,6 @@ def document_is_multiline_python(document):
     """
     Determine whether this is a multiline Python document.
     """
-
     if '\n' in document.text or ends_in_multiline_string(document):
         return True
 
