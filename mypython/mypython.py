@@ -222,7 +222,7 @@ def define_custom_keys(manager):
         event.current_buffer.newline()
 
     @manager.registry.add_binding(Keys.Tab, filter=TabShouldInsertWhitespaceFilter())
-    def _(event):
+    def indent(event):
         """
         When tab should insert whitespace, do that instead of completion.
         """
