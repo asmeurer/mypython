@@ -22,7 +22,7 @@ from prompt_toolkit.token import Token
 import iterm2_tools
 import catimg
 
-from .multiline import document_is_multiline_python, auto_newline
+from .multiline import document_is_multiline_python, auto_newline, TabShouldInsertWhitespaceFilter
 from .completion import PythonCompleter
 from .theme import OneAMStyle
 
@@ -221,6 +221,15 @@ def define_custom_keys(manager):
     def insert_newline(event):
         event.current_buffer.newline()
 
+    @manager.registry.add_binding(Keys.Tab, filter=TabShouldInsertWhitespaceFilter())
+    def _(event):
+        """
+        When tab should insert whitespace, do that instead of completion.
+        """
+        # Text before cursor on the line must be whitespace because of the
+        # TabShouldInsertWhitespaceFilter.
+        before_cursor = event.cli.current_buffer.document.current_line_before_cursor
+        event.cli.current_buffer.insert_text(' '*(4 - len(before_cursor)%4))
 
 class PythonSyntaxValidator(Validator):
     def validate(self, document):

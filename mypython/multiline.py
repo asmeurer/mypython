@@ -149,4 +149,4 @@ class TabShouldInsertWhitespaceFilter(Filter):
         b = cli.current_buffer
         before_cursor = b.document.current_line_before_cursor
 
-        return bool(b.text and (not before_cursor or before_cursor.isspace()))
+        return bool(not before_cursor or before_cursor.isspace())
