@@ -33,6 +33,7 @@ import sys
 import inspect
 import re
 import linecache
+import random
 from traceback import format_exc
 from textwrap import dedent
 from pydoc import pager
@@ -290,11 +291,23 @@ prompt_style = {
     Token.VerticalLine: '#757575', # grey50
     }
 
+# The emoji mess up emacs, so use the escaped forms
+emoji = [
+    ('\N{SNAKE}', '\N{PERSONAL COMPUTER}'),
+    ('\N{INBOX TRAY}', '\N{OUTBOX TRAY}'),
+    # iTerm2 doesn't make DARK SUNGLASSES double width
+    ('\N{DARK SUNGLASSES} ', '\N{SMILING FACE WITH SUNGLASSES}'),
+    ('\N{SUN WITH FACE}', '\N{LAST QUARTER MOON WITH FACE}'),
+    ('\N{FULL MOON WITH FACE}', '\N{NEW MOON WITH FACE}'),
+]
+
+IN, OUT = random.choice(emoji)
+
 def get_prompt_tokens(cli):
     return [
         (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
-        # The emoji messes up emacs, so use the escaped form
-        (Token.Snake, '\N{SNAKE}'*3),
+
+        (Token.Emoji, IN*3),
         (Token.InBracket, '['),
         (Token.InNumber, str(len(cli.current_buffer.history)+1)),
         (Token.InBracket, ']'),
@@ -305,7 +318,7 @@ def get_prompt_tokens(cli):
 
 def get_out_prompt_tokens(buffer):
     return [
-        (Token.Computer, '\N{PERSONAL COMPUTER}'*3),
+        (Token.Emoji, OUT*3),
         (Token.OutBracket, '['),
         (Token.OutNumber, str(len(buffer.history))),
         (Token.OutBracket, ']'),
