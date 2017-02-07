@@ -220,7 +220,8 @@ def define_custom_keys(manager):
         """
         text = event.current_buffer.text
         document = event.current_buffer.document
-        multiline = '\n' in text or document_is_multiline_python(document)
+        multiline = document_is_multiline_python(document)
+
         if ends_in_multiline_string(document):
             auto_newline(event.current_buffer)
         elif not multiline:
