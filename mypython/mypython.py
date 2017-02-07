@@ -394,6 +394,21 @@ del sys
     else:
         matplotlib.interactive(True)
 
+class NoResult:
+    pass
+
+def post_command(*, command, res, _globals, _locals, prompt_number, buffer):
+    _locals['In'][prompt_number] = command
+    if res is not NoResult:
+        print_tokens(get_out_prompt_tokens(buffer),
+            style=style_from_pygments(OneAMStyle, {**prompt_style}))
+
+        _locals['Out'][prompt_number] = res
+        _locals['_%s' % prompt_number] = res
+        _locals['_'], _locals['__'], _locals['___'] = res, _locals.get('_'), _locals.get('__')
+
+        print(repr(res))
+
 def main():
     _globals = globals().copy()
     _locals = _globals
@@ -469,18 +484,14 @@ def main():
                         TerminalTrueColorFormatter(style=OneAMStyle)))
                     o.set_command_status(1)
                 else:
-                    _locals['In'][prompt_number] = command
+                    post_command(command=command, res=NoResult, _globals=_globals,
+                        _locals=_locals, prompt_number=prompt_number, buffer=buffer)
             except BaseException as e:
                 print(highlight(format_exc(), Python3TracebackLexer(), TerminalTrueColorFormatter(style=OneAMStyle)))
                 o.set_command_status(1)
             else:
-                print_tokens(get_out_prompt_tokens(buffer),
-                    style=style_from_pygments(OneAMStyle, {**prompt_style}))
-                _locals['In'][prompt_number] = command
-                _locals['Out'][prompt_number] = res
-                _locals['_%s' % prompt_number] = res
-                _locals['_'], _locals['__'], _locals['___'] = res, _locals.get('_'), _locals.get('__')
-                print(repr(res))
+                post_command(command=command, res=res, _globals=_globals,
+                    _locals=_locals, prompt_number=prompt_number, buffer=buffer)
             print()
 
 if __name__ == '__main__':
