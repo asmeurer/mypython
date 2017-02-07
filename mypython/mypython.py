@@ -222,11 +222,13 @@ def define_custom_keys(manager):
         document = event.current_buffer.document
         multiline = document_is_multiline_python(document)
 
+        text_after_cursor = event.current_buffer.document.text_after_cursor
         if ends_in_multiline_string(document):
             auto_newline(event.current_buffer)
         elif not multiline:
             accept_line(event)
-        elif event.current_buffer.cursor_position == len(text) and text.replace(' ', '').endswith('\n'):
+        # isspace doesn't respect vacuous truth
+        elif (not text_after_cursor or text_after_cursor.isspace()) and text.replace(' ', '').endswith('\n'):
             accept_line(event)
         else:
             auto_newline(event.current_buffer)
