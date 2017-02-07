@@ -276,7 +276,8 @@ class PythonSyntaxValidator(Validator):
         try:
             compile(text, "<None>", 'exec')
         except SyntaxError as e:
-            raise ValidationError(message="SyntaxError: %s" % e.args[0], cursor_position=e.offset)
+            index = document.translate_row_col_to_index(e.lineno - 1,  (e.offset or 1) - 1)
+            raise ValidationError(message="SyntaxError: %s" % e.args[0], cursor_position=index)
 
 def get_continuation_tokens(cli, width):
     return [
