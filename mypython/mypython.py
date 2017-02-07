@@ -307,7 +307,7 @@ emoji = [
 
 IN, OUT = random.choice(emoji)
 
-def get_prompt_tokens(cli):
+def get_in_prompt_tokens(cli):
     return [
         (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
 
@@ -442,7 +442,7 @@ def main():
                 )
             application = Application(
                 create_prompt_layout(
-                    get_prompt_tokens=get_prompt_tokens,
+                    get_prompt_tokens=get_in_prompt_tokens,
                     lexer=PygmentsLexer(Python3Lexer),
                     multiline=True,
                     get_continuation_tokens=get_continuation_tokens,

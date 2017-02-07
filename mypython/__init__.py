@@ -1,9 +1,9 @@
 from .mypython import (define_custom_keys, PythonSyntaxValidator,
-    get_continuation_tokens, prompt_style, get_prompt_tokens,
+    get_continuation_tokens, prompt_style, get_in_prompt_tokens,
     get_out_prompt_tokens, normalize, startup, main)
 
 __all__ = ['define_custom_keys', 'PythonSyntaxValidator',
-    'get_continuation_tokens', 'prompt_style', 'get_prompt_tokens',
+    'get_continuation_tokens', 'prompt_style', 'get_in_prompt_tokens',
     'get_out_prompt_tokens', 'normalize', 'startup', 'main']
 
 from .theme import OneAMStyle
