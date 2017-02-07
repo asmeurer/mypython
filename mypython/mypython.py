@@ -5,9 +5,10 @@ from pygments.formatters import TerminalTrueColorFormatter
 from pygments import highlight
 
 from prompt_toolkit.buffer import Buffer, AcceptAction
-from prompt_toolkit.interface import Application
-from prompt_toolkit.shortcuts import (run_application, create_prompt_layout,
-    print_tokens, create_eventloop)
+from prompt_toolkit.interface import Application, CommandLineInterface
+from prompt_toolkit.shortcuts import (create_prompt_layout, print_tokens,
+    create_eventloop, create_output)
+from prompt_toolkit.document import Document
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.layout.processors import (ConditionalProcessor,
     HighlightMatchingBracketProcessor)
@@ -432,6 +433,9 @@ def main():
                 return document_is_multiline_python(buffer.document)
 
             multiline = Condition(is_buffer_multiline)
+
+            # This is based on prompt_toolkit.shortcuts.prompt() and
+            # prompt_toolkit.shortcuts.create_prompt_application().
             buffer = MyBuffer(
                 enable_history_search=False,
                 is_multiline=multiline,
@@ -459,7 +463,21 @@ def main():
                 style=style_from_pygments(OneAMStyle, {**prompt_style}),
                 key_bindings_registry=manager.registry,
             )
-            command = run_application(application, true_color=True, eventloop=create_eventloop(inputhook))
+            eventloop = create_eventloop(inputhook)
+            # This is based on run_application
+            cli = CommandLineInterface(
+                application=application,
+                eventloop=eventloop,
+                output=create_output(true_color=True))
+            # Replace stdout.
+            patch_context = cli.patch_stdout_context(raw=True)
+            with patch_context:
+                result = cli.run()
+            if isinstance(result, Document):  # Backwards-compatibility.
+                command = result.text
+            else:
+                command = result
+
         except EOFError:
             break
         except KeyboardInterrupt:
