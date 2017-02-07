@@ -22,5 +22,3 @@
 - M-;
 - https://github.com/jonathanslenders/python-prompt-toolkit/issues/455
 - Shift-arrow
-- Execution count doesn't update on same command
-- In/Out numbers sometimes don't match

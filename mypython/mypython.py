@@ -314,7 +314,7 @@ def get_in_prompt_tokens(cli):
 
         (Token.Emoji, IN*3),
         (Token.InBracket, '['),
-        (Token.InNumber, str(len(cli.current_buffer.history)+1)),
+        (Token.InNumber, str(cli.prompt_number)),
         (Token.InBracket, ']'),
         (Token.InColon, ':'),
         (Token.Space, ' '),
@@ -325,7 +325,7 @@ def get_out_prompt_tokens(cli):
     return [
         (Token.Emoji, OUT*3),
         (Token.OutBracket, '['),
-        (Token.OutNumber, str(len(cli.current_buffer.history))),
+        (Token.OutNumber, str(cli.prompt_number)),
         (Token.OutBracket, ']'),
         (Token.OutColon, ':'),
         (Token.Space, ' '),
@@ -398,7 +398,8 @@ del sys
 class NoResult:
     pass
 
-def post_command(*, command, res, _globals, _locals, prompt_number, cli):
+def post_command(*, command, res, _globals, _locals, cli):
+    prompt_number = cli.prompt_number
     _locals['In'][prompt_number] = command
     if res is not NoResult:
         print_tokens(get_out_prompt_tokens(cli),
@@ -427,6 +428,7 @@ def main():
 
     startup(_globals, _locals)
 
+    prompt_number = 1
     while True:
         try:
             def is_buffer_multiline():
@@ -469,6 +471,7 @@ def main():
                 application=application,
                 eventloop=eventloop,
                 output=create_output(true_color=True))
+            cli.prompt_number = prompt_number
             # Replace stdout.
             patch_context = cli.patch_stdout_context(raw=True)
             with patch_context:
@@ -487,7 +490,6 @@ def main():
 
         command = normalize(command, _globals, _locals)
         with iterm2_tools.Output() as o:
-            prompt_number = len(buffer.history)
             try:
                 code = compile(command, '<mypython>', 'eval')
                 res = eval(code, _globals, _locals)
@@ -503,13 +505,15 @@ def main():
                     o.set_command_status(1)
                 else:
                     post_command(command=command, res=NoResult, _globals=_globals,
-                        _locals=_locals, prompt_number=prompt_number, cli=cli)
+                        _locals=_locals, cli=cli)
+                    prompt_number += 1
             except BaseException as e:
                 print(highlight(format_exc(), Python3TracebackLexer(), TerminalTrueColorFormatter(style=OneAMStyle)))
                 o.set_command_status(1)
             else:
                 post_command(command=command, res=res, _globals=_globals,
-                    _locals=_locals, prompt_number=prompt_number, cli=cli)
+                    _locals=_locals, cli=cli)
+                prompt_number += 1
             print()
 
 if __name__ == '__main__':
