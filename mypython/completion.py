@@ -35,29 +35,17 @@ def get_jedi_script_from_document(document, locals, globals):
     import jedi  # We keep this import in-line, to improve start-up time.
                  # Importing Jedi is 'slow'.
 
+    full_document = '\n'.join(i for _, i in sorted(locals.get('In', {}).items()))
+
     try:
         return jedi.Interpreter(
-            document.text,
+            full_document + document.text,
             column=document.cursor_position_col,
-            line=document.cursor_position_row + 1,
+            line=document.cursor_position_row + len(full_document.splitlines()) + 1,
             path='input-text',
             namespaces=[locals, globals])
-    except ValueError:
-        # Invalid cursor position.
-        # ValueError('`column` parameter is not in a valid range.')
-        return None
-    except AttributeError:
-        # Workaround for #65: https://github.com/jonathanslenders/python-prompt-toolkit/issues/65
-        # See also: https://github.com/davidhalter/jedi/issues/508
-        return None
-    except IndexError:
-        # Workaround Jedi issue #514: for https://github.com/davidhalter/jedi/issues/514
-        return None
-    except KeyError:
-        # Workaroud for a crash when the input is "u'", the start of a unicode string.
-        return None
-    except Exception:
-        # Workaround for: https://github.com/jonathanslenders/ptpython/issues/91
+    except Exception as e:
+        # Workaround for many issues (see original code)
         return None
 
 class PythonCompleter(Completer):
