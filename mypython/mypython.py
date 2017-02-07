@@ -25,8 +25,7 @@ import iterm2_tools
 import catimg
 
 # This is needed to make matplotlib plots work
-from IPython.terminal.pt_inputhooks.osx import inputhook
-
+from .inputhook import inputhook
 from .multiline import (ends_in_multiline_string,
     document_is_multiline_python, auto_newline,
     TabShouldInsertWhitespaceFilter)
