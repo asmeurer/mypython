@@ -6,7 +6,8 @@ from pygments import highlight
 
 from prompt_toolkit.buffer import Buffer, AcceptAction
 from prompt_toolkit.interface import Application
-from prompt_toolkit.shortcuts import run_application, create_prompt_layout, print_tokens
+from prompt_toolkit.shortcuts import (run_application, create_prompt_layout,
+    print_tokens, create_eventloop)
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.layout.processors import (ConditionalProcessor,
     HighlightMatchingBracketProcessor)
@@ -21,6 +22,9 @@ from prompt_toolkit.token import Token
 
 import iterm2_tools
 import catimg
+
+# This is needed to make matplotlib plots work
+from IPython.terminal.pt_inputhooks.osx import inputhook
 
 from .multiline import (ends_in_multiline_string,
     document_is_multiline_python, auto_newline,
@@ -383,6 +387,13 @@ del sys
         print("Here is a cat:")
         iterm2_tools.display_image_file(image)
 
+    try:
+        import matplotlib
+    except ImportError:
+        pass
+    else:
+        matplotlib.interactive(True)
+
 def main():
     _globals = globals().copy()
     _locals = _globals
@@ -433,7 +444,7 @@ def main():
                 style=style_from_pygments(OneAMStyle, {**prompt_style}),
                 key_bindings_registry=manager.registry,
             )
-            command = run_application(application, true_color=True)
+            command = run_application(application, true_color=True, eventloop=create_eventloop(inputhook))
         except EOFError:
             break
         except KeyboardInterrupt:

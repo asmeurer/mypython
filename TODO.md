@@ -22,6 +22,5 @@
 - M-;
 - https://github.com/jonathanslenders/python-prompt-toolkit/issues/455
 - Shift-arrow
-- Make matplotlib work (https://stackoverflow.com/questions/42019739/how-to-build-a-python-repl-with-non-blocking-matplotlib-like-ipythons-matplot)
 - Execution count doesn't update on same command
 - In/Out numbers sometimes don't match
