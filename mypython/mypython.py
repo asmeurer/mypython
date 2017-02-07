@@ -509,7 +509,8 @@ def main():
                 else:
                     post_command(command=command, res=NoResult, _globals=_globals,
                         _locals=_locals, cli=cli)
-                    prompt_number += 1
+                    if command.strip():
+                        prompt_number += 1
             except BaseException as e:
                 print(highlight(format_exc(), Python3TracebackLexer(), TerminalTrueColorFormatter(style=OneAMStyle)))
                 o.set_command_status(1)
