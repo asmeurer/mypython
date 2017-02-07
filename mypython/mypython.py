@@ -320,11 +320,11 @@ def get_prompt_tokens(cli):
         (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
     ]
 
-def get_out_prompt_tokens(buffer):
+def get_out_prompt_tokens(cli):
     return [
         (Token.Emoji, OUT*3),
         (Token.OutBracket, '['),
-        (Token.OutNumber, str(len(buffer.history))),
+        (Token.OutNumber, str(len(cli.current_buffer.history))),
         (Token.OutBracket, ']'),
         (Token.OutColon, ':'),
         (Token.Space, ' '),
@@ -397,10 +397,10 @@ del sys
 class NoResult:
     pass
 
-def post_command(*, command, res, _globals, _locals, prompt_number, buffer):
+def post_command(*, command, res, _globals, _locals, prompt_number, cli):
     _locals['In'][prompt_number] = command
     if res is not NoResult:
-        print_tokens(get_out_prompt_tokens(buffer),
+        print_tokens(get_out_prompt_tokens(cli),
             style=style_from_pygments(OneAMStyle, {**prompt_style}))
 
         _locals['Out'][prompt_number] = res
@@ -485,13 +485,13 @@ def main():
                     o.set_command_status(1)
                 else:
                     post_command(command=command, res=NoResult, _globals=_globals,
-                        _locals=_locals, prompt_number=prompt_number, buffer=buffer)
+                        _locals=_locals, prompt_number=prompt_number, cli=cli)
             except BaseException as e:
                 print(highlight(format_exc(), Python3TracebackLexer(), TerminalTrueColorFormatter(style=OneAMStyle)))
                 o.set_command_status(1)
             else:
                 post_command(command=command, res=res, _globals=_globals,
-                    _locals=_locals, prompt_number=prompt_number, buffer=buffer)
+                    _locals=_locals, prompt_number=prompt_number, cli=cli)
             print()
 
 if __name__ == '__main__':
