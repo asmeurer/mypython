@@ -98,9 +98,9 @@ class MyBuffer(Buffer):
             self.cursor_position = len(self.text)
 
 def define_custom_keys(manager):
+
     # XXX: These are a total hack. We should reimplement this manually, or
     # upstream something better.
-
     @manager.registry.add_binding(Keys.Escape, 'p')
     def previous_history_search(event):
         buffer = event.current_buffer
