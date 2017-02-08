@@ -100,5 +100,7 @@ class PythonCompleter(Completer):
                     pass
                 else:
                     for c in completions:
-                        yield Completion(c.name_with_symbols, len(c.complete) - len(c.name_with_symbols),
-                                         display=c.name_with_symbols)
+                        yield Completion(c.name_with_symbols,
+                            len(c.complete) - len(c.name_with_symbols),
+                            display=c.name_with_symbols,
+                            display_meta=c.description)
