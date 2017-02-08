@@ -504,16 +504,15 @@ def main():
                 try:
                     code = compile(command, '<mypython>', 'exec')
                     res = exec(code, _globals, _locals)
+                    post_command(command=command, res=NoResult, _globals=_globals,
+                        _locals=_locals, cli=cli)
+                    prompt_number += 1
                 except BaseException as e:
                     # TODO: Don't show syntax error traceback
                     # Also, the syntax error is in the frames (run 'a = sys.exc_info()')
                     print(highlight(format_exc(), Python3TracebackLexer(),
                         TerminalTrueColorFormatter(style=OneAMStyle)))
                     o.set_command_status(1)
-                else:
-                    post_command(command=command, res=NoResult, _globals=_globals,
-                        _locals=_locals, cli=cli)
-                    prompt_number += 1
             except BaseException as e:
                 print(highlight(format_exc(), Python3TracebackLexer(), TerminalTrueColorFormatter(style=OneAMStyle)))
                 o.set_command_status(1)
