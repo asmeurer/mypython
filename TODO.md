@@ -7,7 +7,6 @@
 - Tests?
 - Word boundaries for things like M-arrow (https://github.com/jonathanslenders/python-prompt-toolkit/issues/458)
 - Pygments thinks matmul @ is a decorator (https://bitbucket.org/birkenfeld/pygments-main/issues/1194/support-python-35s-matrix-multiplication)
-- Fallback to dir() completion on names when Jedi fails
 - pygments won't color True/False/None separately
 - pygments won't color variable names separately
 - PuDB integration
