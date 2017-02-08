@@ -3,7 +3,12 @@
 # Changes:
 
 # - Removed all readline specific stuff
-# - Renamed Completer to DirCompleter (for compatibility with prompt_toolkit.Completer)
+
+# - Renamed Completer to DirCompleter (for compatibility with
+#   prompt_toolkit.Completer)
+
+# - Removed _callable_postfix (code that adds '(' to the completions) because
+#   I don't like it.
 
 # 1. This LICENSE AGREEMENT is between the Python Software Foundation ("PSF"), and
 #    the Individual or Organization ("Licensee") accessing and otherwise using Python
@@ -135,11 +140,6 @@ class DirCompleter:
         except IndexError:
             return None
 
-    def _callable_postfix(self, val, word):
-        if callable(val):
-            word = word + "("
-        return word
-
     def global_matches(self, text):
         """Compute matches when text is a simple name.
 
@@ -165,7 +165,7 @@ class DirCompleter:
             for word, val in nspace.items():
                 if word[:n] == text and word not in seen:
                     seen.add(word)
-                    matches.append(self._callable_postfix(val, word))
+                    matches.append(word)
         return matches
 
     def attr_matches(self, text):
@@ -211,11 +211,9 @@ class DirCompleter:
                     not (noprefix and word[:n+1] == noprefix)):
                     match = "%s.%s" % (expr, word)
                     try:
-                        val = getattr(thisobject, word)
+                        getattr(thisobject, word)
                     except Exception:
                         pass  # Include even if attribute not set
-                    else:
-                        match = self._callable_postfix(val, match)
                     matches.append(match)
             if matches or not noprefix:
                 break
