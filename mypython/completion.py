@@ -31,6 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 from prompt_toolkit.completion import Completer, Completion
 
+from .dircompletion import DirCompleter
+
 def get_jedi_script_from_document(document, locals, globals):
     import jedi  # We keep this import in-line, to improve start-up time.
                  # Importing Jedi is 'slow'.
@@ -69,8 +71,23 @@ class PythonCompleter(Completer):
         """
         Get Python completions.
         """
-        # Do Jedi Python completions.
         if complete_event.completion_requested or self._complete_python_while_typing(document):
+
+            # First do the dir completions (should be faster, and more
+            # accurate)
+            completer = DirCompleter(namespace=self.get_locals())
+            state = 0
+            while True:
+                completion = completer.complete(document.text_before_cursor,
+                    state)
+                print(completion)
+                if completion:
+                    yield Completion(completion,
+                            display_meta='from dir()')
+                    state += 1
+                else:
+                    break
+
             script = get_jedi_script_from_document(document, self.get_locals(), self.get_globals())
 
             if script:
