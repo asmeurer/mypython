@@ -217,7 +217,6 @@ def define_custom_keys(manager):
         When not in multiline, execute. When in multiline, add a newline,
         unless there is already blank line.
         """
-        text = event.current_buffer.text
         document = event.current_buffer.document
         multiline = document_is_multiline_python(document)
 
