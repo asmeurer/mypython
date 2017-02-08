@@ -80,7 +80,6 @@ class PythonCompleter(Completer):
             while True:
                 completion = completer.complete(document.text_before_cursor,
                     state)
-                print(completion)
                 if completion:
                     yield Completion(completion,
                             display_meta='from dir()')
