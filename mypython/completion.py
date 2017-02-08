@@ -36,13 +36,15 @@ def get_jedi_script_from_document(document, locals, globals):
                  # Importing Jedi is 'slow'.
 
     full_document = '\n'.join(i for _, i in sorted(locals.get('In', {}).items()))
+    if not full_document.endswith('\n'):
+        full_document += '\n'
 
     try:
         return jedi.Interpreter(
-            full_document + document.text,
+            full_document + '\n' + document.text,
             column=document.cursor_position_col,
-            line=document.cursor_position_row + len(full_document.splitlines()) + 1,
-            path='input-text',
+            line=document.cursor_position_row + 2 + len(full_document.splitlines()),
+            path='<mypython>',
             namespaces=[locals, globals])
     except Exception as e:
         # Workaround for many issues (see original code)
