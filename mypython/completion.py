@@ -85,7 +85,8 @@ class PythonCompleter(Completer):
                         state += 1
                         continue
                     yield Completion(completion,
-                            display_meta='from dir()')
+                        -len(document.text_before_cursor),
+                        display_meta='from dir()')
                     state += 1
                 else:
                     break
