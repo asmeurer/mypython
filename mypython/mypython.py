@@ -501,7 +501,7 @@ def main():
                 post_command(command=command, res=res, _globals=_globals,
                     _locals=_locals, cli=cli)
                 prompt_number += 1
-            except SyntaxError:
+            except SyntaxError as s:
                 try:
                     code = compile(command, '<mypython>', 'exec')
                     res = exec(code, _globals, _locals)
@@ -509,8 +509,16 @@ def main():
                         _locals=_locals, cli=cli)
                     prompt_number += 1
                 except BaseException as e:
-                    # TODO: Don't show syntax error traceback
-                    # Also, the syntax error is in the frames (run 'a = sys.exc_info()')
+                    # Remove the SyntaxError from the tracebacks. Note, the
+                    # SyntaxError is still in the frames (run 'a =
+                    # sys.exc_info()'). I don't know if this will be an issue,
+                    # but until it does, I'll leave it in for debugging (and
+                    # also I don't know how to remove it).
+                    c = e
+                    while c.__context__ != s:
+                        c = c.__context__
+                    c.__suppress_context__ = True
+
                     print(highlight(format_exc(), Python3TracebackLexer(),
                         TerminalTrueColorFormatter(style=OneAMStyle)))
                     o.set_command_status(1)
