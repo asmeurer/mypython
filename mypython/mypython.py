@@ -513,7 +513,8 @@ def main():
                     # SyntaxError is still in the frames (run 'a =
                     # sys.exc_info()'). I don't know if this will be an issue,
                     # but until it does, I'll leave it in for debugging (and
-                    # also I don't know how to remove it).
+                    # also I don't know how to remove it). We also should
+                    # probably remove the mypython lines from the traceback.
                     c = e
                     while c.__context__ != s:
                         c = c.__context__
