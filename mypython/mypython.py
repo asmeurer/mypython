@@ -449,6 +449,7 @@ def main():
                 history=history,
                 accept_action=AcceptAction(dedent_return_document_handler),
                 completer=PythonCompleter(lambda: _globals, lambda: _locals),
+                complete_while_typing=True,
                 )
             application = Application(
                 create_prompt_layout(
