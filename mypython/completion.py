@@ -81,6 +81,9 @@ class PythonCompleter(Completer):
                 completion = completer.complete(document.text_before_cursor,
                     state)
                 if completion:
+                    if len(completion) < len(document.text_before_cursor):
+                        state += 1
+                        continue
                     yield Completion(completion,
                             display_meta='from dir()')
                     state += 1
