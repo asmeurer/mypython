@@ -414,6 +414,7 @@ def post_command(*, command, res, _globals, _locals, cli):
 
         print(repr(res))
 
+
 def main():
     _globals = globals().copy()
     _locals = _globals
@@ -496,6 +497,9 @@ def main():
             try:
                 code = compile(command, '<mypython>', 'eval')
                 res = eval(code, _globals, _locals)
+                post_command(command=command, res=res, _globals=_globals,
+                    _locals=_locals, cli=cli)
+                prompt_number += 1
             except SyntaxError:
                 try:
                     code = compile(command, '<mypython>', 'exec')
@@ -513,10 +517,6 @@ def main():
             except BaseException as e:
                 print(highlight(format_exc(), Python3TracebackLexer(), TerminalTrueColorFormatter(style=OneAMStyle)))
                 o.set_command_status(1)
-            else:
-                post_command(command=command, res=res, _globals=_globals,
-                    _locals=_locals, cli=cli)
-                prompt_number += 1
             print()
 
 if __name__ == '__main__':
