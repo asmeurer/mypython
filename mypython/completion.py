@@ -31,18 +31,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 from prompt_toolkit.completion import Completer, Completion
 
+from .dircompletion import DirCompleter
+
 def get_jedi_script_from_document(document, locals, globals):
     import jedi  # We keep this import in-line, to improve start-up time.
                  # Importing Jedi is 'slow'.
 
     full_document = '\n'.join(i for _, i in sorted(locals.get('In', {}).items()))
+    if not full_document.endswith('\n'):
+        full_document += '\n'
 
     try:
         return jedi.Interpreter(
-            full_document + document.text,
+            full_document + '\n' + document.text,
             column=document.cursor_position_col,
-            line=document.cursor_position_row + len(full_document.splitlines()) + 1,
-            path='input-text',
+            line=document.cursor_position_row + 2 + len(full_document.splitlines()),
+            path='<mypython>',
             namespaces=[locals, globals])
     except Exception as e:
         # Workaround for many issues (see original code)
@@ -67,8 +71,26 @@ class PythonCompleter(Completer):
         """
         Get Python completions.
         """
-        # Do Jedi Python completions.
         if complete_event.completion_requested or self._complete_python_while_typing(document):
+
+            # First do the dir completions (should be faster, and more
+            # accurate)
+            completer = DirCompleter(namespace=self.get_locals())
+            state = 0
+            while True:
+                completion = completer.complete(document.text_before_cursor,
+                    state)
+                if completion:
+                    if len(completion) < len(document.text_before_cursor):
+                        state += 1
+                        continue
+                    yield Completion(completion,
+                        -len(document.text_before_cursor),
+                        display_meta='from dir()')
+                    state += 1
+                else:
+                    break
+
             script = get_jedi_script_from_document(document, self.get_locals(), self.get_globals())
 
             if script:
@@ -98,5 +120,7 @@ class PythonCompleter(Completer):
                     pass
                 else:
                     for c in completions:
-                        yield Completion(c.name_with_symbols, len(c.complete) - len(c.name_with_symbols),
-                                         display=c.name_with_symbols)
+                        yield Completion(c.name_with_symbols,
+                            len(c.complete) - len(c.name_with_symbols),
+                            display=c.name_with_symbols,
+                            display_meta=c.description)

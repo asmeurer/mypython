@@ -217,17 +217,17 @@ def define_custom_keys(manager):
         When not in multiline, execute. When in multiline, add a newline,
         unless there is already blank line.
         """
-        text = event.current_buffer.text
         document = event.current_buffer.document
         multiline = document_is_multiline_python(document)
 
         text_after_cursor = event.current_buffer.document.text_after_cursor
+        text_before_cursor = event.current_buffer.document.text_before_cursor
         if ends_in_multiline_string(document):
             auto_newline(event.current_buffer)
         elif not multiline:
             accept_line(event)
         # isspace doesn't respect vacuous truth
-        elif (not text_after_cursor or text_after_cursor.isspace()) and text.replace(' ', '').endswith('\n'):
+        elif (not text_after_cursor or text_after_cursor.isspace()) and text_before_cursor.replace(' ', '').endswith('\n'):
             accept_line(event)
         else:
             auto_newline(event.current_buffer)
@@ -414,6 +414,7 @@ def post_command(*, command, res, _globals, _locals, cli):
 
         print(repr(res))
 
+
 def main():
     _globals = globals().copy()
     _locals = _globals
@@ -448,6 +449,7 @@ def main():
                 history=history,
                 accept_action=AcceptAction(dedent_return_document_handler),
                 completer=PythonCompleter(lambda: _globals, lambda: _locals),
+                complete_while_typing=True,
                 )
             application = Application(
                 create_prompt_layout(
@@ -496,28 +498,35 @@ def main():
             try:
                 code = compile(command, '<mypython>', 'eval')
                 res = eval(code, _globals, _locals)
-            except SyntaxError:
+                post_command(command=command, res=res, _globals=_globals,
+                    _locals=_locals, cli=cli)
+                prompt_number += 1
+            except SyntaxError as s:
                 try:
                     code = compile(command, '<mypython>', 'exec')
                     res = exec(code, _globals, _locals)
-                except BaseException as e:
-                    # TODO: Don't show syntax error traceback
-                    # Also, the syntax error is in the frames (run 'a = sys.exc_info()')
-                    print(highlight(format_exc(), Python3TracebackLexer(),
-                        TerminalTrueColorFormatter(style=OneAMStyle)))
-                    o.set_command_status(1)
-                else:
                     post_command(command=command, res=NoResult, _globals=_globals,
                         _locals=_locals, cli=cli)
                     if command.strip():
                         prompt_number += 1
+                except BaseException as e:
+                    # Remove the SyntaxError from the tracebacks. Note, the
+                    # SyntaxError is still in the frames (run 'a =
+                    # sys.exc_info()'). I don't know if this will be an issue,
+                    # but until it does, I'll leave it in for debugging (and
+                    # also I don't know how to remove it). We also should
+                    # probably remove the mypython lines from the traceback.
+                    c = e
+                    while c.__context__ != s:
+                        c = c.__context__
+                    c.__suppress_context__ = True
+
+                    print(highlight(format_exc(), Python3TracebackLexer(),
+                        TerminalTrueColorFormatter(style=OneAMStyle)))
+                    o.set_command_status(1)
             except BaseException as e:
                 print(highlight(format_exc(), Python3TracebackLexer(), TerminalTrueColorFormatter(style=OneAMStyle)))
                 o.set_command_status(1)
-            else:
-                post_command(command=command, res=res, _globals=_globals,
-                    _locals=_locals, cli=cli)
-                prompt_number += 1
             print()
 
 if __name__ == '__main__':
