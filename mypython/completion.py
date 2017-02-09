@@ -77,10 +77,11 @@ class PythonCompleter(Completer):
             # accurate)
             completer = DirCompleter(namespace=self.get_locals())
             state = 0
+            dir_completions = set()
             while True:
-                completion = completer.complete(document.text_before_cursor,
-                    state)
+                completion = completer.complete(document.text_before_cursor, state)
                 if completion:
+                    dir_completions.add(completion)
                     if len(completion) < len(document.text_before_cursor):
                         state += 1
                         continue
@@ -120,6 +121,8 @@ class PythonCompleter(Completer):
                     pass
                 else:
                     for c in completions:
+                        if c.name_with_symbols in dir_completions:
+                            continue
                         yield Completion(c.name_with_symbols,
                             len(c.complete) - len(c.name_with_symbols),
                             display=c.name_with_symbols,
