@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# Define globals first so that names from this module don't get included
+_globals = globals().copy()
+
 from pygments.lexers import Python3Lexer, Python3TracebackLexer
 from pygments.formatters import TerminalTrueColorFormatter
 from pygments import highlight
@@ -416,7 +419,6 @@ def post_command(*, command, res, _globals, _locals, cli):
 
 
 def main():
-    _globals = globals().copy()
     _locals = _globals
     os.makedirs(os.path.expanduser('~/.mypython/history'), exist_ok=True)
     try:
