@@ -41,6 +41,7 @@ import inspect
 import re
 import linecache
 import random
+import ast
 from traceback import format_exc
 from textwrap import dedent
 from pydoc import pager
@@ -505,9 +506,17 @@ def main():
                 prompt_number += 1
             except SyntaxError as s:
                 try:
-                    code = compile(command, '<mypython>', 'exec')
-                    res = exec(code, _globals, _locals)
-                    post_command(command=command, res=NoResult, _globals=_globals,
+                    p = ast.parse(command)
+                    expr = None
+                    res = NoResult
+                    if isinstance(p.body[-1], ast.Expr):
+                        expr = p.body.pop()
+                    code = compile(p, '<mypython>', 'exec')
+                    exec(code, _globals, _locals)
+                    if expr:
+                        code = compile(ast.Expression(expr.value), '<mypython>', 'eval')
+                        res = eval(code, _globals, _locals)
+                    post_command(command=command, res=res, _globals=_globals,
                         _locals=_locals, cli=cli)
                     if command.strip():
                         prompt_number += 1
