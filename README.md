@@ -68,6 +68,7 @@ from [conda-forge](https://conda-forge.github.io/):
 - pygments
 - iterm2_tools
 - catimg
+- ipython
 
 # Configuration
 
