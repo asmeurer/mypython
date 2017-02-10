@@ -3,6 +3,7 @@
 # Changes:
 
 # - Changed the default in autorange to 10 seconds
+# - Changed the time intervals to use powers of 2
 
 # 1. This LICENSE AGREEMENT is between the Python Software Foundation ("PSF"), and
 #    the Individual or Organization ("Licensee") accessing and otherwise using Python
@@ -61,15 +62,15 @@ class MyTimer(Timer):
          """Return the number of loops so that total time >= 10.
 
          Calls the timeit method with *number* set to successive powers of
-         ten (10, 100, 1000, ...) up to a maximum of one billion, until
+         two (1, 2, 4, 8, ...) up to a maximum of 2**30, until
          the time taken is at least 10 seconds, or the maximum is reached.
          Returns ``(number, time_taken)``.
 
          If *callback* is given and is not None, it will be called after
          each trial with two arguments: ``callback(number, time_taken)``.
          """
-         for i in range(1, 10):
-             number = 10**i
+         for i in range(31):
+             number = 2**i
              time_taken = self.timeit(number)
              if callback:
                  callback(number, time_taken)
