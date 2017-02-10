@@ -279,6 +279,8 @@ class PythonSyntaxValidator(Validator):
             return
         if text.endswith('?') and not text.endswith('???'):
             return
+        if text.startswith('%') and ' ' in text:
+            return
         try:
             compile(text, "<None>", 'exec')
         except SyntaxError as e:
@@ -367,6 +369,22 @@ def getsource(command, _globals, _locals):
 
     return ''
 
+def magic(command):
+    """
+    You can do magic, you can have anything that you desire
+    """
+    if not ' ' in command:
+        return command
+    magic_command, rest = command.split(' ', 1)
+
+    if magic_command == '%timeit':
+        return """
+from mypython.timeit import MyTimer, time_format
+number, time_taken = MyTimer({rest!r}).autorange()
+print(time_format(number, time_taken))
+del MyTimer, time_format
+""".format(rest=rest)
+
 def normalize(command, _globals, _locals):
     command = dedent(command).strip()
     if command.endswith('???'):
@@ -376,6 +394,8 @@ def normalize(command, _globals, _locals):
         return getsource(command, _globals, _locals)
     elif command.endswith('?'):
         return 'help(%s)' % command[:-1]
+    elif command.startswith('%'):
+        return magic(command)
     else:
         return command
 
@@ -417,7 +437,6 @@ def post_command(*, command, res, _globals, _locals, cli):
         _locals['_'], _locals['__'], _locals['___'] = res, _locals.get('_'), _locals.get('__')
 
         print(repr(res))
-
 
 def main():
     _locals = _globals

@@ -10,7 +10,6 @@
 - pygments won't color True/False/None separately
 - pygments won't color variable names separately
 - PuDB integration
-- %timeit
 - Have to press TAB too many times to complete
 - Spellcheck on NameError
 - Jedi completion within multiline inputs
