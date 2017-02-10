@@ -50,6 +50,8 @@
 
 from timeit import Timer
 
+from IPython.core.magics.execution import _format_time
+
 class MyTimer(Timer):
     """
     Timer subclass with autorange
@@ -77,3 +79,9 @@ class MyTimer(Timer):
              if time_taken >= 10:
                  break
          return (number, time_taken)
+
+
+def time_format(number, time_taken):
+    avg = _format_time(time_taken/number)
+    s = 's' if number > 1 else ''
+    return "{number} loop{s}, {avg} average".format(number=number, avg=avg, s=s)
