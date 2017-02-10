@@ -438,6 +438,50 @@ def post_command(*, command, res, _globals, _locals, cli):
 
         print(repr(res))
 
+def get_cli(*, history, _globals, _locals, manager):
+    def is_buffer_multiline():
+        return document_is_multiline_python(buffer.document)
+
+    multiline = Condition(is_buffer_multiline)
+
+    # This is based on prompt_toolkit.shortcuts.prompt() and
+    # prompt_toolkit.shortcuts.create_prompt_application().
+    buffer = MyBuffer(
+        enable_history_search=False,
+        is_multiline=multiline,
+        validator=PythonSyntaxValidator(),
+        history=history,
+        accept_action=AcceptAction(dedent_return_document_handler),
+        completer=PythonCompleter(lambda: _globals, lambda: _locals),
+        complete_while_typing=True,
+        )
+    application = Application(
+        create_prompt_layout(
+            get_prompt_tokens=get_in_prompt_tokens,
+            lexer=PygmentsLexer(Python3Lexer),
+            multiline=True,
+            get_continuation_tokens=get_continuation_tokens,
+            display_completions_in_columns=True,
+            extra_input_processors=[
+                ConditionalProcessor(
+                    # 20000 is ~most characters that fit on screen even with
+                    # really small font
+                    processor=HighlightMatchingBracketProcessor(max_cursor_distance=20000),
+                    filter=~IsDone()
+                )],
+            ),
+        buffer=buffer,
+        style=style_from_pygments(OneAMStyle, {**prompt_style}),
+        key_bindings_registry=manager.registry,
+    )
+    eventloop = create_eventloop(inputhook)
+    # This is based on run_application
+    cli = CommandLineInterface(
+        application=application,
+        eventloop=eventloop,
+        output=create_output(true_color=True))
+    return cli
+
 def main():
     _locals = _globals
     os.makedirs(os.path.expanduser('~/.mypython/history'), exist_ok=True)
@@ -457,47 +501,8 @@ def main():
     prompt_number = 1
     while True:
         try:
-            def is_buffer_multiline():
-                return document_is_multiline_python(buffer.document)
-
-            multiline = Condition(is_buffer_multiline)
-
-            # This is based on prompt_toolkit.shortcuts.prompt() and
-            # prompt_toolkit.shortcuts.create_prompt_application().
-            buffer = MyBuffer(
-                enable_history_search=False,
-                is_multiline=multiline,
-                validator=PythonSyntaxValidator(),
-                history=history,
-                accept_action=AcceptAction(dedent_return_document_handler),
-                completer=PythonCompleter(lambda: _globals, lambda: _locals),
-                complete_while_typing=True,
-                )
-            application = Application(
-                create_prompt_layout(
-                    get_prompt_tokens=get_in_prompt_tokens,
-                    lexer=PygmentsLexer(Python3Lexer),
-                    multiline=True,
-                    get_continuation_tokens=get_continuation_tokens,
-                    display_completions_in_columns=True,
-                    extra_input_processors=[
-                        ConditionalProcessor(
-                            # 20000 is ~most characters that fit on screen even with
-                            # really small font
-                            processor=HighlightMatchingBracketProcessor(max_cursor_distance=20000),
-                            filter=~IsDone()
-                        )],
-                    ),
-                buffer=buffer,
-                style=style_from_pygments(OneAMStyle, {**prompt_style}),
-                key_bindings_registry=manager.registry,
-            )
-            eventloop = create_eventloop(inputhook)
-            # This is based on run_application
-            cli = CommandLineInterface(
-                application=application,
-                eventloop=eventloop,
-                output=create_output(true_color=True))
+            cli = get_cli(history=history, _locals=_locals, _globals=_globals,
+                manager=manager)
             cli.prompt_number = prompt_number
             # Replace stdout.
             patch_context = cli.patch_stdout_context(raw=True)
