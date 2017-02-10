@@ -119,6 +119,8 @@ class PythonCompleter(Completer):
                     # Jedi issue: "IOError: No such file or directory."
                     # https://github.com/jonathanslenders/ptpython/issues/71
                     pass
+                except NotImplementedError:
+                    pass
                 else:
                     for c in completions:
                         if c.name_with_symbols in dir_completions:
