@@ -368,7 +368,7 @@ def getsource(command, _globals, _locals):
     return ''
 
 def normalize(command, _globals, _locals):
-    command = dedent(command)
+    command = dedent(command).strip()
     if command.endswith('???'):
         # Too many
         return command
