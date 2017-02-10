@@ -498,6 +498,9 @@ def main():
 
         command = normalize(command, _globals, _locals)
         with iterm2_tools.Output() as o:
+            if not command:
+                print()
+                continue
             try:
                 code = compile(command, '<mypython>', 'eval')
                 res = eval(code, _globals, _locals)
