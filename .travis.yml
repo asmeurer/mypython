@@ -16,8 +16,9 @@ install:
   # Useful for debugging any issues with conda
   - conda info -a
 
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION prompt_toolkit pygments pyflakes
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION prompt_toolkit pygments pyflakes pytest
   - source activate test-environment
 
 script:
   - pyflakes mypython bin
+  - py.test
