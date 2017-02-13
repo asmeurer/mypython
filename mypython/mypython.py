@@ -437,7 +437,7 @@ def post_command(*, command, res, _globals, _locals, cli):
 
         print(repr(res))
 
-def get_cli(*, history, _globals, _locals, manager):
+def get_cli(*, history, _globals, _locals, manager, _input=None):
     def is_buffer_multiline():
         return document_is_multiline_python(buffer.document)
 
@@ -478,7 +478,9 @@ def get_cli(*, history, _globals, _locals, manager):
     cli = CommandLineInterface(
         application=application,
         eventloop=eventloop,
-        output=create_output(true_color=True))
+        output=create_output(true_color=True),
+        input=_input,
+    )
     return cli
 
 def main():
