@@ -278,7 +278,7 @@ class PythonSyntaxValidator(Validator):
             return
         if text.endswith('?') and not text.endswith('???'):
             return
-        if text.startswith('%') and ' ' in text:
+        if text.startswith('%timeit') and ' ' in text:
             return
         try:
             compile(text, "<None>", 'exec')
