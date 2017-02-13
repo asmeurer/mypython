@@ -495,10 +495,12 @@ def main():
     manager = KeyBindingManager(
         enable_abort_and_exit_bindings=True,
         enable_search=True,
+        # Not using now but may in the future
         enable_auto_suggest_bindings=True,
         enable_extra_page_navigation=True,
         # Needs prompt_toolkit release
         # enable_open_in_editor=True,
+        enable_system_bindings=True,
     )
     define_custom_keys(manager)
 
