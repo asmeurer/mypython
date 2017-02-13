@@ -437,6 +437,20 @@ def post_command(*, command, res, _globals, _locals, cli):
 
         print(repr(res))
 
+def get_manager():
+    manager = KeyBindingManager(
+        enable_abort_and_exit_bindings=True,
+        enable_search=True,
+        # Not using now but may in the future
+        enable_auto_suggest_bindings=True,
+        enable_extra_page_navigation=True,
+        # Needs prompt_toolkit release
+        # enable_open_in_editor=True,
+        enable_system_bindings=True,
+    )
+    define_custom_keys(manager)
+    return manager
+
 def get_eventloop():
     return create_eventloop(inputhook)
 
@@ -497,17 +511,7 @@ def main():
     history = FileHistory(os.path.expanduser('~/.mypython/history/%s_history'
         % tty_name))
 
-    manager = KeyBindingManager(
-        enable_abort_and_exit_bindings=True,
-        enable_search=True,
-        # Not using now but may in the future
-        enable_auto_suggest_bindings=True,
-        enable_extra_page_navigation=True,
-        # Needs prompt_toolkit release
-        # enable_open_in_editor=True,
-        enable_system_bindings=True,
-    )
-    define_custom_keys(manager)
+    manager = get_manager()
 
     startup(_globals, _locals)
 

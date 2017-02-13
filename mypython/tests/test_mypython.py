@@ -7,7 +7,8 @@ from prompt_toolkit.input import PipeInput
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.output import DummyOutput
 
-from ..mypython import get_cli, _globals as mypython_globals, get_eventloop, startup
+from ..mypython import (get_cli, _globals as mypython_globals, get_eventloop,
+    startup, get_manager)
 
 _test_globals = mypython_globals.copy()
 
@@ -20,7 +21,7 @@ def _cli_with_input(text, history=None, _globals=None, _locals=None,
     _globals = _globals or _test_globals.copy()
     _locals = _locals or _globals
     # TODO: Factor this out from main()
-    manager = manager or KeyBindingManager.for_prompt()
+    manager = manager or get_manager()
     _input = PipeInput()
     _input.send_text(text)
 
