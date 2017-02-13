@@ -7,7 +7,7 @@ from prompt_toolkit.input import PipeInput
 from prompt_toolkit.output import DummyOutput
 
 from ..mypython import (get_cli, _globals as mypython_globals, get_eventloop,
-    startup, get_manager)
+    startup, get_manager, normalize, magic)
 
 _test_globals = mypython_globals.copy()
 
@@ -57,3 +57,20 @@ def test_globals():
     assert _test_globals.keys() == {'__package__', '__loader__',
     '__name__', '__doc__', '__cached__', '__file__', '__builtins__',
     '__spec__'}
+
+def test_normalize():
+    _globals = _locals = _test_globals.copy()
+
+    def _normalize(command):
+        return normalize(command, _globals, _locals)
+
+    assert _normalize('1') == '1'
+    assert _normalize('  1') == '1'
+    assert _normalize('  1  ') == '1'
+    assert _normalize('  def test():\n      pass\n') == 'def test():\n    pass'
+    assert _normalize('test?') == 'help(test)'
+    # TODO: Make ?? testable
+    assert _normalize('test???') == 'test???'
+    assert _normalize('%timeit 1') == magic('%timeit 1')
+    assert _normalize('%notacommand') == '%notacommand'
+    assert _normalize('%notacommand 1') == '%notacommand 1'
