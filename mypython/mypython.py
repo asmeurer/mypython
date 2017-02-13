@@ -437,7 +437,10 @@ def post_command(*, command, res, _globals, _locals, cli):
 
         print(repr(res))
 
-def get_cli(*, history, _globals, _locals, manager, _input=None):
+def get_eventloop():
+    return create_eventloop(inputhook)
+
+def get_cli(*, history, _globals, _locals, manager, _input=None, output=None, eventloop=None):
     def is_buffer_multiline():
         return document_is_multiline_python(buffer.document)
 
@@ -473,14 +476,14 @@ def get_cli(*, history, _globals, _locals, manager, _input=None):
         style=style_from_pygments(OneAMStyle, {**prompt_style}),
         key_bindings_registry=manager.registry,
     )
-    eventloop = create_eventloop(inputhook)
     # This is based on run_application
     cli = CommandLineInterface(
         application=application,
-        eventloop=eventloop,
-        output=create_output(true_color=True),
+        eventloop=eventloop or get_eventloop(),
+        output=output or create_output(true_color=True),
         input=_input,
     )
+    cli.prompt_number = 0
     return cli
 
 def main():
