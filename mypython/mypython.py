@@ -497,6 +497,8 @@ def main():
         enable_search=True,
         enable_auto_suggest_bindings=True,
         enable_extra_page_navigation=True,
+        # Needs prompt_toolkit release
+        # enable_open_in_editor=True,
     )
     define_custom_keys(manager)
 
