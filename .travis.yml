@@ -7,9 +7,10 @@ env:
     - CONDA_PY="3.5"
     - CONDA_PY="3.6"
 
-allow_failures:
-  - env:
-    - CONDA_PY="3.6"
+matrix:
+  allow_failures:
+    - env:
+      - CONDA_PY="3.6"
 
 install:
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
