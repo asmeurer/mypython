@@ -18,7 +18,7 @@ install:
   # Useful for debugging any issues with conda
   - conda info -a
 
-  - conda create -q -n test-environment python=$CONDA_PY prompt_toolkit pygments pyflakes pytest iterm2_tools catimg matplotlib
+  - conda create -q -n test-environment python=$CONDA_PY prompt_toolkit pygments pyflakes pytest iterm2-tools catimg matplotlib
   - source activate test-environment
 
 script:
