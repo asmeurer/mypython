@@ -384,6 +384,8 @@ print(time_format(number, time_taken))
 del MyTimer, time_format
 """.format(rest=rest)
 
+    return command
+
 def normalize(command, _globals, _locals):
     command = dedent(command).strip()
     if command.endswith('???'):
