@@ -4,7 +4,6 @@ Based on prompt_toolkit.tests.test_cli
 
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.input import PipeInput
-from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.output import DummyOutput
 
 from ..mypython import (get_cli, _globals as mypython_globals, get_eventloop,
