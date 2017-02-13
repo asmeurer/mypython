@@ -101,7 +101,6 @@ class MyBuffer(Buffer):
             self.cursor_position = len(self.text)
 
 def define_custom_keys(manager):
-
     # XXX: These are a total hack. We should reimplement this manually, or
     # upstream something better.
     @manager.registry.add_binding(Keys.Escape, 'p')
@@ -493,7 +492,12 @@ def main():
     history = FileHistory(os.path.expanduser('~/.mypython/history/%s_history'
         % tty_name))
 
-    manager = KeyBindingManager.for_prompt()
+    manager = KeyBindingManager(
+        enable_abort_and_exit_bindings=True,
+        enable_search=True,
+        enable_auto_suggest_bindings=True,
+        enable_extra_page_navigation=True,
+    )
     define_custom_keys(manager)
 
     startup(_globals, _locals)
