@@ -5,9 +5,13 @@ Based on prompt_toolkit.tests.test_cli
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.input import PipeInput
 from prompt_toolkit.output import DummyOutput
+from prompt_toolkit.document import Document
+from prompt_toolkit.validation import ValidationError
 
 from ..mypython import (get_cli, _globals as mypython_globals, get_eventloop,
-    startup, get_manager, normalize, magic)
+    startup, get_manager, normalize, magic, PythonSyntaxValidator)
+
+from pytest import raises
 
 _test_globals = mypython_globals.copy()
 
@@ -74,3 +78,40 @@ def test_normalize():
     assert _normalize('%timeit 1') == magic('%timeit 1')
     assert _normalize('%notacommand') == '%notacommand'
     assert _normalize('%notacommand 1') == '%notacommand 1'
+
+def test_syntax_validator():
+    validator = PythonSyntaxValidator()
+
+    def validate(text):
+        return validator.validate(Document(text, len(text)))
+
+    def doesntvalidate(text):
+        raises(ValidationError, lambda: validate(text))
+
+    # Valid Python
+    validate('1')
+    validate('  1')
+    validate('')
+    validate(' ')
+    validate('\n')
+    validate('def test():\n    pass')
+    validate('a = 1')
+
+    # Incomplete multiline Python (also tested in test_multiline.py)
+    validate('def test():')
+    validate('"""')
+    validate('(')
+    validate('1 + \\')
+
+    # Custom extensions
+    validate('test?')
+    validate('test??')
+    validate('%timeit 1')
+
+    doesntvalidate('test???')
+    doesntvalidate('1 2')
+    doesntvalidate('a =')
+    doesntvalidate('def test():\n')
+    doesntvalidate('%timeit')
+    doesntvalidate('%notarealmagic')
+    doesntvalidate('%notarealmagic 1')
