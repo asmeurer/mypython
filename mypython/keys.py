@@ -39,20 +39,6 @@ def define_custom_keys(manager):
         finally:
             buffer.enable_history_search = prev_enable_history_search
 
-    @manager.registry.add_binding(Keys.ControlP)
-    def history_backward(event):
-        """
-        Always backwards in history, even in multiline.
-        """
-        event.current_buffer.history_backward(event.arg)
-
-    @manager.registry.add_binding(Keys.ControlN)
-    def history_forward(event):
-        """
-        Always forwards in history, even in multiline.
-        """
-        event.current_buffer.history_forward(event.arg)
-
     @manager.registry.add_binding(Keys.Escape, '<')
     def beginning(event):
         """

@@ -23,4 +23,3 @@
 - Easier way to copy multiline input to clipboard
 - Make TAB fill in common text from completions
 - Enter on multiline after arrowing
-- C-n/C-p in multiline mode
