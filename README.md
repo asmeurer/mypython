@@ -30,7 +30,6 @@ without any additional work (unlike REPLs based on readline).
 - Same with down arrow.
 - You don't have to up/down arrow a bunch to navigate history with multiline
   statements.
-- C-n/C-p always navigate history.
 - C-</C-> do what you'd expect from emacs.
 - C-{/C-} do what you'd expect from emacs.
 - Outputs saved as `_NUM`. Previous outputs saved in `_`, `__`, and `___`.

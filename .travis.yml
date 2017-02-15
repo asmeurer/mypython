@@ -1,12 +1,18 @@
-language: python
+language: generic
 
-python:
-  - 3.5
-  - 3.6
+os: osx
+
+env:
+  matrix:
+    - CONDA_PY="3.5"
+    - CONDA_PY="3.6"
+
+matrix:
+  allow_failures:
+    - env: CONDA_PY="3.6"
 
 install:
-  - sudo apt-get update
-  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
@@ -16,8 +22,9 @@ install:
   # Useful for debugging any issues with conda
   - conda info -a
 
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION prompt_toolkit pygments pyflakes
+  - conda create -q -n test-environment python=$CONDA_PY prompt_toolkit pygments pyflakes pytest iterm2-tools catimg matplotlib
   - source activate test-environment
 
 script:
   - pyflakes mypython bin
+  - py.test
