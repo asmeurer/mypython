@@ -21,3 +21,4 @@
 - https://github.com/jonathanslenders/python-prompt-toolkit/issues/455
 - Shift-arrow
 - Easier way to copy multiline input to clipboard
+- Only highlight parentheses when to the right of them
