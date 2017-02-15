@@ -215,7 +215,7 @@ def magic(command):
     if magic_command == '%timeit':
         return """
 from mypython.timeit import MyTimer, time_format
-number, time_taken = MyTimer({rest!r}).autorange()
+number, time_taken = MyTimer({rest!r}, globals=globals()).autorange()
 print(time_format(number, time_taken))
 del MyTimer, time_format
 """.format(rest=rest)
