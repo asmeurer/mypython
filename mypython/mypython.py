@@ -98,9 +98,9 @@ class MyBuffer(Buffer):
             self.cursor_position = len(self.text)
 
 def dedent_return_document_handler(cli, buffer):
-    dedented_text = dedent(buffer.text)
+    dedented_text = dedent(buffer.text).strip()
     buffer.cursor_position -= len(buffer.text) - len(dedented_text)
-    buffer.text = dedent(buffer.text)
+    buffer.text = dedented_text
 
     return AcceptAction.RETURN_DOCUMENT.handler(cli, buffer)
 
