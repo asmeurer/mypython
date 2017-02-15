@@ -24,3 +24,4 @@
 - Make TAB fill in common text from completions
 - Enter on multiline after arrowing
 - Only highlight parentheses when to the right of them
+- Ability to do history search in multiline
