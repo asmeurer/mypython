@@ -13,8 +13,7 @@ from prompt_toolkit.shortcuts import (create_prompt_layout, print_tokens,
     create_eventloop, create_output)
 from prompt_toolkit.document import Document
 from prompt_toolkit.layout.lexers import PygmentsLexer
-from prompt_toolkit.layout.processors import (ConditionalProcessor,
-    HighlightMatchingBracketProcessor)
+from prompt_toolkit.layout.processors import ConditionalProcessor
 from prompt_toolkit.styles import style_from_pygments
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.key_binding.manager import KeyBindingManager
@@ -32,6 +31,7 @@ from .multiline import (ends_in_multiline_string,
 from .completion import PythonCompleter
 from .theme import OneAMStyle
 from .keys import define_custom_keys
+from .processors import MyHighlightMatchingBracketProcessor
 
 import os
 import sys
@@ -320,7 +320,7 @@ def get_cli(*, history, _globals, _locals, manager, _input=None, output=None, ev
                 ConditionalProcessor(
                     # 20000 is ~most characters that fit on screen even with
                     # really small font
-                    processor=HighlightMatchingBracketProcessor(max_cursor_distance=20000),
+                    processor=MyHighlightMatchingBracketProcessor(max_cursor_distance=20000),
                     filter=~IsDone()
                 )],
             ),
