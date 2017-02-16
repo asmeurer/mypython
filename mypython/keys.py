@@ -76,6 +76,8 @@ def end(event):
 
 # Document.start_of_paragraph/end_of_paragraph don't treat multiple blank
 # lines correctly.
+
+# Gives the positions right before one or more blank lines
 BLANK_LINES = re.compile(r'\S *(\n *\n)')
 @r.add_binding(Keys.Escape, '}')
 def forward_paragraph(event):
