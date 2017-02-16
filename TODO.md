@@ -18,7 +18,6 @@
 - Better tracebacks from functions defined in the REPL
 - Enter wants to add a newline after a \ in a string
 - M-;
-- https://github.com/jonathanslenders/python-prompt-toolkit/issues/455
 - Shift-arrow
 - Easier way to copy multiline input to clipboard
 - Make TAB fill in common text from completions

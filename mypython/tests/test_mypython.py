@@ -9,14 +9,15 @@ from prompt_toolkit.document import Document
 from prompt_toolkit.validation import ValidationError
 
 from ..mypython import (get_cli, _globals as mypython_globals, get_eventloop,
-    startup, get_manager, normalize, magic, PythonSyntaxValidator)
+    startup, normalize, magic, PythonSyntaxValidator)
+from ..keys import get_registry
 
 from pytest import raises
 
 _test_globals = mypython_globals.copy()
 
 def _cli_with_input(text, history=None, _globals=None, _locals=None,
-    manager=None):
+    registry=None):
 
     assert text.endswith('\n')
 
@@ -24,7 +25,7 @@ def _cli_with_input(text, history=None, _globals=None, _locals=None,
     _globals = _globals or _test_globals.copy()
     _locals = _locals or _globals
     # TODO: Factor this out from main()
-    manager = manager or get_manager()
+    registry = registry or get_registry()
     _input = PipeInput()
     _input.send_text(text)
 
@@ -32,7 +33,7 @@ def _cli_with_input(text, history=None, _globals=None, _locals=None,
 
     try:
         cli = get_cli(history=history, _globals=_globals, _locals=_locals,
-            manager=manager, _input=_input, output=DummyOutput(), eventloop=eventloop)
+            registry=registry, _input=_input, output=DummyOutput(), eventloop=eventloop)
 
         result = cli.run()
         return result, cli

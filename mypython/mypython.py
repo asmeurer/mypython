@@ -16,7 +16,6 @@ from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.layout.processors import ConditionalProcessor
 from prompt_toolkit.styles import style_from_pygments
 from prompt_toolkit.history import FileHistory
-from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.validation import Validator, ValidationError
 from prompt_toolkit.filters import Condition, IsDone
 from prompt_toolkit.token import Token
@@ -30,7 +29,7 @@ from .multiline import (ends_in_multiline_string,
     document_is_multiline_python)
 from .completion import PythonCompleter
 from .theme import OneAMStyle
-from .keys import define_custom_keys
+from .keys import get_registry
 from .processors import MyHighlightMatchingBracketProcessor
 
 import os
@@ -279,24 +278,10 @@ def post_command(*, command, res, _globals, _locals, cli):
 
         print(repr(res))
 
-def get_manager():
-    manager = KeyBindingManager(
-        enable_abort_and_exit_bindings=True,
-        enable_search=True,
-        # Not using now but may in the future
-        enable_auto_suggest_bindings=True,
-        enable_extra_page_navigation=True,
-        # Needs prompt_toolkit release
-        # enable_open_in_editor=True,
-        enable_system_bindings=True,
-    )
-    define_custom_keys(manager)
-    return manager
-
 def get_eventloop():
     return create_eventloop(inputhook)
 
-def get_cli(*, history, _globals, _locals, manager, _input=None, output=None, eventloop=None):
+def get_cli(*, history, _globals, _locals, registry, _input=None, output=None, eventloop=None):
     def is_buffer_multiline():
         return document_is_multiline_python(buffer.document)
 
@@ -330,7 +315,7 @@ def get_cli(*, history, _globals, _locals, manager, _input=None, output=None, ev
             ),
         buffer=buffer,
         style=style_from_pygments(OneAMStyle, {**prompt_style, **style_extra}),
-        key_bindings_registry=manager.registry,
+        key_bindings_registry=registry,
     )
     # This is based on run_application
     cli = CommandLineInterface(
@@ -353,7 +338,7 @@ def main():
     history = FileHistory(os.path.expanduser('~/.mypython/history/%s_history'
         % tty_name))
 
-    manager = get_manager()
+    registry = get_registry()
 
     startup(_globals, _locals)
 
@@ -361,7 +346,7 @@ def main():
     while True:
         try:
             cli = get_cli(history=history, _locals=_locals, _globals=_globals,
-                manager=manager)
+                registry=registry)
             cli.prompt_number = prompt_number
             # Replace stdout.
             patch_context = cli.patch_stdout_context(raw=True)
