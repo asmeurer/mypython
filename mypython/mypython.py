@@ -140,6 +140,10 @@ prompt_style = {
     Token.VerticalLine: '#757575', # grey50
     }
 
+style_extra = {
+    Token.MatchingBracket.Other:   "bg:#0000ff", # blue
+}
+
 # The emoji mess up emacs, so use the escaped forms
 emoji = [
     ('\N{SNAKE}', '\N{PERSONAL COMPUTER}'),
@@ -325,7 +329,7 @@ def get_cli(*, history, _globals, _locals, manager, _input=None, output=None, ev
                 )],
             ),
         buffer=buffer,
-        style=style_from_pygments(OneAMStyle, {**prompt_style}),
+        style=style_from_pygments(OneAMStyle, {**prompt_style, **style_extra}),
         key_bindings_registry=manager.registry,
     )
     # This is based on run_application
