@@ -26,5 +26,5 @@ install:
   - source activate test-environment
 
 script:
-  - pyflakes mypython bin
+  - pyflakes mypython bin/mypython
   - py.test
