@@ -296,7 +296,10 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None, e
         history=history,
         accept_action=AcceptAction(dedent_return_document_handler),
         completer=PythonCompleter(lambda: _globals, lambda: _locals),
-        complete_while_typing=True,
+        # Needs to be False until
+        # https://github.com/jonathanslenders/python-prompt-toolkit/issues/472
+        # is fixed.
+        complete_while_typing=False,
         )
     application = Application(
         create_prompt_layout(
