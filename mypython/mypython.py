@@ -406,6 +406,7 @@ def main():
                         c = c.__context__
                     c.__suppress_context__ = True
 
+                    # TODO: remove lines from this file from the traceback
                     print(highlight(format_exc(), Python3TracebackLexer(),
                         TerminalTrueColorFormatter(style=OneAMStyle)))
                     o.set_command_status(1)
