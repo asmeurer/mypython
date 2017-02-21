@@ -1,3 +1,18 @@
+"""
+To define a magic %mymagic, define mymagic_magic(rest), where rest will be the
+text after the magic, e.g.,
+
+%mymagic 1
+
+rest will be '1'.
+
+Also, add the magic to
+
+To make things like ?? and Jedi completion recognize the result of the magic,
+return source code that should be executed. Otherwise, you can do the result
+directly in the function and return ''.
+"""
+
 def magic(command):
     """
     You can do magic, you can have anything that you desire
@@ -40,7 +55,8 @@ def doctest_magic(rest):
 
     return ''
 
-MAGICS = {
-    '%timeit': timeit_magic,
-    '%doctest': doctest_magic,
-    }
+MAGICS = {}
+
+for name in dir():
+    if name.endswith('_magic'):
+        MAGICS['%' + name[:-len('_magic')]] = globals()[name]
