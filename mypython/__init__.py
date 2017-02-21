@@ -24,3 +24,7 @@ __all__ += ['has_unclosed_brackets', 'ends_in_multiline_string', 'document_is_mu
 from .completion import get_jedi_script_from_document, PythonCompleter
 
 __all__ += ['get_jedi_script_from_document', 'PythonCompleter']
+
+from .magic import magic, MAGICS
+
+__all__ += ['magic', 'MAGICS']

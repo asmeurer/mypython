@@ -31,6 +31,7 @@ from .completion import PythonCompleter
 from .theme import OneAMStyle
 from .keys import get_registry
 from .processors import MyHighlightMatchingBracketProcessor
+from .magic import magic, MAGICS
 
 import os
 import sys
@@ -113,7 +114,7 @@ class PythonSyntaxValidator(Validator):
             return
         if text.endswith('?') and not text.endswith('???'):
             return
-        if any(text.startswith(i) for i in magics):
+        if any(text.startswith(i) for i in MAGICS):
             return
         try:
             compile(text, "<None>", 'exec')
@@ -155,6 +156,8 @@ emoji = [
 ]
 
 IN, OUT = random.choice(emoji)
+
+DOCTEST_MODE = False
 
 def get_in_prompt_tokens(cli):
     if DOCTEST_MODE:
@@ -216,55 +219,6 @@ def getsource(command, _globals, _locals):
         del linecache._orig_getlines
 
     return ''
-
-def magic(command):
-    """
-    You can do magic, you can have anything that you desire
-    """
-    if not ' ' in command:
-        magic_command, rest = command, ''
-    else:
-        magic_command, rest = command.split(' ', 1)
-
-    if magic_command not in magics:
-        return command
-
-    return magics[magic_command](rest)
-
-def timeit_magic(rest):
-    if not rest:
-        return """
-print('nothing to time')
-pass
-"""
-    return """
-from mypython.timeit import MyTimer, time_format
-number, time_taken = MyTimer({rest!r}, globals=globals()).autorange()
-print(time_format(number, time_taken))
-del MyTimer, time_format
-""".format(rest=rest)
-
-DOCTEST_MODE = False
-
-def doctest_magic(rest):
-    global DOCTEST_MODE
-
-    if rest:
-        print("%doctest takes no arguments")
-
-    DOCTEST_MODE ^= True
-
-    if DOCTEST_MODE:
-        print("doctest mode enabled")
-    else:
-        print("doctest mode disabled")
-
-    return ''
-
-magics = {
-    '%timeit': timeit_magic,
-    '%doctest': doctest_magic,
-    }
 
 def normalize(command, _globals, _locals):
     command = dedent(command).strip()
