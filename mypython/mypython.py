@@ -113,7 +113,7 @@ class PythonSyntaxValidator(Validator):
             return
         if text.endswith('?') and not text.endswith('???'):
             return
-        if text.startswith('%timeit') and ' ' in text:
+        if any(text.startswith(i) for i in magics):
             return
         try:
             compile(text, "<None>", 'exec')
@@ -212,18 +212,31 @@ def magic(command):
     You can do magic, you can have anything that you desire
     """
     if not ' ' in command:
-        return command
-    magic_command, rest = command.split(' ', 1)
+        magic_command, rest = command, ''
+    else:
+        magic_command, rest = command.split(' ', 1)
 
-    if magic_command == '%timeit':
+    if magic_command not in magics:
+        return command
+
+    return magics[magic_command](rest)
+
+def timeit_magic(rest):
+    if not rest:
         return """
+print('nothing to time')
+pass
+"""
+    return """
 from mypython.timeit import MyTimer, time_format
 number, time_taken = MyTimer({rest!r}, globals=globals()).autorange()
 print(time_format(number, time_taken))
 del MyTimer, time_format
 """.format(rest=rest)
 
-    return command
+magics = {
+    '%timeit': timeit_magic,
+    }
 
 def normalize(command, _globals, _locals):
     command = dedent(command).strip()
