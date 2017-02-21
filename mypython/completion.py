@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from prompt_toolkit.completion import Completer, Completion
 
 from .dircompletion import DirCompleter
+from .magic import MAGICS
 
 def get_jedi_script_from_document(document, locals, globals):
     import jedi  # We keep this import in-line, to improve start-up time.
@@ -71,6 +72,13 @@ class PythonCompleter(Completer):
         """
         Get Python completions.
         """
+        if document.text.startswith('%'):
+            for magic in MAGICS:
+                yield Completion(magic + ' ',
+                    -len(document.text_before_cursor),
+                    display_meta='magic')
+
+            return
         if complete_event.completion_requested or self._complete_python_while_typing(document):
 
             # First do the dir completions (should be faster, and more
