@@ -396,7 +396,7 @@ def main():
                     p = ast.parse(command)
                     expr = None
                     res = NoResult
-                    if isinstance(p.body[-1], ast.Expr):
+                    if p.body and isinstance(p.body[-1], ast.Expr):
                         expr = p.body.pop()
                     code = compile(p, '<mypython>', 'exec')
                     exec(code, _globals, _locals)
