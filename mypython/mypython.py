@@ -128,6 +128,7 @@ def get_continuation_tokens(cli, width):
     ]
 
 prompt_style = {
+    Token.DoctestIn: "#ansiwhite",
     Token.In: '#ansiwhite',
     Token.InBracket: '#ansiwhite',
     Token.InNumber: '#ansiblue',
@@ -156,6 +157,13 @@ emoji = [
 IN, OUT = random.choice(emoji)
 
 def get_in_prompt_tokens(cli):
+    if DOCTEST_MODE:
+        return [
+            (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
+            (Token.DoctestIn, '>>>'),
+            (Token.Space, ' '),
+            (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
+            ]
     return [
         (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
 
@@ -169,6 +177,8 @@ def get_in_prompt_tokens(cli):
     ]
 
 def get_out_prompt_tokens(cli):
+    if DOCTEST_MODE:
+        return []
     return [
         (Token.Emoji, OUT*3),
         (Token.OutBracket, '['),
@@ -234,8 +244,26 @@ print(time_format(number, time_taken))
 del MyTimer, time_format
 """.format(rest=rest)
 
+DOCTEST_MODE = False
+
+def doctest_magic(rest):
+    global DOCTEST_MODE
+
+    if rest:
+        print("%doctest takes no arguments")
+
+    DOCTEST_MODE ^= True
+
+    if DOCTEST_MODE:
+        print("doctest mode enabled")
+    else:
+        print("doctest mode disabled")
+
+    return ''
+
 magics = {
     '%timeit': timeit_magic,
+    '%doctest': doctest_magic,
     }
 
 def normalize(command, _globals, _locals):
@@ -426,7 +454,8 @@ def main():
             except BaseException as e:
                 print(highlight(format_exc(), Python3TracebackLexer(), TerminalTrueColorFormatter(style=OneAMStyle)))
                 o.set_command_status(1)
-            print()
+            if not DOCTEST_MODE:
+                print()
 
 if __name__ == '__main__':
     main()
