@@ -411,7 +411,8 @@ def main():
         command = normalize(command, _globals, _locals)
         with iterm2_tools.Output() as o:
             if not command:
-                print()
+                if not DOCTEST_MODE:
+                    print()
                 continue
             try:
                 code = compile(command, '<mypython>', 'eval')
