@@ -108,11 +108,11 @@ def test_syntax_validator():
     validate('test?')
     validate('test??')
     validate('%timeit 1')
+    validate('%timeit')
 
     doesntvalidate('test???')
     doesntvalidate('1 2')
     doesntvalidate('a =')
     doesntvalidate('def test():\n')
-    doesntvalidate('%timeit')
     doesntvalidate('%notarealmagic')
     doesntvalidate('%notarealmagic 1')
