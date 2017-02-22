@@ -352,7 +352,6 @@ def main():
 
 def main_loop(cli):
     try:
-        cli = cli
         # Replace stdout.
         patch_context = cli.patch_stdout_context(raw=True)
         with patch_context:
