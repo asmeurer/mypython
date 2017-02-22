@@ -323,7 +323,7 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None, e
         output=output or create_output(true_color=True),
         input=_input,
     )
-    cli.prompt_number = 0
+    cli.prompt_number = -1
     return cli
 
 def main():
