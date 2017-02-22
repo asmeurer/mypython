@@ -2,6 +2,7 @@
 
 # Define globals first so that names from this module don't get included
 _globals = globals().copy()
+_locals = _globals
 
 from pygments.lexers import Python3Lexer, Python3TracebackLexer
 from pygments.formatters import TerminalTrueColorFormatter
@@ -326,7 +327,6 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None, e
     return cli
 
 def main():
-    _locals = _globals
     os.makedirs(os.path.expanduser('~/.mypython/history'), exist_ok=True)
     try:
         tty_name = os.path.basename(os.ttyname(sys.stdout.fileno()))
