@@ -127,7 +127,13 @@ def test_syntax_validator():
     doesntvalidate('%notarealmagic 1')
 
 def test_main_loop():
-    result, cli = _cli_with_input('1\n', close=False)
+    from prompt_toolkit.shortcuts import create_eventloop
+    import signal
+    result, cli = _cli_with_input('1\n', eventloop=create_eventloop(), close=False)
+    def handler(s, f): raise KeyboardInterrupt
+    signal.signal(signal.SIGALRM, lambda s, f: handler(s, f))
+    signal.setitimer(signal.ITIMER_REAL, 1)
+
     main_loop(cli)
     cli.eventloop.close()
     cli.input.close()
