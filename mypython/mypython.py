@@ -339,78 +339,82 @@ def main():
     registry = get_registry()
 
     startup(_globals, _locals)
-
     prompt_number = 1
     while True:
-        try:
-            cli = get_cli(history=history, _locals=_locals, _globals=_globals,
+        cli = get_cli(history=history, _locals=_locals, _globals=_globals,
                 registry=registry)
-            cli.prompt_number = prompt_number
-            # Replace stdout.
-            patch_context = cli.patch_stdout_context(raw=True)
-            with patch_context:
-                result = cli.run()
-            if isinstance(result, Document):  # Backwards-compatibility.
-                command = result.text
-            else:
-                command = result
-
+        cli.prompt_number = prompt_number
+        try:
+            main_loop(cli)
         except EOFError:
             break
-        except KeyboardInterrupt:
-            # TODO: Keep it in the history
-            print("KeyboardInterrupt")
-            continue
+        prompt_number = cli.prompt_number
 
-        command = normalize(command, _globals, _locals)
-        with iterm2_tools.Output() as o:
-            if not command:
-                if not DOCTEST_MODE:
-                    print()
-                continue
-            try:
-                code = compile(command, '<mypython>', 'eval')
-                res = eval(code, _globals, _locals)
-                post_command(command=command, res=res, _globals=_globals,
-                    _locals=_locals, cli=cli)
-                prompt_number += 1
-            except SyntaxError as s:
-                try:
-                    p = ast.parse(command)
-                    expr = None
-                    res = NoResult
-                    if p.body and isinstance(p.body[-1], ast.Expr):
-                        expr = p.body.pop()
-                    code = compile(p, '<mypython>', 'exec')
-                    exec(code, _globals, _locals)
-                    if expr:
-                        code = compile(ast.Expression(expr.value), '<mypython>', 'eval')
-                        res = eval(code, _globals, _locals)
-                    post_command(command=command, res=res, _globals=_globals,
-                        _locals=_locals, cli=cli)
-                    if command.strip():
-                        prompt_number += 1
-                except BaseException as e:
-                    # Remove the SyntaxError from the tracebacks. Note, the
-                    # SyntaxError is still in the frames (run 'a =
-                    # sys.exc_info()'). I don't know if this will be an issue,
-                    # but until it does, I'll leave it in for debugging (and
-                    # also I don't know how to remove it). We also should
-                    # probably remove the mypython lines from the traceback.
-                    c = e
-                    while c.__context__ != s:
-                        c = c.__context__
-                    c.__suppress_context__ = True
+def main_loop(cli):
+    try:
+        cli = cli
+        # Replace stdout.
+        patch_context = cli.patch_stdout_context(raw=True)
+        with patch_context:
+            result = cli.run()
+        if isinstance(result, Document):  # Backwards-compatibility.
+            command = result.text
+        else:
+            command = result
+    except KeyboardInterrupt:
+        # TODO: Keep it in the history
+        print("KeyboardInterrupt")
+        return
 
-                    # TODO: remove lines from this file from the traceback
-                    print(highlight(format_exc(), Python3TracebackLexer(),
-                        TerminalTrueColorFormatter(style=OneAMStyle)))
-                    o.set_command_status(1)
-            except BaseException as e:
-                print(highlight(format_exc(), Python3TracebackLexer(), TerminalTrueColorFormatter(style=OneAMStyle)))
-                o.set_command_status(1)
+    command = normalize(command, _globals, _locals)
+    with iterm2_tools.Output() as o:
+        if not command:
             if not DOCTEST_MODE:
                 print()
+            return
+        try:
+            code = compile(command, '<mypython>', 'eval')
+            res = eval(code, _globals, _locals)
+            post_command(command=command, res=res, _globals=_globals,
+                _locals=_locals, cli=cli)
+            cli.prompt_number += 1
+        except SyntaxError as s:
+            try:
+                p = ast.parse(command)
+                expr = None
+                res = NoResult
+                if p.body and isinstance(p.body[-1], ast.Expr):
+                    expr = p.body.pop()
+                code = compile(p, '<mypython>', 'exec')
+                exec(code, _globals, _locals)
+                if expr:
+                    code = compile(ast.Expression(expr.value), '<mypython>', 'eval')
+                    res = eval(code, _globals, _locals)
+                post_command(command=command, res=res, _globals=_globals,
+                    _locals=_locals, cli=cli)
+                if command.strip():
+                    cli.prompt_number += 1
+            except BaseException as e:
+                # Remove the SyntaxError from the tracebacks. Note, the
+                # SyntaxError is still in the frames (run 'a =
+                # sys.exc_info()'). I don't know if this will be an issue,
+                # but until it does, I'll leave it in for debugging (and
+                # also I don't know how to remove it). We also should
+                # probably remove the mypython lines from the traceback.
+                c = e
+                while c.__context__ != s:
+                    c = c.__context__
+                c.__suppress_context__ = True
+
+                # TODO: remove lines from this file from the traceback
+                print(highlight(format_exc(), Python3TracebackLexer(),
+                    TerminalTrueColorFormatter(style=OneAMStyle)))
+                o.set_command_status(1)
+        except BaseException as e:
+            print(highlight(format_exc(), Python3TracebackLexer(), TerminalTrueColorFormatter(style=OneAMStyle)))
+            o.set_command_status(1)
+        if not DOCTEST_MODE:
+            print()
 
 if __name__ == '__main__':
     main()
