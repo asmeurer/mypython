@@ -9,15 +9,23 @@ from prompt_toolkit.document import Document
 from prompt_toolkit.validation import ValidationError
 
 from ..mypython import (get_cli, _globals as mypython_globals, get_eventloop,
-    startup, normalize, magic, PythonSyntaxValidator)
+    startup, normalize, magic, PythonSyntaxValidator, main_loop)
 from ..keys import get_registry
 
 from pytest import raises
 
 _test_globals = mypython_globals.copy()
 
+class _TestOutput(DummyOutput):
+    def __init__(self):
+        self.written_data = []
+
+    def write(self, data):
+        self.written_data.append(data)
+
+
 def _cli_with_input(text, history=None, _globals=None, _locals=None,
-    registry=None):
+    registry=None, eventloop=None, close=True):
 
     assert text.endswith('\n')
 
@@ -29,17 +37,18 @@ def _cli_with_input(text, history=None, _globals=None, _locals=None,
     _input = PipeInput()
     _input.send_text(text)
 
-    eventloop = get_eventloop()
+    eventloop = eventloop or get_eventloop()
 
     try:
         cli = get_cli(history=history, _globals=_globals, _locals=_locals,
-            registry=registry, _input=_input, output=DummyOutput(), eventloop=eventloop)
+            registry=registry, _input=_input, output=_TestOutput(), eventloop=eventloop)
 
         result = cli.run()
         return result, cli
     finally:
-        eventloop.close()
-        _input.close()
+        if close:
+            eventloop.close()
+            _input.close()
 
 def _history():
     h = InMemoryHistory()
@@ -116,3 +125,13 @@ def test_syntax_validator():
     doesntvalidate('def test():\n')
     doesntvalidate('%notarealmagic')
     doesntvalidate('%notarealmagic 1')
+
+def test_main_loop():
+    result, cli = _cli_with_input('1\n', close=False)
+    main_loop(cli)
+    cli.eventloop.close()
+    cli.input.close()
+    assert not cli.output.written_data
+
+if __name__ == '__main__':
+    test_main_loop()
