@@ -206,5 +206,15 @@ def test_main_loop():
     assert _test_output('a = 1\n', _globals=_globals) == ('', '')
     assert _test_output('a\n', _globals=_globals) == ('1\n', '')
 
+    _globals = _test_globals.copy()
+    # Also tests automatic indentation
+    assert _test_output('def test():\nreturn 1\n\n', _globals=_globals) == ('', '')
+    assert _test_output('test()\n', _globals=_globals) == ('1\n', '')
+
+    assert _test_output('a = 1;2\n', _globals=_globals) == ('2\n', '')
+    assert _test_output('1;2\n', _globals=_globals) == ('2\n', '')
+    assert _test_output('1;a = 2\n', _globals=_globals) == ('', '')
+    assert _test_output('# comment\n', _globals=_globals) == ('', '')
+
 if __name__ == '__main__':
     test_main_loop()
