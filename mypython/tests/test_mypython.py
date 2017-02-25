@@ -2,6 +2,7 @@
 Based on prompt_toolkit.tests.test_cli
 """
 import sys
+import re
 from io import StringIO
 
 from prompt_toolkit.history import InMemoryHistory
@@ -67,7 +68,9 @@ def _history():
 def keyboard_interrupt_handler(s, f):
     raise KeyboardInterrupt('testing')
 
-def _test_output(_input, doctest_mode=True):
+TERMINAL_SEQUENCE = re.compile(r'\x1b.*?\x07')
+
+def _test_output(_input, doctest_mode=True, remove_terminal_sequences=True):
     """
     Test the output from a given input
 
@@ -101,7 +104,12 @@ def _test_output(_input, doctest_mode=True):
         sys.stderr = old_stderr
         mypython.print_tokens = old_print_tokens
 
-    return (custom_stdout.getvalue(), custom_stderr.getvalue())
+
+    ret = (custom_stdout.getvalue(), custom_stderr.getvalue())
+    if remove_terminal_sequences:
+        ret = (TERMINAL_SEQUENCE.sub('', ret[0]), TERMINAL_SEQUENCE.sub('', ret[1]))
+
+    return ret
 
 def test_get_cli():
     result, cli = _cli_with_input('1\n')
@@ -180,8 +188,17 @@ def test_syntax_validator():
     doesntvalidate('%notarealmagic 1')
 
 def test_main_loop():
-    assert _test_output('\n') == ('\x1b]133;C\x07\x1b]133;D;0\x07', '')
-    assert _test_output('1 + 1\n') == ('\x1b]133;C\x072\n\x1b]133;D;0\x07', '')
+    assert _test_output('\n', doctest_mode=False, remove_terminal_sequences=False) == ('\x1b]133;C\x07\n\x1b]133;D;0\x07', '')
+    assert _test_output('1 + 1\n', doctest_mode=False, remove_terminal_sequences=False) == ('\x1b]133;C\x072\n\n\x1b]133;D;0\x07', '')
+
+    assert _test_output('\n', remove_terminal_sequences=False) == ('\x1b]133;C\x07\x1b]133;D;0\x07', '')
+    assert _test_output('1 + 1\n', remove_terminal_sequences=False) == ('\x1b]133;C\x072\n\x1b]133;D;0\x07', '')
+
+    assert _test_output('\n', doctest_mode=False) == ('\n', '')
+    assert _test_output('1 + 1\n', doctest_mode=False) == ('2\n\n', '')
+
+    assert _test_output('\n') == ('', '')
+    assert _test_output('1 + 1\n') == ('2\n', '')
 
 if __name__ == '__main__':
     test_main_loop()
