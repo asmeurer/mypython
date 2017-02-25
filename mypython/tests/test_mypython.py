@@ -68,7 +68,7 @@ def _history():
 def keyboard_interrupt_handler(s, f):
     raise KeyboardInterrupt('testing')
 
-TERMINAL_SEQUENCE = re.compile(r'\x1b.*?\x07')
+TERMINAL_SEQUENCE = re.compile(r'(\x1b.*?\x07)|(\x1b\[.*?m)')
 
 def _test_output(_input, *, doctest_mode=True, remove_terminal_sequences=True,
     _globals=None, _locals=None):
