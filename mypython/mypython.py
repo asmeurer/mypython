@@ -272,7 +272,8 @@ def post_command(*, command, res, _globals, _locals, cli):
         _locals['_%s' % prompt_number] = res
         _locals['_'], _locals['__'], _locals['___'] = res, _locals.get('_'), _locals.get('__')
 
-        print(repr(res))
+        if not (DOCTEST_MODE and res is None):
+            print(repr(res))
 
 def get_eventloop():
     return create_eventloop(inputhook)

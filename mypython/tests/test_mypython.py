@@ -242,5 +242,8 @@ ValueError: error
 
 """, err), err
 
+    assert _test_output('None\n') == ('', '')
+    assert _test_output('None\n', doctest_mode=False) == ('None\n\n', '')
+
 if __name__ == '__main__':
     test_main_loop()
