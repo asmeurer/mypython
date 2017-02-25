@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Define globals first so that names from this module don't get included
-_globals = globals().copy()
-_locals = _globals
+_default_globals = globals().copy()
+_default_locals = _default_globals
 
 from pygments.lexers import Python3Lexer, Python3TracebackLexer
 from pygments.formatters import TerminalTrueColorFormatter
@@ -340,32 +340,34 @@ def main():
 
     registry = get_registry()
 
-    startup(_globals, _locals)
+    startup(_default_globals, _default_locals)
     prompt_number = 1
     while True:
-        cli = get_cli(history=history, _locals=_locals, _globals=_globals,
+        cli = get_cli(history=history, _locals=_default_locals, _globals=_default_globals,
                 registry=registry)
         cli.prompt_number = prompt_number
         try:
-            main_loop(cli)
+            # Replace stdout.
+            patch_context = cli.patch_stdout_context(raw=True)
+            with patch_context:
+                result = cli.run()
+            if isinstance(result, Document):  # Backwards-compatibility.
+                command = result.text
+            else:
+                command = result
+        except KeyboardInterrupt:
+            # TODO: Keep it in the history
+            print("KeyboardInterrupt", file=sys.stderr)
+            continue
         except EOFError:
             break
+
+        execute_command(command, cli)
         prompt_number = cli.prompt_number
 
-def main_loop(cli):
-    try:
-        # Replace stdout.
-        patch_context = cli.patch_stdout_context(raw=True)
-        with patch_context:
-            result = cli.run()
-        if isinstance(result, Document):  # Backwards-compatibility.
-            command = result.text
-        else:
-            command = result
-    except KeyboardInterrupt:
-        # TODO: Keep it in the history
-        print("KeyboardInterrupt", file=sys.stderr)
-        return
+def execute_command(command, cli, *, _globals=None, _locals=None):
+    _globals = _globals or _default_globals
+    _locals = _locals or _default_locals
 
     command = normalize(command, _globals, _locals)
     with iterm2_tools.Output() as o:
