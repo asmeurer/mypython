@@ -411,7 +411,7 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
 
                 # TODO: remove lines from this file from the traceback
                 print(highlight(format_exc(), Python3TracebackLexer(),
-                    TerminalTrueColorFormatter(style=OneAMStyle)))
+                    TerminalTrueColorFormatter(style=OneAMStyle)), file=sys.stderr)
                 o.set_command_status(1)
         except BaseException as e:
             print(highlight(format_exc(), Python3TracebackLexer(), TerminalTrueColorFormatter(style=OneAMStyle)))
