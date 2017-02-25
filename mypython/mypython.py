@@ -362,7 +362,7 @@ def main_loop(cli):
             command = result
     except KeyboardInterrupt:
         # TODO: Keep it in the history
-        print("KeyboardInterrupt")
+        print("KeyboardInterrupt", file=sys.stderr)
         return
 
     command = normalize(command, _globals, _locals)
