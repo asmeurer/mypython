@@ -70,7 +70,8 @@ def keyboard_interrupt_handler(s, f):
 
 TERMINAL_SEQUENCE = re.compile(r'\x1b.*?\x07')
 
-def _test_output(_input, doctest_mode=True, remove_terminal_sequences=True):
+def _test_output(_input, *, doctest_mode=True, remove_terminal_sequences=True,
+    _globals=None, _locals=None):
     """
     Test the output from a given input
 
@@ -79,7 +80,8 @@ def _test_output(_input, doctest_mode=True, remove_terminal_sequences=True):
     """
     mypython.DOCTEST_MODE = doctest_mode
 
-    _globals = _locals = _test_globals.copy()
+    _globals = _globals or  _test_globals.copy()
+    _locals = _locals or _globals
 
     custom_stdout = StringIO()
     custom_stderr = StringIO()
@@ -199,6 +201,10 @@ def test_main_loop():
 
     assert _test_output('\n') == ('', '')
     assert _test_output('1 + 1\n') == ('2\n', '')
+
+    _globals = _test_globals.copy()
+    assert _test_output('a = 1\n', _globals=_globals) == ('', '')
+    assert _test_output('a\n', _globals=_globals) == ('1\n', '')
 
 if __name__ == '__main__':
     test_main_loop()
