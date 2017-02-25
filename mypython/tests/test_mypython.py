@@ -1,7 +1,6 @@
 """
 Based on prompt_toolkit.tests.test_cli
 """
-import signal
 import sys
 from io import StringIO
 
@@ -10,16 +9,15 @@ from prompt_toolkit.input import PipeInput
 from prompt_toolkit.output import DummyOutput
 from prompt_toolkit.document import Document
 from prompt_toolkit.validation import ValidationError
-from prompt_toolkit.shortcuts import create_eventloop
 
-from ..mypython import (get_cli, _globals as mypython_globals, get_eventloop,
-    startup, normalize, magic, PythonSyntaxValidator, main_loop)
+from ..mypython import (get_cli, _default_globals, get_eventloop,
+    startup, normalize, magic, PythonSyntaxValidator, execute_command)
 from .. import mypython
 from ..keys import get_registry
 
 from pytest import raises
 
-_test_globals = mypython_globals.copy()
+_test_globals = _default_globals.copy()
 
 class _TestOutput(DummyOutput):
     def __init__(self):
@@ -52,7 +50,6 @@ def _cli_with_input(text, history=None, _globals=None, _locals=None,
     try:
         cli = get_cli(history=history, _globals=_globals, _locals=_locals,
             registry=registry, _input=_input, output=_TestOutput(), eventloop=eventloop)
-
         result = cli.run()
         return result, cli
     finally:
@@ -70,27 +67,41 @@ def _history():
 def keyboard_interrupt_handler(s, f):
     raise KeyboardInterrupt('testing')
 
-def _test_output(_input, timeout=.1, doctest_mode=True):
+def _test_output(_input, doctest_mode=True):
+    """
+    Test the output from a given input
+
+    IMPORTANT: Only things printed directly to stdout/stderr are tested.
+    Things printed via prompt_toolkit (e.g., print_tokens) are not caught.
+    """
     mypython.DOCTEST_MODE = doctest_mode
-    result, cli = _cli_with_input(_input, eventloop=create_eventloop(),
-        close=False)
-    signal.signal(signal.SIGALRM, lambda s, f: keyboard_interrupt_handler(s, f))
-    signal.setitimer(signal.ITIMER_REAL, timeout)
+
+    _globals = _locals = _test_globals.copy()
 
     custom_stdout = StringIO()
     custom_stderr = StringIO()
     try:
         old_stdout, sys.stdout = sys.stdout, custom_stdout
         old_stderr, sys.stderr = sys.stderr, custom_stderr
-        main_loop(cli)
+        # TODO: Test things printed to this
+        old_print_tokens = mypython.print_tokens = lambda *args, **kwargs: None
+
+        startup(_globals, _locals)
+
+        result, cli = _cli_with_input(_input, _globals=_globals, _locals=_locals)
+
+        if isinstance(result, Document):  # Backwards-compatibility.
+            command = result.text
+        else:
+            command = result
+
+        execute_command(command, cli, _locals=_locals, _globals=_globals)
     finally:
-        cli.eventloop.close()
-        cli.input.close()
         sys.stdout = old_stdout
         sys.stderr = old_stderr
+        mypython.print_tokens = old_print_tokens
 
-    return (cli.output.written_data, cli.output.written_raw_data,
-        custom_stdout.getvalue(), custom_stderr.getvalue())
+    return (custom_stdout.getvalue(), custom_stderr.getvalue())
 
 def test_get_cli():
     result, cli = _cli_with_input('1\n')
@@ -98,10 +109,18 @@ def test_get_cli():
 
 def test_startup():
     _globals = _locals = {}
-    startup(_globals, _locals)
+    try:
+        # TODO: Test things printed to this
+        old_print_tokens = mypython.print_tokens = lambda *args, **kwargs: None
+
+        startup(_globals, _locals)
+    finally:
+        mypython.print_tokens = old_print_tokens
+
     assert _globals.keys() == _locals.keys() == {'__builtins__', 'In', 'Out'}
 
-def test_globals():
+# Not called test_globals to avoid confusion with test_globals
+def test_test_globals():
     assert _test_globals.keys() == {'__package__', '__loader__',
     '__name__', '__doc__', '__cached__', '__file__', '__builtins__',
     '__spec__'}
@@ -161,7 +180,8 @@ def test_syntax_validator():
     doesntvalidate('%notarealmagic 1')
 
 def test_main_loop():
-    assert _test_output('1 + 1\r\n', timeout=4) == 'abc'
+    assert _test_output('\n') == ('\x1b]133;C\x07\x1b]133;D;0\x07', '')
+    assert _test_output('1 + 1\n') == ('\x1b]133;C\x072\n\x1b]133;D;0\x07', '')
 
 if __name__ == '__main__':
     test_main_loop()
