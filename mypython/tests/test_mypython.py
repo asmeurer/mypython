@@ -216,5 +216,16 @@ def test_main_loop():
     assert _test_output('1;a = 2\n') == ('', '')
     assert _test_output('# comment\n') == ('', '')
 
+    out, err = _test_output('raise ValueError("error")\n')
+    assert out == ''
+    assert re.match(
+r"""Traceback \(most recent call last\):
+  File ".*", line \d+, in execute_command
+    exec\(code, _globals, _locals\)
+  File "<mypython>", line 1, in <module>
+ValueError: error
+
+""", err), err
+
 if __name__ == '__main__':
     test_main_loop()
