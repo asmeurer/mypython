@@ -1,15 +1,20 @@
 """
 Based on prompt_toolkit.tests.test_cli
 """
+import signal
+import sys
+from io import StringIO
 
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.input import PipeInput
 from prompt_toolkit.output import DummyOutput
 from prompt_toolkit.document import Document
 from prompt_toolkit.validation import ValidationError
+from prompt_toolkit.shortcuts import create_eventloop
 
 from ..mypython import (get_cli, _globals as mypython_globals, get_eventloop,
     startup, normalize, magic, PythonSyntaxValidator, main_loop)
+from .. import mypython
 from ..keys import get_registry
 
 from pytest import raises
@@ -18,11 +23,16 @@ _test_globals = mypython_globals.copy()
 
 class _TestOutput(DummyOutput):
     def __init__(self):
-        self.written_data = []
+        self.written_data = ''
+        self.written_raw_data = ''
 
     def write(self, data):
-        self.written_data.append(data)
+        self.written_data += data
 
+    # Since we use patch_stdout_context(raw=True) (but only for cli.run()),
+    # things like iTerm2 sequences will go here.
+    def write_raw(self, data):
+        self.written_raw_data += data
 
 def _cli_with_input(text, history=None, _globals=None, _locals=None,
     registry=None, eventloop=None, close=True):
@@ -57,6 +67,30 @@ def _history():
     h.append('history3')
     return h
 
+def keyboard_interrupt_handler(s, f):
+    raise KeyboardInterrupt('testing')
+
+def _test_output(_input, timeout=.1, doctest_mode=True):
+    mypython.DOCTEST_MODE = doctest_mode
+    result, cli = _cli_with_input(_input, eventloop=create_eventloop(),
+        close=False)
+    signal.signal(signal.SIGALRM, lambda s, f: keyboard_interrupt_handler(s, f))
+    signal.setitimer(signal.ITIMER_REAL, timeout)
+
+    custom_stdout = StringIO()
+    custom_stderr = StringIO()
+    try:
+        old_stdout, sys.stdout = sys.stdout, custom_stdout
+        old_stderr, sys.stderr = sys.stderr, custom_stderr
+        main_loop(cli)
+    finally:
+        cli.eventloop.close()
+        cli.input.close()
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
+
+    return (cli.output.written_data, cli.output.written_raw_data,
+        custom_stdout.getvalue(), custom_stderr.getvalue())
 
 def test_get_cli():
     result, cli = _cli_with_input('1\n')
@@ -127,17 +161,7 @@ def test_syntax_validator():
     doesntvalidate('%notarealmagic 1')
 
 def test_main_loop():
-    from prompt_toolkit.shortcuts import create_eventloop
-    import signal
-    result, cli = _cli_with_input('1\n', eventloop=create_eventloop(), close=False)
-    def handler(s, f): raise KeyboardInterrupt
-    signal.signal(signal.SIGALRM, lambda s, f: handler(s, f))
-    signal.setitimer(signal.ITIMER_REAL, 1)
-
-    main_loop(cli)
-    cli.eventloop.close()
-    cli.input.close()
-    assert not cli.output.written_data
+    assert _test_output('1 + 1\r\n', timeout=4) == 'abc'
 
 if __name__ == '__main__':
     test_main_loop()

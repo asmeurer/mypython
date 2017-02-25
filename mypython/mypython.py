@@ -283,6 +283,8 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None, e
 
     multiline = Condition(is_buffer_multiline)
 
+    output = output or create_output(true_color=True)
+
     # This is based on prompt_toolkit.shortcuts.prompt() and
     # prompt_toolkit.shortcuts.create_prompt_application().
     buffer = MyBuffer(
@@ -320,7 +322,7 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None, e
     cli = CommandLineInterface(
         application=application,
         eventloop=eventloop or get_eventloop(),
-        output=output or create_output(true_color=True),
+        output=output,
         input=_input,
     )
     cli.prompt_number = -1
