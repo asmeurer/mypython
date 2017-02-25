@@ -227,5 +227,20 @@ ValueError: error
 
 """, err), err
 
+    _globals = _test_globals.copy()
+    assert _test_output('def test():raise ValueError("error")\n\n',
+        _globals=_globals) == ('', '')
+    out, err = _test_output('test()\n', _globals=_globals)
+    assert out == ''
+    assert re.match(
+r"""Traceback \(most recent call last\):
+  File ".*", line \d+, in execute_command
+    res = eval\(code, _globals, _locals\)
+  File "<mypython>", line 1, in <module>
+  File "<mypython>", line 1, in test
+ValueError: error
+
+""", err), err
+
 if __name__ == '__main__':
     test_main_loop()
