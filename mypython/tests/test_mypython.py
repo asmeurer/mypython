@@ -117,6 +117,30 @@ def test_get_cli():
     result, cli = _cli_with_input('1\n')
     assert result.text == '1'
 
+def test_autoindent():
+        # Test all the indent rules
+    result, cli = _cli_with_input("""\
+    def test():
+while True:
+if 1:
+continue
+else:
+break
+pass
+return
+
+""")
+
+    assert result.text == """\
+def test():
+    while True:
+        if 1:
+            continue
+        else:
+            break
+        pass
+    return"""
+
 def test_startup():
     _globals = _locals = {}
     try:
