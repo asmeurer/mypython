@@ -130,7 +130,6 @@ pass
 return
 
 """)
-
     assert result.text == """\
 def test():
     while True:
@@ -140,6 +139,15 @@ def test():
             break
         pass
     return"""
+
+    result, cli = _cli_with_input("""\
+(
+\t123)
+
+""")
+    assert result.text == """\
+(
+    123)"""
 
 def test_startup():
     _globals = _locals = {}
