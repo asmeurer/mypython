@@ -270,6 +270,3 @@ r"""Traceback \(most recent call last\):
 ValueError: error
 
 """, err), err
-
-if __name__ == '__main__':
-    test_main_loop()
