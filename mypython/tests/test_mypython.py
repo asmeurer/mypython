@@ -70,7 +70,7 @@ def keyboard_interrupt_handler(s, f):
 
 TERMINAL_SEQUENCE = re.compile(r'(\x1b.*?\x07)|(\x1b\[.*?m)')
 
-def _test_output(_input, *, doctest_mode=True, remove_terminal_sequences=True,
+def _test_output(_input, *, doctest_mode=False, remove_terminal_sequences=True,
     _globals=None, _locals=None):
     """
     Test the output from a given input
@@ -214,34 +214,38 @@ def test_syntax_validator():
     doesntvalidate('%notarealmagic 1')
 
 def test_main_loop():
-    assert _test_output('\n', doctest_mode=False, remove_terminal_sequences=False) == ('\x1b]133;C\x07\n\x1b]133;D;0\x07', '')
-    assert _test_output('1 + 1\n', doctest_mode=False, remove_terminal_sequences=False) == ('\x1b]133;C\x072\n\n\x1b]133;D;0\x07', '')
+    assert _test_output('\n', remove_terminal_sequences=False) == ('\x1b]133;C\x07\n\x1b]133;D;0\x07', '')
+    assert _test_output('1 + 1\n', remove_terminal_sequences=False) == ('\x1b]133;C\x072\n\n\x1b]133;D;0\x07', '')
 
-    assert _test_output('\n', remove_terminal_sequences=False) == ('\x1b]133;C\x07\x1b]133;D;0\x07', '')
-    assert _test_output('1 + 1\n', remove_terminal_sequences=False) == ('\x1b]133;C\x072\n\x1b]133;D;0\x07', '')
+    assert _test_output('\n', remove_terminal_sequences=False, doctest_mode=True) == ('\x1b]133;C\x07\x1b]133;D;0\x07', '')
+    assert _test_output('1 + 1\n', remove_terminal_sequences=False, doctest_mode=True) == ('\x1b]133;C\x072\n\x1b]133;D;0\x07', '')
 
-    assert _test_output('\n', doctest_mode=False) == ('\n', '')
-    assert _test_output('1 + 1\n', doctest_mode=False) == ('2\n\n', '')
+    assert _test_output('\n') == ('\n', '')
+    assert _test_output('1 + 1\n') == ('2\n\n', '')
+    assert _test_output('None\n') == ('None\n\n', '')
+    assert _test_output('a = 1\n') == ('\n', '')
 
-    assert _test_output('\n') == ('', '')
-    assert _test_output('1 + 1\n') == ('2\n', '')
+    assert _test_output('\n', doctest_mode=True) == ('', '')
+    assert _test_output('1 + 1\n', doctest_mode=True) == ('2\n', '')
+    assert _test_output('None\n', doctest_mode=True) == ('', '')
+    assert _test_output('a = 1\n', doctest_mode=True) == ('', '')
 
     _globals = _test_globals.copy()
-    assert _test_output('a = 1\n', _globals=_globals) == ('', '')
-    assert _test_output('a\n', _globals=_globals) == ('1\n', '')
+    assert _test_output('a = 1\n', _globals=_globals) == ('\n', '')
+    assert _test_output('a\n', _globals=_globals) == ('1\n\n', '')
 
     _globals = _test_globals.copy()
     # Also tests automatic indentation
-    assert _test_output('def test():\nreturn 1\n\n', _globals=_globals) == ('', '')
-    assert _test_output('test()\n', _globals=_globals) == ('1\n', '')
+    assert _test_output('def test():\nreturn 1\n\n', _globals=_globals) == ('\n', '')
+    assert _test_output('test()\n', _globals=_globals) == ('1\n\n', '')
 
-    assert _test_output('a = 1;2\n') == ('2\n', '')
-    assert _test_output('1;2\n') == ('2\n', '')
-    assert _test_output('1;a = 2\n') == ('', '')
-    assert _test_output('# comment\n') == ('', '')
+    assert _test_output('a = 1;2\n') == ('2\n\n', '')
+    assert _test_output('1;2\n') == ('2\n\n', '')
+    assert _test_output('1;a = 2\n') == ('\n', '')
+    assert _test_output('# comment\n') == ('\n', '')
 
     out, err = _test_output('raise ValueError("error")\n')
-    assert out == ''
+    assert out == '\n'
     assert re.match(
 r"""Traceback \(most recent call last\):
   File ".*", line \d+, in execute_command
@@ -252,10 +256,11 @@ ValueError: error
 """, err), err
 
     _globals = _test_globals.copy()
-    assert _test_output('def test():raise ValueError("error")\n\n',
-        _globals=_globals) == ('', '')
+    out, err = _test_output('def test():raise ValueError("error")\n\n',
+        _globals=_globals)
+    assert out, err == ('\n\n', '')
     out, err = _test_output('test()\n', _globals=_globals)
-    assert out == ''
+    assert out == '\n'
     assert re.match(
 r"""Traceback \(most recent call last\):
   File ".*", line \d+, in execute_command
@@ -265,9 +270,6 @@ r"""Traceback \(most recent call last\):
 ValueError: error
 
 """, err), err
-
-    assert _test_output('None\n') == ('', '')
-    assert _test_output('None\n', doctest_mode=False) == ('None\n\n', '')
 
 if __name__ == '__main__':
     test_main_loop()
