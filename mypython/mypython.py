@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Define globals first so that names from this module don't get included
-_globals = globals().copy()
-_locals = _globals
+_default_globals = globals().copy()
+_default_locals = _default_globals
 
 from pygments.lexers import Python3Lexer, Python3TracebackLexer
 from pygments.formatters import TerminalTrueColorFormatter
@@ -245,10 +245,10 @@ del sys
     _locals['In'] = {}
     _locals['Out'] = {}
 
-    print("Welcome to mypython.")
+    print_tokens([(Token.Welcome, "Welcome to mypython.")])
     image = catimg.get_random_image()
     if image:
-        print("Here is a cat:")
+        print_tokens([(Token.Welcome, "Here is a cat:")])
         iterm2_tools.display_image_file(image)
 
     try:
@@ -272,7 +272,8 @@ def post_command(*, command, res, _globals, _locals, cli):
         _locals['_%s' % prompt_number] = res
         _locals['_'], _locals['__'], _locals['___'] = res, _locals.get('_'), _locals.get('__')
 
-        print(repr(res))
+        if not (DOCTEST_MODE and res is None):
+            print(repr(res))
 
 def get_eventloop():
     return create_eventloop(inputhook)
@@ -282,6 +283,8 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None, e
         return document_is_multiline_python(buffer.document)
 
     multiline = Condition(is_buffer_multiline)
+
+    output = output or create_output(true_color=True)
 
     # This is based on prompt_toolkit.shortcuts.prompt() and
     # prompt_toolkit.shortcuts.create_prompt_application().
@@ -320,7 +323,7 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None, e
     cli = CommandLineInterface(
         application=application,
         eventloop=eventloop or get_eventloop(),
-        output=output or create_output(true_color=True),
+        output=output,
         input=_input,
     )
     cli.prompt_number = -1
@@ -338,32 +341,34 @@ def main():
 
     registry = get_registry()
 
-    startup(_globals, _locals)
+    startup(_default_globals, _default_locals)
     prompt_number = 1
     while True:
-        cli = get_cli(history=history, _locals=_locals, _globals=_globals,
+        cli = get_cli(history=history, _locals=_default_locals, _globals=_default_globals,
                 registry=registry)
         cli.prompt_number = prompt_number
         try:
-            main_loop(cli)
+            # Replace stdout.
+            patch_context = cli.patch_stdout_context(raw=True)
+            with patch_context:
+                result = cli.run()
+            if isinstance(result, Document):  # Backwards-compatibility.
+                command = result.text
+            else:
+                command = result
+        except KeyboardInterrupt:
+            # TODO: Keep it in the history
+            print("KeyboardInterrupt", file=sys.stderr)
+            continue
         except EOFError:
             break
+
+        execute_command(command, cli)
         prompt_number = cli.prompt_number
 
-def main_loop(cli):
-    try:
-        # Replace stdout.
-        patch_context = cli.patch_stdout_context(raw=True)
-        with patch_context:
-            result = cli.run()
-        if isinstance(result, Document):  # Backwards-compatibility.
-            command = result.text
-        else:
-            command = result
-    except KeyboardInterrupt:
-        # TODO: Keep it in the history
-        print("KeyboardInterrupt")
-        return
+def execute_command(command, cli, *, _globals=None, _locals=None):
+    _globals = _globals or _default_globals
+    _locals = _locals or _default_locals
 
     command = normalize(command, _globals, _locals)
     with iterm2_tools.Output() as o:
@@ -407,10 +412,11 @@ def main_loop(cli):
 
                 # TODO: remove lines from this file from the traceback
                 print(highlight(format_exc(), Python3TracebackLexer(),
-                    TerminalTrueColorFormatter(style=OneAMStyle)))
+                    TerminalTrueColorFormatter(style=OneAMStyle)), file=sys.stderr)
                 o.set_command_status(1)
         except BaseException as e:
-            print(highlight(format_exc(), Python3TracebackLexer(), TerminalTrueColorFormatter(style=OneAMStyle)))
+            print(highlight(format_exc(), Python3TracebackLexer(),
+                TerminalTrueColorFormatter(style=OneAMStyle)), file=sys.stderr)
             o.set_command_status(1)
         if not DOCTEST_MODE:
             print()

@@ -1,10 +1,10 @@
 from .mypython import (PythonSyntaxValidator,
     get_continuation_tokens, prompt_style, get_in_prompt_tokens,
-    get_out_prompt_tokens, normalize, startup, main)
+    get_out_prompt_tokens, normalize, startup, main, execute_command)
 
-__all__ = ['PythonSyntaxValidator',
-    'get_continuation_tokens', 'prompt_style', 'get_in_prompt_tokens',
-    'get_out_prompt_tokens', 'normalize', 'startup', 'main']
+__all__ = ['PythonSyntaxValidator', 'get_continuation_tokens', 'prompt_style',
+    'get_in_prompt_tokens', 'get_out_prompt_tokens', 'normalize', 'startup',
+    'main', 'execute_command']
 
 from .keys import get_registry, custom_bindings_registry
 
