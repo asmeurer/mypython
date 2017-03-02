@@ -3,7 +3,7 @@
 import os
 import sys
 
-mypython_path = os.path.abspath(__file__)
+mypython_path = os.path.realpath(__file__)
 mypython_dir = os.path.dirname(mypython_path)
 mypython_top = os.path.split(mypython_dir)[0]
 mypython_dir = os.path.join(mypython_top, 'mypython')
