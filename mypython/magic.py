@@ -40,6 +40,23 @@ print(time_format(number, time_taken))
 del MyTimer, time_format
 """.format(rest=rest)
 
+def time_magic(rest):
+    if not rest:
+        return """
+print('nothing to time')
+pass
+"""
+    return """
+from time import perf_counter as _perf_counter
+from IPython.core.magics.execution import _format_time
+_time = _perf_counter()
+res = {rest}
+_time = _perf_counter() - _time
+print("Total time:", _format_time(_time))
+del _time, _format_time, _perf_counter
+res
+""".format(rest=rest)
+
 def doctest_magic(rest):
     from . import mypython
 
