@@ -149,6 +149,27 @@ def test():
 (
     123)"""
 
+def test_indentation():
+    # TODO: Figure out how to test this without executing the command
+
+    # Make sure we have a globals dict with the builtins in it
+    _globals = {}
+    exec('', _globals)
+    assert _globals
+
+    # Test that a single TAB fills in a common completion
+    # 'copyright' is the only name starting with 'copy'
+    result, cli = _cli_with_input("copy\t\n", _globals=_globals)
+    assert result.text == "copyright"
+
+    # Only 'class' and 'classmethod' start with 'class'
+    result, cli = _cli_with_input("cl\tm\t\n")
+    assert result.text == 'classmethod'
+
+    # Only 'KeyboardInterrupt' and 'KeyError' start with 'Ke'
+    result, cli = _cli_with_input("Ke\t\n")
+    assert result.text == 'Key'
+
 def test_startup():
     _globals = _locals = {}
     try:
