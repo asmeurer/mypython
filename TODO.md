@@ -22,3 +22,4 @@
 - Easier way to copy multiline input to clipboard
 - Enter on multiline after arrowing
 - Ability to do history search in multiline
+- History browser (like ptpython)
