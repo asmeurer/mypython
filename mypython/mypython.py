@@ -245,10 +245,10 @@ del sys
     _locals['In'] = {}
     _locals['Out'] = {}
 
-    print_tokens([(Token.Welcome, "Welcome to mypython.")])
+    print_tokens([(Token.Welcome, "Welcome to mypython.\n")])
     image = catimg.get_random_image()
     if image:
-        print_tokens([(Token.Welcome, "Here is a cat:")])
+        print_tokens([(Token.Welcome, "Here is a cat:\n")])
         iterm2_tools.display_image_file(image)
 
     try:
