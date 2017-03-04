@@ -149,7 +149,7 @@ def test():
 (
     123)"""
 
-def test_indentation():
+def test_completion():
     # TODO: Figure out how to test this without executing the command
 
     # Make sure we have a globals dict with the builtins in it
