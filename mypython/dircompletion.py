@@ -12,6 +12,8 @@
 
 # - Made all completions case insensitive
 
+# - Compile a regular expression
+
 # 1. This LICENSE AGREEMENT is between the Python Software Foundation ("PSF"), and
 #    the Individual or Organization ("Licensee") accessing and otherwise using Python
 #    3.6.0 software in source or binary form and its associated documentation.
@@ -85,7 +87,7 @@ Notes:
   used, and this module (and the readline module) are silently inactive.
 
 """
-
+import re
 import builtins
 import __main__
 
@@ -173,6 +175,7 @@ class DirCompleter:
                     matches.append(word)
         return matches
 
+    ATTRIBUTE = re.compile(r"(\w+(\.\w+)*)\.(\w*)")
     def attr_matches(self, text):
         """Compute matches when text contains a dot.
 
@@ -185,8 +188,7 @@ class DirCompleter:
         with a __getattr__ hook is evaluated.
 
         """
-        import re
-        m = re.match(r"(\w+(\.\w+)*)\.(\w*)", text)
+        m = self.ATTRIBUTE.match(text)
         if not m:
             return []
         expr, attr = m.group(1, 3)
