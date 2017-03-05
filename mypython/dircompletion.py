@@ -10,6 +10,8 @@
 # - Removed _callable_postfix (code that adds '(' to the completions) because
 #   I don't like it.
 
+# - Made all completions case insensitive
+
 # 1. This LICENSE AGREEMENT is between the Python Software Foundation ("PSF"), and
 #    the Individual or Organization ("Licensee") accessing and otherwise using Python
 #    3.6.0 software in source or binary form and its associated documentation.
@@ -150,9 +152,11 @@ class DirCompleter:
         import keyword
         matches = []
         seen = {"__builtins__"}
+        lower_text = text.lower()
         n = len(text)
         for word in keyword.kwlist:
-            if word[:n] == text:
+            lower_word = word.lower()
+            if lower_word[:n] == text:
                 seen.add(word)
                 if word in {'finally', 'try'}:
                     word = word + ':'
@@ -163,7 +167,8 @@ class DirCompleter:
                 matches.append(word)
         for nspace in [self.namespace, builtins.__dict__]:
             for word, val in nspace.items():
-                if word[:n] == text and word not in seen:
+                lower_word = word.lower()
+                if lower_word[:n] == lower_text and word not in seen:
                     seen.add(word)
                     matches.append(word)
         return matches
@@ -185,6 +190,7 @@ class DirCompleter:
         if not m:
             return []
         expr, attr = m.group(1, 3)
+        lower_attr = attr.lower()
         try:
             thisobject = eval(expr, self.namespace)
         except Exception:
@@ -207,7 +213,8 @@ class DirCompleter:
             noprefix = None
         while True:
             for word in words:
-                if (word[:n] == attr and
+                lower_word = word.lower()
+                if (lower_word[:n] == lower_attr and
                     not (noprefix and word[:n+1] == noprefix)):
                     match = "%s.%s" % (expr, word)
                     try:

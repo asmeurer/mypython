@@ -200,6 +200,9 @@ def test_completions():
     # Only 'KeyboardInterrupt' and 'KeyError' start with 'Ke'
     assert _test_completion("Ke\t\n") == 'Key'
 
+    # Test case insensitivity
+    assert _test_completion("tru\t\n") == 'True'
+
 def test_startup():
     _globals = _locals = {}
     try:
