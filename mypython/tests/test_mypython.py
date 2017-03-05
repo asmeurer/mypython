@@ -4,9 +4,11 @@ Based on prompt_toolkit.tests.test_cli
 import sys
 import re
 from io import StringIO
+import time
+import threading
 
 from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.input import PipeInput
+from prompt_toolkit.input import PipeInput, Input
 from prompt_toolkit.output import DummyOutput
 from prompt_toolkit.document import Document
 from prompt_toolkit.validation import ValidationError
@@ -36,15 +38,18 @@ class _TestOutput(DummyOutput):
 def _cli_with_input(text, history=None, _globals=None, _locals=None,
     registry=None, eventloop=None, close=True):
 
-    assert text.endswith('\n')
+    if isinstance(text, Input):
+        _input = text
+    else:
+        assert text.endswith('\n')
+        _input = PipeInput()
+        _input.send_text(text)
 
     history = history or _history()
     _globals = _globals or _test_globals.copy()
     _locals = _locals or _globals
     # TODO: Factor this out from main()
     registry = registry or get_registry()
-    _input = PipeInput()
-    _input.send_text(text)
 
     eventloop = eventloop or get_eventloop()
 
@@ -149,7 +154,30 @@ def test():
 (
     123)"""
 
-def test_completion():
+UP_TO_TAB = re.compile('[^\t]*\t?')
+def _input_with_tabs(text, _input, sleep_time=0.3):
+    """
+    Send the input with a pause after tabs, to allow the (async) completion
+    happen.
+
+    This should be run in a separate thread, like
+
+        _input = PipeInput()
+        threading.Thread(target=lambda: _input_with_tabs(text, _input)
+        result, cli = _cli_with_input(_input)
+
+    If the test fails because the completion didn't happen, you may need to
+    increase the sleep_time.
+    """
+    assert text.endswith('\n')
+
+    for t in UP_TO_TAB.findall(text):
+        if not t:
+            continue
+        _input.send_text(t)
+        time.sleep(sleep_time)
+
+def _test_completion(text):
     # TODO: Figure out how to test this without executing the command
 
     # Make sure we have a globals dict with the builtins in it
@@ -157,18 +185,20 @@ def test_completion():
     exec('', _globals)
     assert _globals
 
-    # Test that a single TAB fills in a common completion
-    # 'copyright' is the only name starting with 'copy'
-    result, cli = _cli_with_input("copy\t\n", _globals=_globals)
-    assert result.text == "copyright"
+    _input = PipeInput()
+    t = threading.Thread(target=lambda: _input_with_tabs(text, _input))
+    t.start()
+    result, cli = _cli_with_input(_input, _globals=_globals)
+    return result.text
+
+def test_completions():
+    assert _test_completion('copy\t\n') == "copyright"
 
     # Only 'class' and 'classmethod' start with 'class'
-    result, cli = _cli_with_input("cl\tm\t\n")
-    assert result.text == 'classmethod'
+    assert _test_completion("cl\tm\t\n") == 'classmethod'
 
     # Only 'KeyboardInterrupt' and 'KeyError' start with 'Ke'
-    result, cli = _cli_with_input("Ke\t\n")
-    assert result.text == 'Key'
+    assert _test_completion("Ke\t\n") == 'Key'
 
 def test_startup():
     _globals = _locals = {}
