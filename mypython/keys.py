@@ -194,7 +194,7 @@ def select_left(event):
         if not buffer.selection_state:
             buffer.start_selection()
             buffer.selection_state.shift_arrow = True
-        event.current_buffer.cursor_position -= event.arg
+        buffer.cursor_position -= event.arg
 
 @r.add_binding(Keys.ShiftRight)
 def select_right(event):
@@ -204,7 +204,7 @@ def select_right(event):
         if not buffer.selection_state:
             buffer.start_selection()
             buffer.selection_state.shift_arrow = True
-        event.current_buffer.cursor_position += event.arg
+        buffer.cursor_position += event.arg
 
 # The default doesn't toggle correctly
 @r.add_binding(Keys.ControlSpace)
