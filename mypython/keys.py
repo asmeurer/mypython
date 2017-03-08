@@ -177,3 +177,33 @@ def back_to_indentation(event):
     indent = LEADING_WHITESPACE.search(current_line)
     if indent:
         event.cli.current_buffer.cursor_position -= len(before_cursor) - indent.end(1)
+
+# Selection stuff
+
+@r.add_binding(Keys.ShiftLeft)
+def select_left(event):
+    buffer = event.current_buffer
+
+    if buffer.document.text_before_cursor:
+        if not buffer.selection_state:
+            buffer.start_selection()
+        left_multiline(event)
+
+@r.add_binding(Keys.ShiftRight)
+def select_right(event):
+    buffer = event.current_buffer
+
+    if buffer.document.text_after_cursor:
+        if not buffer.selection_state:
+            buffer.start_selection()
+        right_multiline(event)
+
+# The default doesn't toggle correctly
+@r.add_binding(Keys.ControlSpace)
+def toggle_selection(event):
+    buffer = event.current_buffer
+
+    if buffer.selection_state:
+        buffer.selection_state = None
+    else:
+        buffer.start_selection()
