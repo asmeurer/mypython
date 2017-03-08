@@ -3,7 +3,7 @@ from prompt_toolkit.key_binding.defaults import load_key_bindings
 from prompt_toolkit.key_binding.registry import Registry, MergedRegistry
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.filters import Condition
-
+from prompt_toolkit.selection import SelectionState
 
 from .multiline import (ends_in_multiline_string,
     document_is_multiline_python, auto_newline,
@@ -215,3 +215,10 @@ def toggle_selection(event):
         buffer.selection_state = None
     else:
         buffer.start_selection()
+
+@r.add_binding(Keys.ControlX, 'h')
+def select_all(event):
+    buffer = event.current_buffer
+
+    buffer.selection_state = SelectionState(len(buffer.document.text))
+    buffer.cursor_position = 0
