@@ -276,5 +276,4 @@ ANSI_SEQUENCES['\x1b[ab'] = Keys.ControlQuestionmark
 # merged.
 @r.add_binding(Keys.ControlQuestionmark, save_before=lambda e: False)
 def redo(event):
-    print(event.current_buffer._redo_stack)
     event.current_buffer.redo()
