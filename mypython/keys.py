@@ -115,6 +115,9 @@ def left_multiline(event):
     if event.current_buffer.cursor_position - event.arg >= 0:
         event.current_buffer.cursor_position -= event.arg
 
+    if getattr(event.current_buffer.selection_state, "shift_arrow", False):
+        event.current_buffer.selection_state = None
+
 @r.add_binding(Keys.Right)
 def right_multiline(event):
     """
@@ -122,6 +125,9 @@ def right_multiline(event):
     """
     if event.current_buffer.cursor_position + event.arg <= len(event.current_buffer.text):
         event.current_buffer.cursor_position += event.arg
+
+    if getattr(event.current_buffer.selection_state, "shift_arrow", False):
+        event.current_buffer.selection_state = None
 
 @r.add_binding(Keys.ControlD)
 def exit(event):
@@ -187,7 +193,8 @@ def select_left(event):
     if buffer.document.text_before_cursor:
         if not buffer.selection_state:
             buffer.start_selection()
-        left_multiline(event)
+            buffer.selection_state.shift_arrow = True
+        event.current_buffer.cursor_position -= event.arg
 
 @r.add_binding(Keys.ShiftRight)
 def select_right(event):
@@ -196,7 +203,8 @@ def select_right(event):
     if buffer.document.text_after_cursor:
         if not buffer.selection_state:
             buffer.start_selection()
-        right_multiline(event)
+            buffer.selection_state.shift_arrow = True
+        event.current_buffer.cursor_position += event.arg
 
 # The default doesn't toggle correctly
 @r.add_binding(Keys.ControlSpace)
