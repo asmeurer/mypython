@@ -137,7 +137,6 @@ def right_multiline(event):
 def exit(event):
     raise EOFError("Control-D")
 
-
 is_returnable = Condition(
     lambda cli: cli.current_buffer.accept_action.is_returnable)
 
@@ -209,6 +208,45 @@ def select_right(event):
             buffer.start_selection()
             buffer.selection_state.shift_arrow = True
         buffer.cursor_position += event.arg
+
+@r.add_binding(Keys.Up)
+def auto_up(event):
+    event.current_buffer.auto_up(count=event.arg)
+    if getattr(event.current_buffer.selection_state, "shift_arrow", False):
+        event.current_buffer.selection_state = None
+
+@r.add_binding(Keys.Down)
+def auto_down(event):
+    event.current_buffer.auto_down(count=event.arg)
+    if getattr(event.current_buffer.selection_state, "shift_arrow", False):
+        event.current_buffer.selection_state = None
+
+@r.add_binding(Keys.ShiftUp)
+def select_line_up(event):
+    buffer = event.current_buffer
+
+    if buffer.document.text_before_cursor:
+        if not buffer.selection_state:
+            buffer.start_selection()
+            buffer.selection_state.shift_arrow = True
+        up_position = buffer.document.get_cursor_up_position()
+        buffer.cursor_position += up_position
+        if not up_position:
+            buffer.cursor_position = 0
+
+@r.add_binding(Keys.ShiftDown)
+def select_line_down(event):
+    buffer = event.current_buffer
+
+    if buffer.document.text_after_cursor:
+        if not buffer.selection_state:
+            buffer.start_selection()
+            buffer.selection_state.shift_arrow = True
+        down_position = buffer.document.get_cursor_down_position()
+        buffer.cursor_position += down_position
+        if not down_position:
+            buffer.cursor_position = len(buffer.document.text)
+
 
 # The default doesn't toggle correctly
 @r.add_binding(Keys.ControlSpace)
