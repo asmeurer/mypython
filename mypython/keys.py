@@ -1,10 +1,11 @@
 from prompt_toolkit.key_binding.bindings.named_commands import accept_line
 from prompt_toolkit.key_binding.defaults import load_key_bindings
 from prompt_toolkit.key_binding.registry import Registry, MergedRegistry
-from prompt_toolkit.keys import Keys
+from prompt_toolkit.keys import Keys, Key
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.selection import SelectionState
 from prompt_toolkit.clipboard import ClipboardData
+from prompt_toolkit.terminal.vt100_input import ANSI_SEQUENCES
 
 from .multiline import (ends_in_multiline_string,
     document_is_multiline_python, auto_newline,
@@ -265,3 +266,15 @@ def paste_from_clipboard(event):
 
     event.current_buffer.cut_selection()
     event.current_buffer.paste_clipboard_data(ClipboardData(paste_text))
+
+# M-[ a b is set to C-S-/ (C-?) in iTerm2 settings
+Keys.ControlQuestionmark = Key("<C-?>")
+ANSI_SEQUENCES['\x1b[ab'] = Keys.ControlQuestionmark
+
+# This won't work until
+# https://github.com/jonathanslenders/python-prompt-toolkit/pull/484 is
+# merged.
+@r.add_binding(Keys.ControlQuestionmark, save_before=lambda e: False)
+def redo(event):
+    print(event.current_buffer._redo_stack)
+    event.current_buffer.redo()
