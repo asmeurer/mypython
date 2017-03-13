@@ -236,6 +236,15 @@ def normalize(command, _globals, _locals):
         return command
 
 def mypython_displayhook(value):
+    """
+    Unlike the default displayhook:
+
+    - doesn't set builtins._ (we do that separately),
+    - always prints None,
+    - prints a newline before a multiline output, so the out prompt doesn't
+      mess up pretty printing.
+
+    """
     res = repr(value)
     if '\n' in res:
         # Print multiline stuff below the out prompt
