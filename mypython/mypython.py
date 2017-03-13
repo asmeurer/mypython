@@ -4,6 +4,16 @@
 _default_globals = globals().copy()
 _default_locals = _default_globals
 
+import os
+import sys
+import inspect
+import linecache
+import random
+import ast
+from traceback import format_exc
+from textwrap import dedent
+from pydoc import pager
+
 from pygments.lexers import Python3Lexer, Python3TracebackLexer
 from pygments.formatters import TerminalTrueColorFormatter
 from pygments import highlight
@@ -33,16 +43,6 @@ from .theme import OneAMStyle
 from .keys import get_registry
 from .processors import MyHighlightMatchingBracketProcessor
 from .magic import magic, MAGICS
-
-import os
-import sys
-import inspect
-import linecache
-import random
-import ast
-from traceback import format_exc
-from textwrap import dedent
-from pydoc import pager
 
 class MyBuffer(Buffer):
     """
