@@ -388,6 +388,27 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None, e
     cli.prompt_number = -1
     return cli
 
+def execute_command(command, cli, *, _globals=None, _locals=None):
+    _globals = _globals or _default_globals
+    _locals = _locals or _default_locals
+
+    command = normalize(command, _globals, _locals)
+    with iterm2_tools.Output() as o:
+        if not command:
+            if not DOCTEST_MODE:
+                print()
+            return
+        try:
+            res = smart_eval(command, _globals, _locals)
+            post_command(command=command, res=res, _globals=_globals,
+                _locals=_locals, cli=cli)
+        except BaseException as e:
+            print(highlight(format_exc(), Python3TracebackLexer(),
+                TerminalTrueColorFormatter(style=OneAMStyle)), file=sys.stderr)
+            o.set_command_status(1)
+        if not DOCTEST_MODE:
+            print()
+
 def main():
     os.makedirs(os.path.expanduser('~/.mypython/history'), exist_ok=True)
     try:
@@ -424,27 +445,6 @@ def main():
 
         execute_command(command, cli)
         prompt_number = cli.prompt_number
-
-def execute_command(command, cli, *, _globals=None, _locals=None):
-    _globals = _globals or _default_globals
-    _locals = _locals or _default_locals
-
-    command = normalize(command, _globals, _locals)
-    with iterm2_tools.Output() as o:
-        if not command:
-            if not DOCTEST_MODE:
-                print()
-            return
-        try:
-            res = smart_eval(command, _globals, _locals)
-            post_command(command=command, res=res, _globals=_globals,
-                _locals=_locals, cli=cli)
-        except BaseException as e:
-            print(highlight(format_exc(), Python3TracebackLexer(),
-                TerminalTrueColorFormatter(style=OneAMStyle)), file=sys.stderr)
-            o.set_command_status(1)
-        if not DOCTEST_MODE:
-            print()
 
 if __name__ == '__main__':
     main()
