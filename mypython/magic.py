@@ -49,12 +49,14 @@ pass
     return """
 from time import perf_counter as _perf_counter
 from IPython.core.magics.execution import _format_time
+from mypython import smart_eval as _smart_eval
+import sys as _sys
 _time = _perf_counter()
-res = {rest}
+res = _smart_eval({rest!r}, globals(), locals())
 _time = _perf_counter() - _time
 print("Total time:", _format_time(_time))
-del _time, _format_time, _perf_counter
-res
+_sys.displayhook(res)
+del _time, _format_time, _perf_counter, _smart_eval, _NoResult, _sys
 """.format(rest=rest)
 
 def doctest_magic(rest):
