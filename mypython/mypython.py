@@ -235,6 +235,13 @@ def normalize(command, _globals, _locals):
     else:
         return command
 
+def mypython_displayhook(value):
+    res = repr(value)
+    if '\n' in res:
+        # Print multiline stuff below the out prompt
+        print()
+    print(res)
+
 def startup(_globals, _locals):
     exec("""
 import sys
@@ -250,6 +257,8 @@ del sys
     if image:
         print_tokens([(Token.Welcome, "Here is a cat:\n")])
         iterm2_tools.display_image_file(image)
+
+    sys.displayhook = mypython_displayhook
 
     try:
         import matplotlib
@@ -273,7 +282,7 @@ def post_command(*, command, res, _globals, _locals, cli):
         _locals['_'], _locals['__'], _locals['___'] = res, _locals.get('_'), _locals.get('__')
 
         if not (DOCTEST_MODE and res is None):
-            print(repr(res))
+            sys.displayhook(res)
 
 def get_eventloop():
     return create_eventloop(inputhook)
