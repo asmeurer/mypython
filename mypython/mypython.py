@@ -293,6 +293,9 @@ def post_command(*, command, res, _globals, _locals, cli):
         if not (DOCTEST_MODE and res is None):
             sys.displayhook(res)
 
+    if command.strip():
+        cli.prompt_number += 1
+
 def get_eventloop():
     return create_eventloop(inputhook)
 
@@ -399,7 +402,6 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
             res = eval(code, _globals, _locals)
             post_command(command=command, res=res, _globals=_globals,
                 _locals=_locals, cli=cli)
-            cli.prompt_number += 1
         except SyntaxError as s:
             try:
                 p = ast.parse(command)
@@ -414,8 +416,6 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
                     res = eval(code, _globals, _locals)
                 post_command(command=command, res=res, _globals=_globals,
                     _locals=_locals, cli=cli)
-                if command.strip():
-                    cli.prompt_number += 1
             except BaseException as e:
                 # Remove the SyntaxError from the tracebacks. Note, the
                 # SyntaxError is still in the frames (run 'a =
