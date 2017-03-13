@@ -245,6 +245,8 @@ def mypython_displayhook(value):
       mess up pretty printing.
 
     """
+    if value is NoResult:
+        return
     res = repr(value)
     if '\n' in res:
         # Print multiline stuff below the out prompt
