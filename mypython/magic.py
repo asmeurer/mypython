@@ -56,7 +56,7 @@ res = _smart_eval({rest!r}, globals(), locals())
 _time = _perf_counter() - _time
 print("Total time:", _format_time(_time))
 _sys.displayhook(res)
-del _time, _format_time, _perf_counter, _smart_eval, _NoResult, _sys
+del _time, _format_time, _perf_counter, _smart_eval, _sys
 """.format(rest=rest)
 
 def doctest_magic(rest):
