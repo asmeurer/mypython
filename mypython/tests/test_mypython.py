@@ -311,6 +311,10 @@ def test_main_loop():
     assert re.match(
 r"""Traceback \(most recent call last\):
   File ".*", line \d+, in execute_command
+    res = smart_eval\(command, _globals, _locals\)
+  File ".*", line \d+, in smart_eval
+    raise e
+  File ".*", line \d+, in smart_eval
     exec\(code, _globals, _locals\)
   File "<mypython>", line 1, in <module>
 ValueError: error
@@ -326,6 +330,8 @@ ValueError: error
     assert re.match(
 r"""Traceback \(most recent call last\):
   File ".*", line \d+, in execute_command
+    res = smart_eval\(command, _globals, _locals\)
+  File ".*", line \d+, in smart_eval
     res = eval\(code, _globals, _locals\)
   File "<mypython>", line 1, in <module>
   File "<mypython>", line 1, in test

@@ -279,6 +279,44 @@ del sys
 class NoResult:
     pass
 
+def smart_eval(stmt, _globals, _locals):
+    """
+    Automatically exec/eval stmt.
+
+    Returns the result if eval, or NoResult if it was an exec. Or raises if
+    the stmt is a syntax error or raises an exception.
+    """
+    try:
+        code = compile(stmt, '<mypython>', 'eval')
+        res = eval(code, _globals, _locals)
+    except SyntaxError as s:
+        p = ast.parse(stmt)
+        expr = None
+        res = NoResult
+        if p.body and isinstance(p.body[-1], ast.Expr):
+            expr = p.body.pop()
+        code = compile(p, '<mypython>', 'exec')
+        try:
+            exec(code, _globals, _locals)
+        except BaseException as e:
+            # Remove the SyntaxError from the tracebacks. Note, the
+            # SyntaxError is still in the frames (run 'a =
+            # sys.exc_info()'). I don't know if this will be an issue,
+            # but until it does, I'll leave it in for debugging (and
+            # also I don't know how to remove it).
+
+            # TODO: remove the mypython lines from the traceback.
+            while e.__context__ != s:
+                e = e.__context__
+            e.__suppress_context__ = True
+            raise e
+
+        if expr:
+            code = compile(ast.Expression(expr.value), '<mypython>', 'eval')
+            res = eval(code, _globals, _locals)
+
+    return res
+
 def post_command(*, command, res, _globals, _locals, cli):
     prompt_number = cli.prompt_number
     _locals['In'][prompt_number] = command
@@ -398,40 +436,9 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
                 print()
             return
         try:
-            code = compile(command, '<mypython>', 'eval')
-            res = eval(code, _globals, _locals)
+            res = smart_eval(command, _globals, _locals)
             post_command(command=command, res=res, _globals=_globals,
                 _locals=_locals, cli=cli)
-        except SyntaxError as s:
-            try:
-                p = ast.parse(command)
-                expr = None
-                res = NoResult
-                if p.body and isinstance(p.body[-1], ast.Expr):
-                    expr = p.body.pop()
-                code = compile(p, '<mypython>', 'exec')
-                exec(code, _globals, _locals)
-                if expr:
-                    code = compile(ast.Expression(expr.value), '<mypython>', 'eval')
-                    res = eval(code, _globals, _locals)
-                post_command(command=command, res=res, _globals=_globals,
-                    _locals=_locals, cli=cli)
-            except BaseException as e:
-                # Remove the SyntaxError from the tracebacks. Note, the
-                # SyntaxError is still in the frames (run 'a =
-                # sys.exc_info()'). I don't know if this will be an issue,
-                # but until it does, I'll leave it in for debugging (and
-                # also I don't know how to remove it). We also should
-                # probably remove the mypython lines from the traceback.
-                c = e
-                while c.__context__ != s:
-                    c = c.__context__
-                c.__suppress_context__ = True
-
-                # TODO: remove lines from this file from the traceback
-                print(highlight(format_exc(), Python3TracebackLexer(),
-                    TerminalTrueColorFormatter(style=OneAMStyle)), file=sys.stderr)
-                o.set_command_status(1)
         except BaseException as e:
             print(highlight(format_exc(), Python3TracebackLexer(),
                 TerminalTrueColorFormatter(style=OneAMStyle)), file=sys.stderr)
