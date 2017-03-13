@@ -308,9 +308,10 @@ def smart_eval(stmt, _globals, _locals):
             # also I don't know how to remove it).
 
             # TODO: remove the mypython lines from the traceback.
-            while e.__context__ != s:
-                e = e.__context__
-            e.__suppress_context__ = True
+            c = e
+            while c.__context__ != s:
+                c = c.__context__
+            c.__suppress_context__ = True
             raise e
 
         if expr:
