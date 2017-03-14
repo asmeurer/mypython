@@ -13,6 +13,8 @@ return source code that should be executed. Otherwise, you can do the result
 directly in the function and return ''.
 """
 
+import textwrap
+
 def magic(command):
     """
     You can do magic, you can have anything that you desire
@@ -73,6 +75,20 @@ def doctest_magic(rest):
         print("doctest mode disabled")
 
     return ''
+
+def sympy_magic(rest):
+    if rest:
+        print("%sympy takes no arguments")
+
+    sympy_start = """
+from sympy import *
+x, y, z, t = symbols('x y z t')
+k, m, n = symbols('k m n', integer=True)
+f, g, h = symbols('f g h', cls=Function)"""
+
+    print(textwrap.indent(sympy_start, '    '))
+
+    return sympy_start
 
 MAGICS = {}
 

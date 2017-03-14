@@ -242,12 +242,23 @@ def mypython_displayhook(value):
     - doesn't set builtins._ (we do that separately),
     - always prints None,
     - prints a newline before a multiline output, so the out prompt doesn't
-      mess up pretty printing.
+      mess up pretty printing,
+    - uses sympy.pretty() for SymPy objects.
 
     """
     if value is NoResult:
         return
-    res = repr(value)
+
+    try:
+        import sympy
+    except ImportError:
+        sympy = None
+
+    if sympy and getattr(value, '__module__', '').startswith('sympy.'):
+        res = sympy.pretty(value)
+    else:
+        res = repr(value)
+
     if '\n' in res:
         # Print multiline stuff below the out prompt
         print()
