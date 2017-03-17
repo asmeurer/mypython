@@ -96,7 +96,7 @@ def _test_output(_input, *, doctest_mode=False, remove_terminal_sequences=True,
         # TODO: Test things printed to this
         old_print_tokens = mypython.print_tokens = lambda *args, **kwargs: None
 
-        startup(_globals, _locals)
+        startup(_globals, _locals, quiet=True)
 
         result, cli = _cli_with_input(_input, _globals=_globals, _locals=_locals)
 

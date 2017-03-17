@@ -270,7 +270,7 @@ def mypython_displayhook(value):
         print()
     print(res)
 
-def startup(_globals, _locals):
+def startup(_globals, _locals, quiet=False):
     exec("""
 import sys
 sys.path.insert(0, '.')
@@ -280,11 +280,12 @@ del sys
     _locals['In'] = {}
     _locals['Out'] = {}
 
-    print_tokens([(Token.Welcome, "Welcome to mypython.\n")])
-    image = catimg.get_random_image()
-    if image:
-        print_tokens([(Token.Welcome, "Here is a cat:\n")])
-        iterm2_tools.display_image_file(image)
+    if not quiet:
+        print_tokens([(Token.Welcome, "Welcome to mypython.\n")])
+        image = catimg.get_random_image()
+        if image:
+            print_tokens([(Token.Welcome, "Here is a cat:\n")])
+            iterm2_tools.display_image_file(image)
 
     sys.displayhook = mypython_displayhook
 
