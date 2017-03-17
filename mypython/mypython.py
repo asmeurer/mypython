@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+# PYTHON_ARGCOMPLETE_OK
 """
 mypython
 
@@ -16,6 +16,7 @@ import inspect
 import linecache
 import random
 import ast
+import argparse
 from traceback import format_exc
 from textwrap import dedent
 from pydoc import pager
@@ -25,6 +26,7 @@ from pygments.formatters import TerminalTrueColorFormatter
 from pygments import highlight
 
 from prompt_toolkit.buffer import Buffer, AcceptAction
+from prompt_toolkit.input import PipeInput
 from prompt_toolkit.interface import Application, CommandLineInterface
 from prompt_toolkit.shortcuts import (create_prompt_layout, print_tokens,
     create_eventloop, create_output)
@@ -431,6 +433,16 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
             print()
 
 def main():
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument("--cmd", "-c", metavar="CMD", action="store", help="""Execute
+    the given command at startup.""")
+    try:
+        import argcomplete
+        argcomplete.autocomplete(parser)
+    except ImportError:
+        pass
+    args = parser.parse_args()
+
     os.makedirs(os.path.expanduser('~/.mypython/history'), exist_ok=True)
     try:
         tty_name = os.path.basename(os.ttyname(sys.stdout.fileno()))
@@ -445,8 +457,14 @@ def main():
     startup(_default_globals, _default_locals)
     prompt_number = 1
     while True:
+        if prompt_number == 1 and args.cmd:
+            _input = PipeInput()
+            _input.send_text(args.cmd + '\n')
+        else:
+            _input = None
+
         cli = get_cli(history=history, _locals=_default_locals, _globals=_default_globals,
-                registry=registry)
+                registry=registry, _input=_input)
         cli.prompt_number = prompt_number
         try:
             # Replace stdout.
