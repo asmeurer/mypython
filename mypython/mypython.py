@@ -436,6 +436,9 @@ def main():
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument("--cmd", "-c", metavar="CMD", action="store", help="""Execute
     the given command at startup.""")
+    parser.add_argument("--quiet", "-q", action="store_true", help="""Don't
+    print the startup messages.""")
+
     try:
         import argcomplete
         argcomplete.autocomplete(parser)
@@ -454,7 +457,7 @@ def main():
 
     registry = get_registry()
 
-    startup(_default_globals, _default_locals)
+    startup(_default_globals, _default_locals, quiet=args.quiet)
     prompt_number = 1
     while True:
         if prompt_number == 1 and args.cmd:
