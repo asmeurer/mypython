@@ -81,6 +81,7 @@ def sympy_magic(rest):
         print("%sympy takes no arguments")
 
     sympy_start = """
+import sympy
 from sympy import *
 x, y, z, t = symbols('x y z t')
 k, m, n = symbols('k m n', integer=True)
