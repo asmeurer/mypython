@@ -21,3 +21,4 @@
 - Enter on multiline after arrowing
 - Ability to do history search in multiline
 - History browser (like ptpython)
+- Show source in tracebacks for functions defined interactively
