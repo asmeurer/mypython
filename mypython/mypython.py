@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+"""
+mypython
+
+A Python REPL the way I like it.
+"""
+
 # Define globals first so that names from this module don't get included
 _default_globals = globals().copy()
 _default_locals = _default_globals
