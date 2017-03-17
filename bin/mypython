@@ -1,4 +1,5 @@
 #!/usr/bin/env pythonw
+# Emacs, this is -*-python-*-
 
 import os
 import sys
