@@ -203,6 +203,11 @@ def test_completions():
     # Test case insensitivity
     assert _test_completion("tru\t\n") == 'True'
 
+    # Test magic completion
+    assert _test_completion("%ti\t\n") == "%time"
+    # The extra space at the end is removed by the validator
+    assert _test_completion("%sy\t\n") == "%sympy"
+
 def test_startup():
     _globals = _locals = {}
     try:

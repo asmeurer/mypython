@@ -74,9 +74,10 @@ class PythonCompleter(Completer):
         """
         if document.text.startswith('%'):
             for magic in MAGICS:
-                yield Completion(magic + ' ',
-                    -len(document.text_before_cursor),
-                    display_meta='magic')
+                if magic.startswith(document.text):
+                    yield Completion(magic + ' ',
+                        -len(document.text_before_cursor),
+                        display_meta='magic')
 
             return
         if complete_event.completion_requested or self._complete_python_while_typing(document):
