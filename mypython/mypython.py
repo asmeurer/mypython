@@ -462,10 +462,12 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
 
 def main():
     parser = argparse.ArgumentParser(__doc__)
-    parser.add_argument("--cmd", "-c", metavar="CMD", action="store", help="""Execute
-    the given command at startup.""")
+    parser.add_argument("--cmd", "-c", metavar="CMD", action="store",
+        help="""Execute the given command at startup.""")
     parser.add_argument("--quiet", "-q", action="store_true", help="""Don't
-    print the startup messages.""")
+        print the startup messages.""")
+    parser.add_argument("--doctest-mode", "-d", action="store_true",
+        help="""Enable doctest mode. Mimics the default Python prompt.""")
 
     try:
         import argcomplete
@@ -473,6 +475,10 @@ def main():
     except ImportError:
         pass
     args = parser.parse_args()
+
+    if args.doctest_mode:
+        global DOCTEST_MODE
+        DOCTEST_MODE = True
 
     os.makedirs(os.path.expanduser('~/.mypython/history'), exist_ok=True)
     try:
