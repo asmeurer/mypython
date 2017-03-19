@@ -313,18 +313,12 @@ def test_main_loop():
 
     out, err = _test_output('raise ValueError("error")\n')
     assert out == '\n'
-    assert re.match(
-r"""Traceback \(most recent call last\):
-  File ".*", line \d+, in execute_command
-    res = smart_eval\(command, _globals, _locals\)
-  File ".*", line \d+, in smart_eval
-    raise e
-  File ".*", line \d+, in smart_eval
-    exec\(code, _globals, _locals\)
+    assert err == \
+r"""Traceback (most recent call last):
   File "<mypython>", line 1, in <module>
 ValueError: error
 
-""", err), err
+"""
 
     _globals = _test_globals.copy()
     out, err = _test_output('def test():raise ValueError("error")\n\n',
@@ -332,14 +326,10 @@ ValueError: error
     assert out, err == ('\n\n', '')
     out, err = _test_output('test()\n', _globals=_globals)
     assert out == '\n'
-    assert re.match(
-r"""Traceback \(most recent call last\):
-  File ".*", line \d+, in execute_command
-    res = smart_eval\(command, _globals, _locals\)
-  File ".*", line \d+, in smart_eval
-    res = eval\(code, _globals, _locals\)
+    assert err == \
+r"""Traceback (most recent call last):
   File "<mypython>", line 1, in <module>
   File "<mypython>", line 1, in test
 ValueError: error
 
-""", err), err
+"""

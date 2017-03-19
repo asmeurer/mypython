@@ -17,7 +17,7 @@ import linecache
 import random
 import ast
 import argparse
-from traceback import format_exc
+import traceback
 from textwrap import dedent
 from pydoc import pager
 
@@ -327,7 +327,6 @@ def smart_eval(stmt, _globals, _locals):
             # but until it does, I'll leave it in for debugging (and
             # also I don't know how to remove it).
 
-            # TODO: remove the mypython lines from the traceback.
             c = e
             while c.__context__ != s:
                 c = c.__context__
@@ -410,6 +409,26 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None, e
     )
     cli.prompt_number = -1
     return cli
+
+def format_exception(etype, value, tb, limit=None, chain=True):
+    """
+    Like traceback.format_exception() except lines from mypython are not returned.
+    """
+    l = []
+    mypython_dir = os.path.dirname(__file__)
+
+    for i in traceback.format_exception(etype, value, tb, limit=limit, chain=chain):
+        if i.startswith('  File "{}'.format(mypython_dir)):
+            continue
+        l.append(i)
+
+    return l
+
+def format_exc(limit=None, chain=True):
+    """
+    Like traceback.format_exc() except lines from mypython are not returned.
+    """
+    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
 
 def execute_command(command, cli, *, _globals=None, _locals=None):
     _globals = _globals or _default_globals
