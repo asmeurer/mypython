@@ -317,7 +317,6 @@ def test_main_loop():
 r"""Traceback (most recent call last):
   File "<mypython>", line 1, in <module>
 ValueError: error
-
 """
 
     out, err = _test_output('raise ValueError("error")\n', doctest_mode=True)
@@ -326,7 +325,6 @@ ValueError: error
 r"""Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
 ValueError: error
-
 """
 
     _globals = _test_globals.copy()
@@ -340,7 +338,6 @@ r"""Traceback (most recent call last):
   File "<mypython>", line 1, in <module>
   File "<mypython>", line 1, in test
 ValueError: error
-
 """
 
     _globals = _test_globals.copy()
@@ -354,5 +351,4 @@ r"""Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
   File "<stdin>", line 1, in test
 ValueError: error
-
 """

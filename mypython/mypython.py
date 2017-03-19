@@ -449,7 +449,8 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
                 _locals=_locals, cli=cli)
         except BaseException as e:
             print(highlight(format_exc(), Python3TracebackLexer(),
-                TerminalTrueColorFormatter(style=OneAMStyle)), file=sys.stderr)
+                TerminalTrueColorFormatter(style=OneAMStyle)),
+                file=sys.stderr, end='')
             o.set_command_status(1)
         if not DOCTEST_MODE:
             print()
