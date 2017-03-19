@@ -183,6 +183,11 @@ def get_in_prompt_tokens(cli):
     ]
 
 def get_continuation_tokens(cli, width):
+    if DOCTEST_MODE:
+        return [
+            (Token.DoctestContinuation, '...'),
+            (Token.Space, ' '),
+            ]
     return [
         (Token.Clapping, '\N{CLAPPING HANDS SIGN}'*((width - 1)//2)),
         (Token.VerticalLine, '⎢'),
