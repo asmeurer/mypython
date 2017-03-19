@@ -200,11 +200,14 @@ def get_out_prompt_tokens(cli):
         (Token.Space, ' '),
     ]
 
+def mypython_file():
+    return "<stdin>" if DOCTEST_MODE else "<mypython>"
+
 def getsource(command, _globals, _locals):
     # Enable getting the source for code defined in the REPL. Uses a similar
     # pattern as the doctest module.
     def _patched_linecache_getlines(filename, module_globals=None):
-        if filename == "<mypython>":
+        if filename == mypython_file():
             return '\n'.join(i for _, i in sorted(_locals['In'].items())).splitlines(keepends=True)
         else:
             return linecache._orig_getlines(filename, module_globals)
@@ -309,7 +312,7 @@ def smart_eval(stmt, _globals, _locals):
     the stmt is a syntax error or raises an exception.
     """
     try:
-        code = compile(stmt, '<mypython>', 'eval')
+        code = compile(stmt, mypython_file(), 'eval')
         res = eval(code, _globals, _locals)
     except SyntaxError as s:
         p = ast.parse(stmt)
@@ -317,7 +320,7 @@ def smart_eval(stmt, _globals, _locals):
         res = NoResult
         if p.body and isinstance(p.body[-1], ast.Expr):
             expr = p.body.pop()
-        code = compile(p, '<mypython>', 'exec')
+        code = compile(p, mypython_file(), 'exec')
         try:
             exec(code, _globals, _locals)
         except BaseException as e:
@@ -334,7 +337,7 @@ def smart_eval(stmt, _globals, _locals):
             raise e
 
         if expr:
-            code = compile(ast.Expression(expr.value), '<mypython>', 'eval')
+            code = compile(ast.Expression(expr.value), mypython_file(), 'eval')
             res = eval(code, _globals, _locals)
 
     return res

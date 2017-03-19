@@ -320,16 +320,39 @@ ValueError: error
 
 """
 
+    out, err = _test_output('raise ValueError("error")\n', doctest_mode=True)
+    assert out == ''
+    assert err == \
+r"""Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ValueError: error
+
+"""
+
     _globals = _test_globals.copy()
     out, err = _test_output('def test():raise ValueError("error")\n\n',
         _globals=_globals)
-    assert out, err == ('\n\n', '')
+    assert (out, err) == ('\n', '')
     out, err = _test_output('test()\n', _globals=_globals)
     assert out == '\n'
     assert err == \
 r"""Traceback (most recent call last):
   File "<mypython>", line 1, in <module>
   File "<mypython>", line 1, in test
+ValueError: error
+
+"""
+
+    _globals = _test_globals.copy()
+    out, err = _test_output('def test():raise ValueError("error")\n\n',
+        _globals=_globals, doctest_mode=True)
+    assert (out, err) == ('', '')
+    out, err = _test_output('test()\n', _globals=_globals, doctest_mode=True)
+    assert out == ''
+    assert err == \
+r"""Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "<stdin>", line 1, in test
 ValueError: error
 
 """
