@@ -131,12 +131,6 @@ class PythonSyntaxValidator(Validator):
             index = document.translate_row_col_to_index(e.lineno - 1,  (e.offset or 1) - 1)
             raise ValidationError(message="SyntaxError: %s" % e.args[0], cursor_position=index)
 
-def get_continuation_tokens(cli, width):
-    return [
-        (Token.Clapping, '\N{CLAPPING HANDS SIGN}'*((width - 1)//2)),
-        (Token.VerticalLine, '⎢'),
-    ]
-
 prompt_style = {
     Token.DoctestIn: "#ansiwhite",
     Token.In: '#ansiwhite',
@@ -186,6 +180,12 @@ def get_in_prompt_tokens(cli):
         (Token.InColon, ':'),
         (Token.Space, ' '),
         (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
+    ]
+
+def get_continuation_tokens(cli, width):
+    return [
+        (Token.Clapping, '\N{CLAPPING HANDS SIGN}'*((width - 1)//2)),
+        (Token.VerticalLine, '⎢'),
     ]
 
 def get_out_prompt_tokens(cli):
