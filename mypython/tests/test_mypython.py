@@ -42,6 +42,8 @@ def _cli_with_input(text, history=None, _globals=None, _locals=None,
         _input = text
     else:
         assert text.endswith('\n')
+        if '\n' in text[:-1]:
+            assert text.endswith('\n\n')
         _input = PipeInput()
         _input.send_text(text)
 
