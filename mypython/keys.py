@@ -1,7 +1,6 @@
 from prompt_toolkit.key_binding.bindings.named_commands import accept_line
 from prompt_toolkit.key_binding.defaults import load_key_bindings
 from prompt_toolkit.key_binding.registry import Registry, MergedRegistry
-from prompt_toolkit.key_binding.input_processor import KeyPress
 from prompt_toolkit.keys import Keys, Key
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.selection import SelectionState
