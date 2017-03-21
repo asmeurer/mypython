@@ -328,6 +328,9 @@ def smart_eval(stmt, _globals, _locals):
         code = compile(p, mypython_file(), 'exec')
         try:
             exec(code, _globals, _locals)
+            if expr:
+                code = compile(ast.Expression(expr.value), mypython_file(), 'eval')
+                res = eval(code, _globals, _locals)
         except BaseException as e:
             # Remove the SyntaxError from the tracebacks. Note, the
             # SyntaxError is still in the frames (run 'a =
@@ -340,10 +343,6 @@ def smart_eval(stmt, _globals, _locals):
                 c = c.__context__
             c.__suppress_context__ = True
             raise e
-
-        if expr:
-            code = compile(ast.Expression(expr.value), mypython_file(), 'eval')
-            res = eval(code, _globals, _locals)
 
     return res
 

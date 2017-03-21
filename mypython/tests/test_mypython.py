@@ -42,6 +42,8 @@ def _cli_with_input(text, history=None, _globals=None, _locals=None,
         _input = text
     else:
         assert text.endswith('\n')
+        if '\n' in text[:-1]:
+            assert text.endswith('\n\n')
         _input = PipeInput()
         _input.send_text(text)
 
@@ -155,7 +157,7 @@ def test():
     123)"""
 
 UP_TO_TAB = re.compile('[^\t]*\t?')
-def _input_with_tabs(text, _input, sleep_time=0.3):
+def _input_with_tabs(text, _input, sleep_time=0.4):
     """
     Send the input with a pause after tabs, to allow the (async) completion
     happen.
@@ -309,6 +311,11 @@ def test_main_loop():
     assert _test_output('a = 1;2\n') == ('2\n\n', '')
     assert _test_output('1;2\n') == ('2\n\n', '')
     assert _test_output('1;a = 2\n') == ('\n', '')
+    # \x1b\n == M-Enter
+    assert _test_output('a = 1\x1b\n2\n\n') == ('2\n\n', '')
+    assert _test_output('1\x1b\n2\n\n') == ('2\n\n', '')
+    assert _test_output('1\x1b\na = 2\n\n') == ('\n', '')
+
     assert _test_output('# comment\n') == ('\n', '')
 
     out, err = _test_output('raise ValueError("error")\n')
@@ -351,4 +358,22 @@ r"""Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
   File "<stdin>", line 1, in test
 ValueError: error
+"""
+
+    # Non-eval syntax + last line expr
+    _globals = _test_globals.copy()
+    out, err = _test_output('import os;undefined\n', _globals=_globals)
+    assert out == '\n'
+    assert err == \
+"""Traceback (most recent call last):
+  File "<mypython>", line 1, in <module>
+NameError: name 'undefined' is not defined
+"""
+    # \x1b\n == M-Enter
+    out, err = _test_output('import os\x1b\nundefined\n\n', _globals=_globals)
+    assert out == '\n'
+    assert err == \
+"""Traceback (most recent call last):
+  File "<mypython>", line 2, in <module>
+NameError: name 'undefined' is not defined
 """
