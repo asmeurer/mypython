@@ -1,6 +1,7 @@
 from prompt_toolkit.key_binding.bindings.named_commands import accept_line
 from prompt_toolkit.key_binding.defaults import load_key_bindings
 from prompt_toolkit.key_binding.registry import Registry, MergedRegistry
+from prompt_toolkit.key_binding.input_processor import KeyPress
 from prompt_toolkit.keys import Keys, Key
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.selection import SelectionState
@@ -160,6 +161,21 @@ def multiline_enter(event):
         accept_line(event)
     else:
         auto_newline(event.current_buffer)
+
+# Always accept the line if the previous key was Up
+# Requires https://github.com/jonathanslenders/python-prompt-toolkit/pull/492.
+# We don't need a parallel for down because down is already at the end of the
+# prompt.
+
+# TODO: Only do this when the previous key was up and we just did a
+# history_backward().
+@r.add_binding(Keys.Enter, filter=is_returnable)
+def accept_after_history_backward(event):
+    pks = event.previous_key_sequence
+    if pks and len(pks) == 1 and isinstance(pks[0].key, Key) and pks[0].key.name == "<Up>":
+        accept_line(event)
+    else:
+        multiline_enter(event)
 
 @r.add_binding(Keys.Escape, Keys.Enter)
 def insert_newline(event):
