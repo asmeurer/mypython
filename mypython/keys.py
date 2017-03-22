@@ -171,7 +171,9 @@ def multiline_enter(event):
 @r.add_binding(Keys.Enter, filter=is_returnable)
 def accept_after_history_backward(event):
     pks = event.previous_key_sequence
-    if pks and len(pks) == 1 and isinstance(pks[0].key, Key) and pks[0].key.name == "<Up>":
+    if pks and (len(pks) == 1 and isinstance(pks[0].key, Key) and pks[0].key.name == "<Up>") \
+       or (len(pks) == 2 and isinstance(pks[0].key, Key) and pks[0].key.name == "<Escape>"
+           and isinstance(pks[1].key, str) and pks[1].key in 'pP'):
         accept_line(event)
     else:
         multiline_enter(event)
