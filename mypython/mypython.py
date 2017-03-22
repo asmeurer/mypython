@@ -414,7 +414,7 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None, e
         output=output,
         input=_input,
     )
-    cli.prompt_number = -1
+    cli.prompt_number = 1
     return cli
 
 def format_exception(etype, value, tb, limit=None, chain=True):
