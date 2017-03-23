@@ -219,7 +219,8 @@ def getsource(command, _globals, _locals, ret=False):
     Works for code defined interactively.
 
     If ret=False (default), displays the source in a pager. Otherwise, returns
-    the source, or '' if the source could not be found.
+    the source, or raises an exception (from inspect.getsource()) if it cannot
+    be found.
 
     """
     # Enable getting the source for code defined in the REPL.
@@ -246,8 +247,8 @@ def getsource(command, _globals, _locals, ret=False):
                 {'inspect': inspect, **_locals})
     except Exception as e:
         if ret:
-            return ''
-        print("Error: could not get source for '%s': %s" % (command[:-2], e), file=sys.stderr)
+            raise
+        print("Error: could not get source for '%s': %s" % (command, e), file=sys.stderr)
     else:
         if ret:
             return source
