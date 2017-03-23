@@ -78,7 +78,7 @@ def keyboard_interrupt_handler(s, f):
 TERMINAL_SEQUENCE = re.compile(r'(\x1b.*?\x07)|(\x1b\[.*?m)')
 
 def _test_output(_input, *, doctest_mode=False, remove_terminal_sequences=True,
-    _globals=None, _locals=None):
+    _globals=None, _locals=None, prompt_number=None):
     """
     Test the output from a given input
 
@@ -101,6 +101,8 @@ def _test_output(_input, *, doctest_mode=False, remove_terminal_sequences=True,
         startup(_globals, _locals, quiet=True)
 
         result, cli = _cli_with_input(_input, _globals=_globals, _locals=_locals)
+        if prompt_number is not None:
+            cli.prompt_number = prompt_number
 
         if isinstance(result, Document):  # Backwards-compatibility.
             command = result.text
@@ -322,7 +324,8 @@ def test_main_loop():
     assert out == '\n'
     assert err == \
 r"""Traceback (most recent call last):
-  File "<mypython>", line 1, in <module>
+  File "<mypython-1>", line 1, in <module>
+    raise ValueError("error")
 ValueError: error
 """
 
@@ -335,28 +338,30 @@ ValueError: error
 """
 
     _globals = _test_globals.copy()
-    out, err = _test_output('def test():raise ValueError("error")\n\n',
+    out, err = _test_output('def test():\nraise ValueError("error")\n\n',
         _globals=_globals)
     assert (out, err) == ('\n', '')
-    out, err = _test_output('test()\n', _globals=_globals)
+    out, err = _test_output('test()\n', _globals=_globals, prompt_number=2)
     assert out == '\n'
     assert err == \
 r"""Traceback (most recent call last):
-  File "<mypython>", line 1, in <module>
-  File "<mypython>", line 1, in test
+  File "<mypython-2>", line 1, in <module>
+    test()
+  File "<mypython-1>", line 2, in test
+    raise ValueError("error")
 ValueError: error
 """
 
     _globals = _test_globals.copy()
-    out, err = _test_output('def test():raise ValueError("error")\n\n',
+    out, err = _test_output('def test():\nraise ValueError("error")\n\n',
         _globals=_globals, doctest_mode=True)
     assert (out, err) == ('', '')
-    out, err = _test_output('test()\n', _globals=_globals, doctest_mode=True)
+    out, err = _test_output('test()\n', _globals=_globals, doctest_mode=True, prompt_number=2)
     assert out == ''
     assert err == \
 r"""Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
-  File "<stdin>", line 1, in test
+  File "<stdin>", line 2, in test
 ValueError: error
 """
 
@@ -366,7 +371,8 @@ ValueError: error
     assert out == '\n'
     assert err == \
 """Traceback (most recent call last):
-  File "<mypython>", line 1, in <module>
+  File "<mypython-1>", line 1, in <module>
+    import os;undefined
 NameError: name 'undefined' is not defined
 """
     # \x1b\n == M-Enter
@@ -374,6 +380,7 @@ NameError: name 'undefined' is not defined
     assert out == '\n'
     assert err == \
 """Traceback (most recent call last):
-  File "<mypython>", line 2, in <module>
+  File "<mypython-1>", line 2, in <module>
+    undefined
 NameError: name 'undefined' is not defined
 """

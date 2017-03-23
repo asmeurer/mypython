@@ -205,14 +205,18 @@ def get_out_prompt_tokens(cli):
         (Token.Space, ' '),
     ]
 
-def mypython_file():
-    return "<stdin>" if DOCTEST_MODE else "<mypython>"
+def mypython_file(prompt_number=None):
+    if DOCTEST_MODE:
+        return "<stdin>"
+    if prompt_number is not None:
+        return "<mypython-{prompt_number}>".format(prompt_number=prompt_number)
+    return "<mypython>"
 
 def getsource(command, _globals, _locals):
     # Enable getting the source for code defined in the REPL. Uses a similar
     # pattern as the doctest module.
     def _patched_linecache_getlines(filename, module_globals=None):
-        if filename == mypython_file():
+        if filename == "<stdin>" or filename.startswith("<mypython"):
             return '\n'.join(i for _, i in sorted(_locals['In'].items())).splitlines(keepends=True)
         else:
             return linecache._orig_getlines(filename, module_globals)
@@ -309,15 +313,28 @@ del sys
 class NoResult:
     pass
 
-def smart_eval(stmt, _globals, _locals):
+def smart_eval(stmt, _globals, _locals, filename=None):
     """
     Automatically exec/eval stmt.
 
     Returns the result if eval, or NoResult if it was an exec. Or raises if
     the stmt is a syntax error or raises an exception.
+
+    filename should be the filename used for compiling the statement. If
+    given, the statement will be saved to the Python linecache, so that it
+    appears in tracebacks. Otherwise, a default filename is used and it isn't
+    saved to the linecache.
     """
+    if filename:
+        # Don't show context lines in doctest mode
+        if filename != "<stdin>":
+            # (size, mtime, lines, fullname)
+            linecache.cache[filename] = (len(stmt), None, stmt.splitlines(), filename)
+    else:
+        filename = mypython_file()
+
     try:
-        code = compile(stmt, mypython_file(), 'eval')
+        code = compile(stmt, filename, 'eval')
         res = eval(code, _globals, _locals)
     except SyntaxError as s:
         p = ast.parse(stmt)
@@ -325,11 +342,11 @@ def smart_eval(stmt, _globals, _locals):
         res = NoResult
         if p.body and isinstance(p.body[-1], ast.Expr):
             expr = p.body.pop()
-        code = compile(p, mypython_file(), 'exec')
+        code = compile(p, filename, 'exec')
         try:
             exec(code, _globals, _locals)
             if expr:
-                code = compile(ast.Expression(expr.value), mypython_file(), 'eval')
+                code = compile(ast.Expression(expr.value), filename, 'eval')
                 res = eval(code, _globals, _locals)
         except BaseException as e:
             # Remove the SyntaxError from the tracebacks. Note, the
@@ -448,7 +465,7 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
                 print()
             return
         try:
-            res = smart_eval(command, _globals, _locals)
+            res = smart_eval(command, _globals, _locals, filename=mypython_file(cli.prompt_number))
             post_command(command=command, res=res, _globals=_globals,
                 _locals=_locals, cli=cli)
         except BaseException as e:

@@ -13,7 +13,6 @@
 - Jedi completion within multiline inputs
 - Open command in EDITOR shortcut
 - Better indication when no tab completions are found
-- Better tracebacks from functions defined in the REPL
 - Enter wants to add a newline after a \ in a string
 - M-;
 - Shift-arrow
