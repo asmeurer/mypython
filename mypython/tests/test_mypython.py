@@ -14,7 +14,7 @@ from prompt_toolkit.document import Document
 from prompt_toolkit.validation import ValidationError
 
 from ..mypython import (get_cli, _default_globals, get_eventloop,
-    startup, normalize, magic, PythonSyntaxValidator, execute_command)
+    startup, normalize, magic, PythonSyntaxValidator, execute_command, getsource)
 from .. import mypython
 from ..keys import get_registry
 
@@ -283,6 +283,24 @@ def test_syntax_validator():
     doesntvalidate('def test():\n')
     doesntvalidate('%notarealmagic')
     doesntvalidate('%notarealmagic 1')
+
+def test_getsource():
+    _globals = _test_globals.copy()
+    out, err = _test_output('def test():\nraise ValueError("error")\n\n',
+        _globals=_globals)
+
+    assert getsource('test', _globals, _globals, ret=True) == """\
+def test():
+    raise ValueError("error")
+"""
+
+    # XXX: ?? for classes doesn't work
+#     out, err = _test_output('class Test:\npass\n\n', _globals=_globals, prompt_number=2)
+#     assert getsource('Test', _globals, _globals, ret=True) == \
+#         getsource('Test', _globals, _globals, ret=True) == """\
+# class Test:
+#     pass
+# """
 
 def test_main_loop():
     assert _test_output('\n', remove_terminal_sequences=False) == ('\x1b]133;C\x07\n\x1b]133;D;0\x07', '')
