@@ -239,10 +239,10 @@ def getsource(command, _globals, _locals, ret=False):
         linecache._orig_getlines = linecache.getlines
         linecache.getlines = _patched_linecache_getlines
         try:
-            source = eval('inspect.getsource(%s)' % command[:-2], _globals,
+            source = eval('inspect.getsource(%s)' % command, _globals,
                 {'inspect': inspect, **_locals})
         except TypeError:
-            source = eval('inspect.getsource(type(%s))' % command[:-2], _globals,
+            source = eval('inspect.getsource(type(%s))' % command, _globals,
                 {'inspect': inspect, **_locals})
     except Exception as e:
         if ret:
@@ -265,7 +265,7 @@ def normalize(command, _globals, _locals):
         # Too many
         return command
     elif command.endswith('??'):
-        return getsource(command, _globals, _locals)
+        return getsource(command[:-2], _globals, _locals)
     elif command.endswith('?'):
         return 'help(%s)' % command[:-1]
     elif command.startswith('%'):
