@@ -402,3 +402,11 @@ NameError: name 'undefined' is not defined
     undefined
 NameError: name 'undefined' is not defined
 """
+
+def test_displayhook():
+    # TODO: Add tests for other things.
+
+    _globals = _test_globals.copy()
+    out, err = _test_output('(1j).conjugate\n', _globals=_globals)
+    assert re.match(r'<built-in method conjugate of complex object at 0x[a-f0-9]+>', out), (out, err)
+    assert err == ''

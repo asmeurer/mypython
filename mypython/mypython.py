@@ -302,7 +302,7 @@ def mypython_displayhook(value):
     except ImportError:
         sympy = None
 
-    if sympy and getattr(value, '__module__', '').startswith('sympy.'):
+    if sympy and (getattr(value, '__module__', '') or '').startswith('sympy.'):
         res = sympy.pretty(value)
     else:
         res = repr(value)
