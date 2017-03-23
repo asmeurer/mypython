@@ -229,6 +229,7 @@ def test_test_globals():
     assert _test_globals.keys() == {'__package__', '__loader__',
     '__name__', '__doc__', '__cached__', '__file__', '__builtins__',
     '__spec__'}
+    assert _test_globals['__name__'] == _default_globals['__name__'] == '__main__'
 
 def test_normalize():
     _globals = _locals = _test_globals.copy()
