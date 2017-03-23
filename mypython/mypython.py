@@ -351,6 +351,10 @@ def smart_eval(stmt, _globals, _locals, filename=None):
     given, the statement will be saved to the Python linecache, so that it
     appears in tracebacks. Otherwise, a default filename is used and it isn't
     saved to the linecache.
+
+    Note that classes defined with this will have their module set to
+    '__main__'.  To change this, set _globals['__name__'] to the desired
+    module.
     """
     if filename:
         # Don't show context lines in doctest mode
