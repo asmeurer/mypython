@@ -162,6 +162,7 @@ emoji = [
 IN, OUT = random.choice(emoji)
 
 DOCTEST_MODE = False
+DEBUG = False
 
 def get_in_prompt_tokens(cli):
     if DOCTEST_MODE:
@@ -386,6 +387,9 @@ def smart_eval(stmt, _globals, _locals, filename=None):
             # but until it does, I'll leave it in for debugging (and
             # also I don't know how to remove it).
 
+            if DEBUG:
+                raise e
+
             c = e
             while c.__context__ != s:
                 c = c.__context__
@@ -469,6 +473,9 @@ def format_exception(etype, value, tb, limit=None, chain=True):
     """
     Like traceback.format_exception() except lines from mypython are not returned.
     """
+    if DEBUG:
+        return traceback.format_exception(etype, value, tb, limit=limit, chain=chain)
+
     l = []
     mypython_dir = os.path.dirname(__file__)
 

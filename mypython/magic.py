@@ -76,6 +76,21 @@ def doctest_magic(rest):
 
     return ''
 
+def debug_magic(rest):
+    from . import mypython
+
+    if rest:
+        print("%debug takes no arguments")
+
+    mypython.DEBUG ^= True
+
+    if mypython.DEBUG:
+        print("mypython debugging mode enabled")
+    else:
+        print("mypython debugging mode disabled")
+
+    return ''
+
 def sympy_magic(rest):
     if rest:
         print("%sympy takes no arguments")
