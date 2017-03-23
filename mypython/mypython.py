@@ -232,7 +232,14 @@ def getsource(command, _globals, _locals, ret=False):
     # try to os.stat() the file and skip it when that fails). This is a
     # similar pattern as the doctest module.
     def _patched_linecache_getlines(filename, module_globals=None):
-        if filename == "<stdin>" or filename.startswith("<mypython"):
+        if '__main__' in sys.modules:
+            # Classes defined interactively will have their module set to
+            # __main__, so getfile looks at this. This will typically be
+            # /path/to/bin/mypython.
+            __main__file = sys.modules['__main__'].__file__
+        else:
+            __main__file = None
+        if filename in ["<stdin>", __main__file] or filename.startswith("<mypython"):
             return '\n'.join([i for _, i in sorted(_locals['In'].items())] + ['']).splitlines(keepends=True)
         else:
             return linecache._orig_getlines(filename, module_globals)

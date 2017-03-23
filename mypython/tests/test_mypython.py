@@ -295,13 +295,12 @@ def test():
     raise ValueError("error")
 """
 
-    # XXX: ?? for classes doesn't work
-#     out, err = _test_output('class Test:\npass\n\n', _globals=_globals, prompt_number=2)
-#     assert getsource('Test', _globals, _globals, ret=True) == \
-#         getsource('Test', _globals, _globals, ret=True) == """\
-# class Test:
-#     pass
-# """
+    out, err = _test_output('class Test:\npass\n\n', _globals=_globals, prompt_number=2)
+    assert getsource('Test', _globals, _globals, ret=True) == \
+        getsource('Test', _globals, _globals, ret=True) == """\
+class Test:
+    pass
+"""
 
 def test_main_loop():
     assert _test_output('\n', remove_terminal_sequences=False) == ('\x1b]133;C\x07\n\x1b]133;D;0\x07', '')
