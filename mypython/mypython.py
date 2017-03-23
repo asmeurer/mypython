@@ -212,7 +212,16 @@ def mypython_file(prompt_number=None):
         return "<mypython-{prompt_number}>".format(prompt_number=prompt_number)
     return "<mypython>"
 
-def getsource(command, _globals, _locals):
+def getsource(command, _globals, _locals, ret=False):
+    """
+    Get and show the source for the given code
+
+    Works for code defined interactively.
+
+    If ret=False (default), displays the source in a pager. Otherwise, returns
+    the source, or '' if the source could not be found.
+
+    """
     # Enable getting the source for code defined in the REPL.
 
     # Even though we add code defined interactively to linecache.cache in
@@ -236,8 +245,12 @@ def getsource(command, _globals, _locals):
             source = eval('inspect.getsource(type(%s))' % command[:-2], _globals,
                 {'inspect': inspect, **_locals})
     except Exception as e:
-        print("Error: could not get source for '%s': %s" % (command[:-2], e))
+        if ret:
+            return ''
+        print("Error: could not get source for '%s': %s" % (command[:-2], e), file=sys.stderr)
     else:
+        if ret:
+            return source
         pager(highlight(source, Python3Lexer(),
             TerminalTrueColorFormatter(style=OneAMStyle)))
     finally:
