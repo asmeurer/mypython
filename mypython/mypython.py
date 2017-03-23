@@ -222,7 +222,7 @@ def getsource(command, _globals, _locals):
     # similar pattern as the doctest module.
     def _patched_linecache_getlines(filename, module_globals=None):
         if filename == "<stdin>" or filename.startswith("<mypython"):
-            return '\n'.join(i for _, i in sorted(_locals['In'].items())).splitlines(keepends=True)
+            return '\n'.join([i for _, i in sorted(_locals['In'].items())] + ['']).splitlines(keepends=True)
         else:
             return linecache._orig_getlines(filename, module_globals)
 
