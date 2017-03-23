@@ -98,7 +98,8 @@ def _test_output(_input, *, doctest_mode=False, remove_terminal_sequences=True,
         # TODO: Test things printed to this
         old_print_tokens = mypython.print_tokens = lambda *args, **kwargs: None
 
-        startup(_globals, _locals, quiet=True)
+        if not prompt_number:
+            startup(_globals, _locals, quiet=True)
 
         result, cli = _cli_with_input(_input, _globals=_globals, _locals=_locals)
         if prompt_number is not None:
@@ -114,7 +115,6 @@ def _test_output(_input, *, doctest_mode=False, remove_terminal_sequences=True,
         sys.stdout = old_stdout
         sys.stderr = old_stderr
         mypython.print_tokens = old_print_tokens
-
 
     ret = (custom_stdout.getvalue(), custom_stderr.getvalue())
     if remove_terminal_sequences:
