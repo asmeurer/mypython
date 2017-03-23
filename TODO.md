@@ -19,3 +19,4 @@
 - Easier way to copy multiline input to clipboard
 - Ability to do history search in multiline
 - History browser (like ptpython)
+- Auto-detect exceptions coming from mypython
