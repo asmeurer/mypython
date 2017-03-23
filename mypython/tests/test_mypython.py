@@ -14,7 +14,8 @@ from prompt_toolkit.document import Document
 from prompt_toolkit.validation import ValidationError
 
 from ..mypython import (get_cli, _default_globals, get_eventloop,
-    startup, normalize, magic, PythonSyntaxValidator, execute_command, getsource)
+    startup, normalize, magic, PythonSyntaxValidator, execute_command,
+    getsource)
 from .. import mypython
 from ..keys import get_registry
 
