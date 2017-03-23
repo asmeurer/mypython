@@ -213,8 +213,13 @@ def mypython_file(prompt_number=None):
     return "<mypython>"
 
 def getsource(command, _globals, _locals):
-    # Enable getting the source for code defined in the REPL. Uses a similar
-    # pattern as the doctest module.
+    # Enable getting the source for code defined in the REPL.
+
+    # Even though we add code defined interactively to linecache.cache in
+    # smart_eval(), we have to monkey patch linecache.getlines() because it
+    # skips files with mtime == None (and even if it weren't None, it would
+    # try to os.stat() the file and skip it when that fails). This is a
+    # similar pattern as the doctest module.
     def _patched_linecache_getlines(filename, module_globals=None):
         if filename == "<stdin>" or filename.startswith("<mypython"):
             return '\n'.join(i for _, i in sorted(_locals['In'].items())).splitlines(keepends=True)
