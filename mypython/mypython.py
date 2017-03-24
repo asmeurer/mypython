@@ -34,7 +34,7 @@ from prompt_toolkit.shortcuts import (create_prompt_layout, print_tokens,
 from prompt_toolkit.document import Document
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.layout.processors import ConditionalProcessor
-from prompt_toolkit.styles import style_from_pygments, style_from_dict
+from prompt_toolkit.styles import style_from_pygments
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.validation import Validator, ValidationError
 from prompt_toolkit.filters import Condition, IsDone
@@ -509,19 +509,9 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
             post_command(command=command, res=res, _globals=_globals,
                 _locals=_locals, cli=cli)
         except BaseException as e:
-            (etype, value, tb) = sys.exc_info()
-            internal_error = os.path.dirname(tb.tb_frame.f_code.co_filename) == mypython_dir
-            if internal_error:
-                global DEBUG
-                DEBUG = True
             print(highlight(format_exc(), Python3TracebackLexer(),
                 TerminalTrueColorFormatter(style=OneAMStyle)),
                 file=sys.stderr, end='')
-            if internal_error:
-                DEBUG = False
-                print_tokens([(Token.Newline, '\n'), (Token.InternalError,
-                    "!!!Error: Exception raised from within mypython!!!")],
-                    style=style_from_dict({Token.InternalError: "#ansired"}))
             o.set_command_status(1)
         if not DOCTEST_MODE:
             print()
