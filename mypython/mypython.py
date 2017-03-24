@@ -341,6 +341,8 @@ del sys
 class NoResult:
     pass
 
+mypython_dir = os.path.dirname(__file__)
+
 def smart_eval(stmt, _globals, _locals, filename=None):
     """
     Automatically exec/eval stmt.
@@ -477,7 +479,6 @@ def format_exception(etype, value, tb, limit=None, chain=True):
         return traceback.format_exception(etype, value, tb, limit=limit, chain=chain)
 
     l = []
-    mypython_dir = os.path.dirname(__file__)
 
     for i in traceback.format_exception(etype, value, tb, limit=limit, chain=chain):
         if i.startswith('  File "{}'.format(mypython_dir)):
