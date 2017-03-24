@@ -20,3 +20,4 @@
 - Ability to do history search in multiline
 - History browser (like ptpython)
 - Auto-detect exceptions coming from mypython
+- Different continuation prompt for soft- and hard-wrapping.
