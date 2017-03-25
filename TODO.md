@@ -21,8 +21,3 @@
 - History browser (like ptpython)
 - Auto-detect exceptions coming from mypython
 - Different continuation prompt for soft- and hard-wrapping.
-- The following crashes mypython with RecursionError:
-
-    import numpy, sympy
-    b = numpy.array([sympy.Float(1.1, 30) + sympy.Float(1.1, 30)*sympy.I]*1000)
-    numpy.array(b, dtype=float)

@@ -19,7 +19,7 @@ from ..mypython import (get_cli, _default_globals, get_eventloop,
 from .. import mypython
 from ..keys import get_registry
 
-from pytest import raises
+from pytest import raises, skip
 
 _test_globals = _default_globals.copy()
 
@@ -411,3 +411,24 @@ def test_displayhook():
     out, err = _test_output('(1j).conjugate\n', _globals=_globals)
     assert re.match(r'<built-in method conjugate of complex object at 0x[a-f0-9]+>', out), (out, err)
     assert err == ''
+
+def test_exceptionhook_catches_recursionerror():
+    # Make sure this doesn't crash
+    try:
+        import numpy, sympy
+        numpy, sympy # silence pyflakes
+    except ImportError:
+        skip("NumPy or SymPy not installed")
+
+    # \x1b\n == M-Enter
+    command = """\
+import numpy, sympy\x1b
+b = numpy.array([sympy.Float(1.1, 30) + sympy.Float(1.1, 30)*sympy.I]*1000)\x1b
+numpy.array(b, dtype=float)\x1b
+
+"""
+    _globals = _test_globals.copy()
+    out, err = _test_output(command, _globals=_globals)
+    assert out == '\n'
+    assert "RecursionError" in err
+    # assert print_tokens_output == "Warning: RecursionError from mypython_excepthook"

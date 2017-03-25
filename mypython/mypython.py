@@ -34,7 +34,7 @@ from prompt_toolkit.shortcuts import (create_prompt_layout, print_tokens,
 from prompt_toolkit.document import Document
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.layout.processors import ConditionalProcessor
-from prompt_toolkit.styles import style_from_pygments
+from prompt_toolkit.styles import style_from_pygments, style_from_dict
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.validation import Validator, ValidationError
 from prompt_toolkit.filters import Condition, IsDone
@@ -496,10 +496,17 @@ def format_exc(limit=None, chain=True):
     return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
 
 def mypython_excepthook(etype, value, tb):
-    tb_str = "".join(format_exception(etype, value, tb))
-    print(highlight(tb_str, Python3TracebackLexer(),
-        TerminalTrueColorFormatter(style=OneAMStyle)),
-        file=sys.stderr, end='')
+    try:
+        tb_str = "".join(format_exception(etype, value, tb))
+        print(highlight(tb_str, Python3TracebackLexer(),
+            TerminalTrueColorFormatter(style=OneAMStyle)),
+            file=sys.stderr, end='')
+    except RecursionError:
+        sys.__excepthook__(*sys.exc_info())
+        print_tokens([(Token.Newline, '\n'), (Token.InternalError,
+            "Warning: RecursionError from mypython_excepthook")],
+            style=style_from_dict({Token.InternalError: "#ansired"}),
+            file=sys.stderr)
 
 def execute_command(command, cli, *, _globals=None, _locals=None):
     _globals = _globals or _default_globals
