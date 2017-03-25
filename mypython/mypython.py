@@ -330,6 +330,7 @@ del sys
             iterm2_tools.display_image_file(image)
 
     sys.displayhook = mypython_displayhook
+    sys.excepthook = mypython_excepthook
 
     try:
         import matplotlib
@@ -494,6 +495,12 @@ def format_exc(limit=None, chain=True):
     """
     return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
 
+def mypython_excepthook(etype, value, tb):
+    tb_str = "".join(format_exception(etype, value, tb))
+    print(highlight(tb_str, Python3TracebackLexer(),
+        TerminalTrueColorFormatter(style=OneAMStyle)),
+        file=sys.stderr, end='')
+
 def execute_command(command, cli, *, _globals=None, _locals=None):
     _globals = _globals or _default_globals
     _locals = _locals or _default_locals
@@ -509,9 +516,7 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
             post_command(command=command, res=res, _globals=_globals,
                 _locals=_locals, cli=cli)
         except BaseException as e:
-            print(highlight(format_exc(), Python3TracebackLexer(),
-                TerminalTrueColorFormatter(style=OneAMStyle)),
-                file=sys.stderr, end='')
+            sys.excepthook(*sys.exc_info())
             o.set_command_status(1)
         if not DOCTEST_MODE:
             print()
