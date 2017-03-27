@@ -182,6 +182,12 @@ def accept_after_history_backward(event):
 def insert_newline(event):
     event.current_buffer.newline()
 
+# M-[ a g is set to S-Enter in iTerm2 settings
+Keys.ShiftEnter = Key("<Shift-Enter>")
+ANSI_SEQUENCES['\x1b[ag'] = Keys.ShiftEnter
+
+r.add_binding(Keys.ShiftEnter)(accept_line)
+
 @r.add_binding(Keys.Tab, filter=TabShouldInsertWhitespaceFilter())
 def indent(event):
     """
