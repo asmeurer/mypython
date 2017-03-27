@@ -21,3 +21,4 @@
 - History browser (like ptpython)
 - Auto-detect exceptions coming from mypython
 - Different continuation prompt for soft- and hard-wrapping.
+- Up arrow shouldn't navigate completions
