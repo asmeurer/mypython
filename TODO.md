@@ -15,8 +15,6 @@
 - Better indication when no tab completions are found
 - Enter wants to add a newline after a \ in a string
 - M-;
-- Shift-arrow
-- Easier way to copy multiline input to clipboard
 - Ability to do history search in multiline
 - History browser (like ptpython)
 - Auto-detect exceptions coming from mypython
