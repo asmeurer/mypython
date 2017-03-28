@@ -29,3 +29,7 @@ __all__ += ['get_jedi_script_from_document', 'PythonCompleter']
 from .magic import magic, MAGICS
 
 __all__ += ['magic', 'MAGICS']
+
+from .printing import can_print_sympy, mypython_displayhook
+
+__all__ += ['can_print_sympy', 'mypython_displayhook']

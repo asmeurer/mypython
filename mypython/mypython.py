@@ -52,6 +52,7 @@ from .theme import OneAMStyle
 from .keys import get_registry
 from .processors import MyHighlightMatchingBracketProcessor
 from .magic import magic, MAGICS
+from .printing import mypython_displayhook
 
 class MyBuffer(Buffer):
     """
@@ -282,35 +283,6 @@ def normalize(command, _globals, _locals):
         return magic(command)
     else:
         return command
-
-def mypython_displayhook(value):
-    """
-    Unlike the default displayhook:
-
-    - doesn't set builtins._ (we do that separately),
-    - always prints None,
-    - prints a newline before a multiline output, so the out prompt doesn't
-      mess up pretty printing,
-    - uses sympy.pretty() for SymPy objects.
-
-    """
-    if value is NoResult:
-        return
-
-    try:
-        import sympy
-    except ImportError:
-        sympy = None
-
-    if sympy:
-        res = sympy.pretty(value, use_unicode=True)
-    else:
-        res = repr(value)
-
-    if not DOCTEST_MODE and '\n' in res:
-        # Print multiline stuff below the out prompt
-        print()
-    print(res)
 
 def startup(_globals, _locals, quiet=False):
     exec("""
