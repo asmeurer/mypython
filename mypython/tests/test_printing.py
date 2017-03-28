@@ -18,6 +18,10 @@ def test_displayhook():
     out, err = _test_output('linear_eq_to_matrix([2*x + y, y + 1], [x, y])\n', _globals=_globals)
     assert out == '\n⎛⎡2  1⎤, ⎡0 ⎤⎞\n⎜⎢    ⎥  ⎢  ⎥⎟\n⎝⎣0  1⎦  ⎣-1⎦⎠\n\n'
     assert err == ''
+    out, err = _test_output('linear_eq_to_matrix([2*x + y, y + 1], [x, y])\n',
+        _globals=_globals, doctest_mode=True)
+    assert out == '(Matrix([\n[2, 1],\n[0, 1]]), Matrix([\n[ 0],\n[-1]]))\n'
+    assert err == ''
 
     _globals = _test_globals.copy()
     _test_output('class Test:\ndef __repr__(self):\nreturn "a\\nb"\n\n', _globals=_globals)
