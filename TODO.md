@@ -22,3 +22,5 @@
 - Auto-detect exceptions coming from mypython
 - Different continuation prompt for soft- and hard-wrapping.
 - Up arrow shouldn't navigate completions
+- Things like tuples of SymPy objects don't pprint correctly
+- Extra newline with multiline output in doctest mode
