@@ -307,7 +307,7 @@ def mypython_displayhook(value):
     else:
         res = repr(value)
 
-    if '\n' in res:
+    if not DOCTEST_MODE and '\n' in res:
         # Print multiline stuff below the out prompt
         print()
     print(res)

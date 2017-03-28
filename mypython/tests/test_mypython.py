@@ -421,6 +421,15 @@ def test_displayhook():
     assert out == '\n⎛⎡2  1⎤, ⎡0 ⎤⎞\n⎜⎢    ⎥  ⎢  ⎥⎟\n⎝⎣0  1⎦  ⎣-1⎦⎠\n\n'
     assert err == ''
 
+    _globals = _test_globals.copy()
+    _test_output('class Test:\ndef __repr__(self):\nreturn "a\\nb"\n\n', _globals=_globals)
+    out, err = _test_output('Test()\n', _globals=_globals)
+    assert out == '\na\nb\n\n'
+    assert err == ''
+    out, err = _test_output('Test()\n', _globals=_globals, doctest_mode=True)
+    assert out == 'a\nb\n'
+    assert err == ''
+
 def test_exceptionhook_catches_recursionerror():
     # Make sure this doesn't crash
     try:
