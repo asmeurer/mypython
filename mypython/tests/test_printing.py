@@ -35,3 +35,10 @@ def test_displayhook():
     out, err = _test_output('"a\\nb"\n', _globals=_globals)
     assert out == "'a\\nb'\n\n"
     assert err == ''
+
+    _globals = _test_globals.copy()
+    _test_output('a = []\n', _globals=_globals)
+    _test_output('a.append(a)\n', _globals=_globals)
+    out, err = _test_output('a\n', _globals=_globals)
+    assert out == '[[...]]\n\n'
+    assert err == ''

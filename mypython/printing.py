@@ -43,16 +43,18 @@ def can_print_sympy(o):
     from sympy.physics.vector import Vector, Dyadic
     from sympy.tensor.array import NDimArray
 
-    if isinstance(o, (list, tuple, set, frozenset)):
-        return all(can_print_sympy(i) for i in o)
-    elif isinstance(o, dict):
-        return all(can_print_sympy(i) and can_print_sympy(o[i]) for i in o)
-    elif isinstance(o, bool):
+    try:
+        if isinstance(o, (list, tuple, set, frozenset)):
+            return all(can_print_sympy(i) for i in o)
+        elif isinstance(o, dict):
+            return all(can_print_sympy(i) and can_print_sympy(o[i]) for i in o)
+        elif isinstance(o, bool):
+            return False
+        elif isinstance(o, (Basic, MatrixBase, Vector, Dyadic, NDimArray)):
+            return True
         return False
-    elif isinstance(o, (Basic, MatrixBase, Vector, Dyadic, NDimArray)):
-        return True
-    return False
-
+    except RecursionError:
+        return False
 
 def mypython_displayhook(value):
     """
