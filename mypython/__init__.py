@@ -5,7 +5,7 @@ from .mypython import (PythonSyntaxValidator, get_continuation_tokens,
 __all__ = ['PythonSyntaxValidator', 'get_continuation_tokens', 'prompt_style',
     'get_in_prompt_tokens', 'get_out_prompt_tokens', 'NoResult', 'smart_eval',
     'normalize', 'startup',
-    'execute_command', 'main']
+    'execute_command']
 
 from .keys import get_registry, custom_bindings_registry
 
