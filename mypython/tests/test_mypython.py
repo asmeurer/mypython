@@ -412,6 +412,15 @@ def test_displayhook():
     assert re.match(r'<built-in method conjugate of complex object at 0x[a-f0-9]+>', out), (out, err)
     assert err == ''
 
+    _globals = _test_globals.copy()
+    _test_output('%sympy\n', _globals=_globals)
+    out, err = _test_output('[1, 2, 3]\n', _globals=_globals)
+    assert out == '[1, 2, 3]\n\n'
+    assert err == ''
+    out, err = _test_output('linear_eq_to_matrix([2*x + y, y + 1], [x, y])\n', _globals=_globals)
+    assert out == '\n⎛⎡2  1⎤, ⎡0 ⎤⎞\n⎜⎢    ⎥  ⎢  ⎥⎟\n⎝⎣0  1⎦  ⎣-1⎦⎠\n\n'
+    assert err == ''
+
 def test_exceptionhook_catches_recursionerror():
     # Make sure this doesn't crash
     try:
