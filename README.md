@@ -50,6 +50,10 @@ without any additional work (unlike REPLs based on readline).
 
 And some [other stuff](TODO.md) that I haven't implemented yet.
 
+Most of this stuff either comes for free from prompt-toolkit or was really easy
+to implement, in some cases by modifying some code from other libraries
+(ptpython, ipython, sympy, the Python standard library).
+
 # Installation
 
 I haven't packaged it yet. For now you can clone the repo and run
@@ -79,4 +83,6 @@ really not designing this to be used by other people.
 Thanks to Jonathan Slenders for prompt-toolkit and ptpython (which I borrowed
 some of the more tricky things like Python multiline and Jedi completion
 from). Basically all the fancy stuff here is coming from prompt-toolkit. I
-just combined it together into a REPL that I like.
+just combined it together into a REPL that I like. Thanks to the IPython guys
+for figuring out the matplotlib eventloop stuff (which I could never to on my
+own), and for inspiring many of the features I've implemented.
