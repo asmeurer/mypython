@@ -96,9 +96,8 @@ def forward_paragraph(event):
             return
     event.current_buffer.cursor_position = len(text)
 
-
 @r.add_binding(Keys.Escape, '{')
-def back_paragraph(event):
+def backward_paragraph(event):
     """
     Move back one paragraph of text
     """
@@ -108,6 +107,30 @@ def back_paragraph(event):
     for m in BLANK_LINES.finditer(text[::-1]):
         if m.start(0) > len(text) - cursor_position:
             event.current_buffer.cursor_position = len(text) - m.end(1) + 1
+            return
+    event.current_buffer.cursor_position = 0
+
+WORD = re.compile(r'([a-z0-9]+|[A-Z0-9]{2,}|[a-zA-Z0-9][a-z0-9]+)')
+@r.add_binding(Keys.Escape, 'f')
+def forward_word(event):
+    text = event.current_buffer.text
+    cursor_position = event.current_buffer.cursor_position
+    for m in WORD.finditer(text):
+        if m.end(0) > cursor_position:
+            event.current_buffer.cursor_position = m.end(0)
+            return
+
+@r.add_binding(Keys.Escape, 'b')
+def backward_word(event):
+    """
+    Move back one paragraph of text
+    """
+    text = event.current_buffer.text
+    cursor_position = event.current_buffer.cursor_position
+
+    for m in reversed(list(WORD.finditer(text))):
+        if m.start(0) <  cursor_position:
+            event.current_buffer.cursor_position = m.start(0)
             return
     event.current_buffer.cursor_position = 0
 
@@ -338,5 +361,3 @@ ANSI_SEQUENCES['\x1b[ab'] = Keys.ControlQuestionmark
 @r.add_binding(Keys.ControlQuestionmark, save_before=lambda e: False)
 def redo(event):
     event.current_buffer.redo()
-
-WORD = re.compile(r'([a-z0-9]+|[A-Z0-9]{2,}|[a-zA-Z0-9][a-z0-9]+)')

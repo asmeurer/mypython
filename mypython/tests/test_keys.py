@@ -39,4 +39,7 @@ def test_leading_indentation_re():
 
 def test_word_re():
     test_text = 'abc defGhiJKL_mno012_345'
-    assert WORD.findall(test_text) == ['abc', 'def', 'Ghi', 'JKL', 'mno012', '345']
+    assert WORD.findall(test_text) == ['abc', 'def', 'Ghi', 'JKL', 'mno012',
+    '345']
+    assert WORD.findall("list(WORD.finditer('abc def'))[0].end(0)") == \
+        ['list', 'WORD', 'finditer', 'abc', 'def', '0', 'end', '0']
