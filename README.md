@@ -43,8 +43,7 @@ without any additional work (unlike REPLs based on readline).
 - `%sympy` magic (works like `sympy.init_session()`.
 - SymPy objects automatically pretty print.
 - Automatic "error" mode on syntax error, that moves the cursor to the error.
--
-  [Shell integration](https://www.iterm2.com/documentation-shell-integration.html) with iTerm2.
+- [Shell integration](https://www.iterm2.com/documentation-shell-integration.html) with iTerm2.
 - GUI Matplotlib plots on macOS work correctly.
 - At startup you get a [cat](https://github.com/asmeurer/catimg).
 
