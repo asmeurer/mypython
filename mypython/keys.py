@@ -14,6 +14,7 @@ from .multiline import (ends_in_multiline_string,
 import re
 import subprocess
 import sys
+import textwrap
 
 def get_registry():
     registry = MergedRegistry([
@@ -361,3 +362,28 @@ ANSI_SEQUENCES['\x1b[ab'] = Keys.ControlQuestionmark
 @r.add_binding(Keys.ControlQuestionmark, save_before=lambda e: False)
 def redo(event):
     event.current_buffer.redo()
+
+
+@r.add_binding(Keys.BracketedPaste)
+def bracketed_paste(event):
+    from .mypython import emoji
+
+    data = event.data
+
+    # Be sure to use \n as line ending.
+    # This part is the same as the default binding
+    # Some terminals (Like iTerm2) seem to paste \r\n line endings in a
+    # bracketed paste. See: https://github.com/ipython/ipython/issues/9737
+    data = data.replace('\r\n', '\n')
+    data = data.replace('\r', '\n')
+
+    # Strip prompts off pasted text
+    if event.current_buffer.cursor_position == 0:
+        dedented_data = textwrap.dedent(data)
+        ps1_prompts = [r'>>> '] + [i*3 + r'\[\d+\]: ' for i, j in emoji]
+        ps2_prompts = [r'\.\.\. ', '\N{CLAPPING HANDS SIGN}+⎢']
+        PROMPTS_RE = re.compile('|'.join(ps1_prompts + ps2_prompts))
+        dedented_data = PROMPTS_RE.sub('', dedented_data)
+        data = dedented_data
+
+    event.current_buffer.insert_text(data)
