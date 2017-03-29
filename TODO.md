@@ -1,6 +1,6 @@
 # TODOs
 
-- https://github.com/jonathanslenders/python-prompt-toolkit/issues/416
+- operate-and-get-next (C-o) [https://github.com/jonathanslenders/python-prompt-toolkit/issues/416]
 - Fix scrolling with mouse support
 - Better packaging
 - Pygments thinks matmul @ is a decorator (https://bitbucket.org/birkenfeld/pygments-main/issues/1194/support-python-35s-matrix-multiplication)
