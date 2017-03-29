@@ -1,4 +1,4 @@
-from ..keys import BLANK_LINES, LEADING_WHITESPACE
+from ..keys import BLANK_LINES, LEADING_WHITESPACE, WORD
 
 def test_blank_lines_re():
     test_text = """\
@@ -29,10 +29,14 @@ test7
         ]
 
 
-def test_leading_indentation():
+def test_leading_indentation_re():
     t = '    1'
     assert LEADING_WHITESPACE.search(t).end(1) == 4
 
     t = '1'
     # Could change to not match
     assert LEADING_WHITESPACE.search(t) is None or LEADING_WHITESPACE.search(t).end(1) == 0
+
+def test_word_re():
+    test_text = 'abc defGhiJKL_mno012_345'
+    assert WORD.findall(test_text) == ['abc', 'def', 'Ghi', 'JKL', 'mno012', '345']

@@ -338,3 +338,5 @@ ANSI_SEQUENCES['\x1b[ab'] = Keys.ControlQuestionmark
 @r.add_binding(Keys.ControlQuestionmark, save_before=lambda e: False)
 def redo(event):
     event.current_buffer.redo()
+
+WORD = re.compile(r'([a-z0-9]+|[A-Z0-9]{2,}|[a-zA-Z0-9][a-z0-9]+)')
