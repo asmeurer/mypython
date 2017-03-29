@@ -21,25 +21,15 @@ without any additional work (unlike REPLs based on readline).
 
 # Features
 
-- IPython-style numbered In/Out prompts.
-- Multiline editing with sane keyboard shortcuts (M-Enter always adds a
-  newline, Enter adds a newline at a continuation, or executes if you enter
-  two blank lines at the end).
-- Up arrow (at the top of the line) always goes to the previous command,
-  regardless of the text before the cursor.
-- Same with down arrow.
-- You don't have to up/down arrow a bunch to navigate history with multiline
-  statements.
-- C-</C-> do what you'd expect from emacs.
-- C-{/C-} do what you'd expect from emacs.
+- Fancy emoji numbered prompts.
+- Keyboard shortcuts configured exactly the way I like them.
 - Outputs saved as `_NUM`. Previous outputs saved in `_`, `__`, and `___`.
-- M-p and M-P do reverse and forward history search (show previous commands
-  that start with the text before the cursor).
 - Support for bracketed paste (pasting stuff in the terminal "just works"
   without the need for any %paste magic or a special "paste" mode).
 - Emacs command editing keybindings.
 - Automatic syntax highlighting.
 - Matching parentheses highlighting.
+- Tracebacks for stuff defined interactively show the code line.
 - Tab completion using [Jedi](https://github.com/davidhalter/jedi).
 - Per-terminal history.
 - A nice theme (the same one I use in emacs, called "1am", based on XCode's
@@ -48,9 +38,14 @@ without any additional work (unlike REPLs based on readline).
   expression.
 - `stuff??` shows the source for `stuff`. Works even if `stuff` was defined
   interactively.
-- Control-D always exits, regardless of where the cursor is.
-- Automatic "error" mode on syntax error. Move the cursor to the error.
-- [Shell integration](https://www.iterm2.com/documentation-shell-integration.html) with iTerm2.
+- `%time` and `%timeit` magic commands.
+- `%doctest` mode to emulate standard Python REPL (for copy-paste purposes).
+- `%sympy` magic (works like `sympy.init_session()`.
+- SymPy objects automatically pretty print.
+- Automatic "error" mode on syntax error, that moves the cursor to the error.
+-
+  [Shell integration](https://www.iterm2.com/documentation-shell-integration.html) with iTerm2.
+- GUI Matplotlib plots on macOS work correctly.
 - At startup you get a [cat](https://github.com/asmeurer/catimg).
 
 And some [other stuff](TODO.md) that I haven't implemented yet.
