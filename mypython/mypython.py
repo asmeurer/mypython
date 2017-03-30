@@ -537,10 +537,12 @@ def main():
         if prompt_number == 1 and args.cmd:
             _input = PipeInput()
             _input.send_text(args.cmd + '\n')
+            _history = None
         else:
             _input = None
+            _history = history
 
-        cli = get_cli(history=history, _locals=_default_locals, _globals=_default_globals,
+        cli = get_cli(history=_history, _locals=_default_locals, _globals=_default_globals,
                 registry=registry, _input=_input)
         cli.prompt_number = prompt_number
         try:

@@ -22,4 +22,3 @@
 - Typing text should reset history navigation (M-p/M-P)
 - Variable definitions in %timeit calls don't apply to the rest of the session
 - Show file with ??
-- isympy alias puts %sympy in history
