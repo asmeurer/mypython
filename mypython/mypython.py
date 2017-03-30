@@ -215,7 +215,7 @@ def mypython_file(prompt_number=None):
         return "<mypython-{prompt_number}>".format(prompt_number=prompt_number)
     return "<mypython>"
 
-def getsource(command, _globals, _locals, ret=False):
+def getsource(command, _globals, _locals, ret=False, include_info=True):
     """
     Get and show the source for the given code
 
@@ -252,14 +252,31 @@ def getsource(command, _globals, _locals, ret=False):
         try:
             source = eval('inspect.getsource(%s)' % command, _globals,
                 {'inspect': inspect, **_locals})
+            if include_info:
+                filename = eval('inspect.getfile(%s)' % command, _globals,
+                    {'inspect': inspect, **_locals})
         except TypeError:
             source = eval('inspect.getsource(type(%s))' % command, _globals,
                 {'inspect': inspect, **_locals})
+            if include_info:
+                filename = eval('inspect.getfile(type(%s))' % command, _globals,
+                    {'inspect': inspect, **_locals})
     except Exception as e:
         if ret:
             raise
         print("Error: could not get source for '%s': %s" % (command, e), file=sys.stderr)
     else:
+        if include_info:
+            __main__file = sys.modules['__main__'].__file__
+            if filename == __main__file:
+                filename == 'Unknown'
+            if filename.startswith("<mypython-"):
+                filename = "mypython input #%s" % filename[10:-1]
+            info = dedent("""
+            # File: {filename}
+
+            """.format(filename=filename))
+            source = info + source
         if ret:
             return source
         pager(highlight(source, Python3Lexer(),
