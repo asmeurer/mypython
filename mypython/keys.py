@@ -112,7 +112,7 @@ def backward_paragraph(event):
     event.current_buffer.cursor_position = 0
 
 WORD = re.compile(r'([a-z0-9]+|[A-Z0-9]{2,}|[a-zA-Z0-9][a-z0-9]+)')
-@r.add_binding(Keys.Escape, 'f')
+@r.add_binding(Keys.Escape, 'f') # Keys.Escape, Keys.Right
 def forward_word(event):
     text = event.current_buffer.text
     cursor_position = event.current_buffer.cursor_position
@@ -121,7 +121,22 @@ def forward_word(event):
             event.current_buffer.cursor_position = m.end(0)
             return
 
-@r.add_binding(Keys.Escape, 'b')
+@r.add_binding(Keys.Escape, 'd')
+def kill_word(event):
+    buffer = event.current_buffer
+    text = buffer.text
+    cursor_position = buffer.cursor_position
+    pos = None
+    for m in WORD.finditer(text):
+        if m.end(0) > cursor_position:
+            pos = m.end(0) - cursor_position
+            break
+
+    if pos:
+        deleted = buffer.delete(count=pos)
+        event.cli.clipboard.set_text(deleted)
+
+@r.add_binding(Keys.Escape, 'b') # Keys.Escape, Keys.Left
 def backward_word(event):
     """
     Move back one paragraph of text
@@ -134,6 +149,23 @@ def backward_word(event):
             event.current_buffer.cursor_position = m.start(0)
             return
     event.current_buffer.cursor_position = 0
+
+@r.add_binding(Keys.Escape, Keys.Backspace)
+def backward_kill_word(event):
+    buffer = event.current_buffer
+    text = buffer.text
+    cursor_position = buffer.cursor_position
+
+    for m in reversed(list(WORD.finditer(text))):
+        if m.start(0) < cursor_position:
+            pos = cursor_position - m.start(0)
+            break
+    else:
+        pos = buffer.cursor_position
+
+    if pos:
+        deleted = buffer.delete_before_cursor(count=pos)
+        event.cli.clipboard.set_text(deleted)
 
 @r.add_binding(Keys.Left)
 def left_multiline(event):
