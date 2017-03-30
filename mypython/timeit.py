@@ -63,27 +63,27 @@ class MyTimer(Timer):
     """
 
     def autorange(self, callback=None):
-         """Return the number of loops so that total time >= 10.
+        """Return the number of loops so that total time >= 10.
 
-         Calls the timeit method with *number* set to successive powers of
-         two (1, 2, 4, 8, ...) up to a maximum of 2**30, until
-         the time taken is at least 10 seconds, or the maximum is reached.
-         Returns ``(number, time_taken)``.
+        Calls the timeit method with *number* set to successive powers of
+        two (1, 2, 4, 8, ...) up to a maximum of 2**30, until
+        the time taken is at least 10 seconds, or the maximum is reached.
+        Returns ``(number, time_taken)``.
 
-         If *callback* is given and is not None, it will be called after
-         each trial with two arguments: ``callback(number, time_taken)``.
-         """
-         time_taken = total_number = 0
-         for i in range(31):
-             number = 2**i
-             time_taken += self.timeit(number)
-             if callback:
-                 callback(number, time_taken)
-             total_number += number
-             if time_taken >= 10:
-                 break
+        If *callback* is given and is not None, it will be called after
+        each trial with two arguments: ``callback(number, time_taken)``.
+        """
+        time_taken = total_number = 0
+        for i in range(31):
+            number = 2**i
+            time_taken += self.timeit(number)
+            if callback:
+                callback(number, time_taken)
+            total_number += number
+            if time_taken >= 10:
+                break
 
-         return (total_number, time_taken)
+        return (total_number, time_taken)
 
 
 def time_format(number, time_taken):
