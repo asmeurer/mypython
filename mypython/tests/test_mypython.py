@@ -291,14 +291,14 @@ def test_getsource():
     out, err = _test_output('def test():\nraise ValueError("error")\n\n',
         _globals=_globals)
 
-    assert getsource('test', _globals, _globals, ret=True) == """\
+    assert getsource('test', _globals, _globals, ret=True, include_info=False) == """\
 def test():
     raise ValueError("error")
 """
 
     out, err = _test_output('class Test:\npass\n\n', _globals=_globals, prompt_number=2)
-    assert getsource('Test', _globals, _globals, ret=True) == \
-        getsource('Test', _globals, _globals, ret=True) == """\
+    assert getsource('Test', _globals, _globals, ret=True, include_info=False) == \
+        getsource('Test', _globals, _globals, ret=True, include_info=False) == """\
 class Test:
     pass
 """
