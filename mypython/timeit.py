@@ -4,6 +4,8 @@
 
 # - Changed the default in autorange to 10 seconds
 # - Changed the time intervals to use powers of 2
+# - autorange accumulates the time taken for all loops, not just the most
+#   last one completed
 
 # 1. This LICENSE AGREEMENT is between the Python Software Foundation ("PSF"), and
 #    the Individual or Organization ("Licensee") accessing and otherwise using Python
@@ -71,14 +73,17 @@ class MyTimer(Timer):
          If *callback* is given and is not None, it will be called after
          each trial with two arguments: ``callback(number, time_taken)``.
          """
+         time_taken = total_number = 0
          for i in range(31):
              number = 2**i
-             time_taken = self.timeit(number)
+             time_taken += self.timeit(number)
              if callback:
                  callback(number, time_taken)
+             total_number += number
              if time_taken >= 10:
                  break
-         return (number, time_taken)
+
+         return (total_number, time_taken)
 
 
 def time_format(number, time_taken):
