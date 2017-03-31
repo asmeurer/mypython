@@ -2,7 +2,7 @@
 
 # Changes:
 
-# - Removed all readline specific stuff
+# - Removed all readline specific stuff. Added logic to split words.
 
 # - Renamed Completer to DirCompleter (for compatibility with
 #   prompt_toolkit.Completer)
@@ -121,6 +121,7 @@ class DirCompleter:
             self.use_main_ns = 0
             self.namespace = namespace
 
+    NAME = re.compile(r'[a-zA-Z0-9_\.]+')
     def complete(self, text, state):
         """Return the next possible completion for 'text'.
 
@@ -128,6 +129,11 @@ class DirCompleter:
         returns None.  The completion should begin with 'text'.
 
         """
+        m = self.NAME.match(text[::-1])
+        if not m:
+            return None
+
+        text = m.group(0)[::-1]
         if self.use_main_ns:
             self.namespace = __main__.__dict__
 
