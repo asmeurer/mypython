@@ -78,7 +78,7 @@ class MyBuffer(Buffer):
             if count == 0:
                 break
 
-        # If we move to another entry, move the cursor to the beginning of the
+        # If we move to another entry, move the cursor to the end of the
         # first line.
         if found_something:
             self.cursor_position = 0
