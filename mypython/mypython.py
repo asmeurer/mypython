@@ -526,7 +526,7 @@ def main():
     parser.add_argument("--doctest-mode", "-d", action="store_true",
         help="""Enable doctest mode. Mimics the default Python prompt.""")
     parser.add_argument("--debug", "-D", action="store_true",
-        help="""Enable debug mode. The same as -c '%debug'.""")
+        help="""Enable debug mode. The same as -c '%%debug'.""")
 
     try:
         import argcomplete
