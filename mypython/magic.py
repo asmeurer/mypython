@@ -27,7 +27,12 @@ def magic(command):
     if magic_command not in MAGICS:
         return command
 
-    return MAGICS[magic_command](rest)
+    result = MAGICS[magic_command](rest)
+    if not result.strip():
+        # Magic should return something, so that prompt numbers get
+        # incremented
+        return 'pass'
+    return result
 
 def timeit_magic(rest):
     if not rest:

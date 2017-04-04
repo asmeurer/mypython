@@ -23,4 +23,3 @@
 - Variable definitions in %timeit calls don't apply to the rest of the session
 - Show file with ??
 - Cannot delete selected text with delete or C-k
-- Magics do not increment prompt number (makes mypython '%debug' crash)
