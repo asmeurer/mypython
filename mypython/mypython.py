@@ -525,6 +525,8 @@ def main():
         print the startup messages.""")
     parser.add_argument("--doctest-mode", "-d", action="store_true",
         help="""Enable doctest mode. Mimics the default Python prompt.""")
+    parser.add_argument("--debug", "-D", action="store_true",
+        help="""Enable debug mode. The same as -c '%debug'.""")
 
     try:
         import argcomplete
@@ -532,6 +534,11 @@ def main():
     except ImportError:
         pass
     args = parser.parse_args()
+
+    if args.debug:
+        global DEBUG
+        DEBUG = True
+        print("mypython debugging mode enabled")
 
     if args.doctest_mode:
         global DOCTEST_MODE
