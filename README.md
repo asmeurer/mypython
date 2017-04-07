@@ -85,3 +85,10 @@ from). Basically all the fancy stuff here is coming from prompt-toolkit. I
 just combined it together into a REPL that I like. Thanks to the IPython guys
 for figuring out the matplotlib eventloop stuff (which I could never to on my
 own), and for inspiring many of the features I've implemented.
+
+# License
+
+MIT.
+
+Licenses for code taken and modified from ptpython, IPython, prompt-toolkit,
+SymPy, and the Python standard library are at the top of the respective files.
