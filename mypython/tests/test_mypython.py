@@ -268,10 +268,10 @@ def test_syntax_validator():
     validate('a = 1')
 
     # Incomplete multiline Python (also tested in test_multiline.py)
-    validate('def test():')
-    validate('"""')
-    validate('(')
-    validate('1 + \\')
+    doesntvalidate('def test():')
+    doesntvalidate('"""')
+    doesntvalidate('(')
+    doesntvalidate('1 + \\')
 
     # Custom extensions
     validate('test?')

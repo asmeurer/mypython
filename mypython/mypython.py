@@ -45,8 +45,7 @@ import catimg
 
 # This is needed to make matplotlib plots work
 from .inputhook import inputhook
-from .multiline import (ends_in_multiline_string,
-    document_is_multiline_python)
+from .multiline import document_is_multiline_python
 from .completion import PythonCompleter
 from .theme import OneAMStyle
 from .keys import get_registry
@@ -162,11 +161,6 @@ def dedent_return_document_handler(cli, buffer):
 class PythonSyntaxValidator(Validator):
     def validate(self, document):
         text = dedent(document.text)
-        if ends_in_multiline_string(document):
-            return
-        if (document_is_multiline_python(document) and
-            not text.replace(' ', '').endswith('\n')):
-            return
         if text.endswith('?') and not text.endswith('???'):
             return
         if any(text.startswith(i) for i in MAGICS):
