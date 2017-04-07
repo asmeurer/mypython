@@ -35,35 +35,15 @@ def get_registry():
 
 r = custom_bindings_registry = Registry()
 
-# XXX: These are a total hack. We should reimplement this manually, or
-# upstream something better.
 @r.add_binding(Keys.Escape, 'p')
 def previous_history_search(event):
     buffer = event.current_buffer
-    prev_enable_history_search = buffer.enable_history_search
-    cursor_position = buffer.cursor_position
-    buffer.history_search_text = buffer.text[:cursor_position]
-    try:
-        buffer.enable_history_search = lambda: True
-        buffer.history_backward(count=event.arg)
-        # Keep it from moving the cursor to the end of the line
-        buffer.cursor_position = cursor_position
-    finally:
-        buffer.enable_history_search = prev_enable_history_search
+    buffer.history_backward(count=event.arg, history_search=True)
 
 @r.add_binding(Keys.Escape, 'P')
 def forward_history_search(event):
     buffer = event.current_buffer
-    prev_enable_history_search = buffer.enable_history_search
-    cursor_position = buffer.cursor_position
-    buffer.history_search_text = buffer.text[:cursor_position]
-    try:
-        buffer.enable_history_search = lambda: True
-        buffer.history_forward(count=event.arg)
-        # Keep it from moving the cursor to the end of the line
-        buffer.cursor_position = cursor_position
-    finally:
-        buffer.enable_history_search = prev_enable_history_search
+    buffer.history_forward(count=event.arg, history_search=True)
 
 @r.add_binding(Keys.Escape, '<')
 def beginning(event):

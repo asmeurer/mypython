@@ -58,21 +58,48 @@ class MyBuffer(Buffer):
     """
     Subclass of buffer that fixes some broken behavior of Buffer
     """
-    def history_backward(self, count=1):
+
+    @property
+    def multiline_history_search_index(self):
+        if not hasattr(self, '_multiline_history_search_index'):
+            self._multiline_history_search_index = len(self._working_lines) - 1
+        return self._multiline_history_search_index
+
+    @multiline_history_search_index.setter
+    def multiline_history_search_index(self, value):
+        self._multiline_history_search_index = value
+
+    def history_backward(self, count=1, history_search=False):
         """
         Move backwards through history.
 
-        Same as Buffer.history_backward except it moves the cursor to the
-        end of the first line.
+        Based on Buffer.history_backward, but it moves the cursor to the
+        beginning of the first line, and supports multiline history search.
         """
-        self._set_history_search()
+        # self._set_history_search()
+
+        if history_search:
+            if self.history_search_text is None:
+                self.history_search_text = self.document.current_line_before_cursor
+        else:
+            self.history_search_text = None
 
         # Go back in history.
         found_something = False
 
-        for i in range(self.working_index - 1, -1, -1):
+        multiline_history_search = history_search and '\n' in self.document.text_before_cursor
+
+        index = self.multiline_history_search_index if  multiline_history_search else self.working_index
+
+        for i in range(index - 1, -1, -1):
             if self._history_matches(i):
-                self.working_index = i
+                if multiline_history_search:
+                    # XXX: Put this in the multiline_history_search_index setter?
+                    lines_before_cursor, _ = self.document.text_before_cursor.rsplit('\n', 1)
+                    self.text = lines_before_cursor + '\n' + self._working_lines[i]
+                    self.multiline_history_search_index = i
+                else:
+                    self.working_index = i
                 count -= 1
                 found_something = True
             if count == 0:
@@ -80,32 +107,49 @@ class MyBuffer(Buffer):
 
         # If we move to another entry, move the cursor to the end of the
         # first line.
-        if found_something:
+        if found_something and not history_search:
             self.cursor_position = 0
             self.cursor_position += self.document.get_end_of_line_position()
 
-    def history_forward(self, count=1):
+    def history_forward(self, count=1, history_search=False):
         """
         Move forwards through the history.
         :param count: Amount of items to move forward.
 
-        Same as Buffer.history_forward except it moves the cursor to the end.
+        Same as Buffer.history_forward except it moves the cursor to the end,
+        and supports multiline history search.
+
         """
-        self._set_history_search()
+        # self._set_history_search()
+
+        if history_search:
+            if self.history_search_text is None:
+                self.history_search_text = self.document.current_line_before_cursor
+        else:
+            self.history_search_text = None
 
         # Go forward in history.
         found_something = False
 
-        for i in range(self.working_index + 1, len(self._working_lines)):
+        multiline_history_search = history_search and '\n' in self.document.text_before_cursor
+
+        index = self.multiline_history_search_index if  multiline_history_search else self.working_index
+
+        for i in range(index + 1, len(self._working_lines)):
             if self._history_matches(i):
-                self.working_index = i
+                if multiline_history_search:
+                    lines_before_cursor, _ = self.document.text_before_cursor.rsplit('\n', 1)
+                    self.text = lines_before_cursor + '\n' + self._working_lines[i]
+                    self.multiline_history_search_index = i
+                else:
+                    self.working_index = i
                 count -= 1
                 found_something = True
             if count == 0:
                 break
 
         # If we found an entry, move the cursor to the end.
-        if found_something:
+        if found_something and not history_search:
             self.cursor_position = len(self.text)
 
 def dedent_return_document_handler(cli, buffer):
