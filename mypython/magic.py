@@ -111,6 +111,8 @@ f, g, h = symbols('f g h', cls=Function)"""
 
     return sympy_start
 
+isympy_magic = sympy_magic
+
 MAGICS = {}
 
 for name in dir():
