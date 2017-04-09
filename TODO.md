@@ -19,7 +19,6 @@
 - Auto-detect exceptions coming from mypython
 - Different continuation prompt for soft- and hard-wrapping.
 - Up arrow shouldn't navigate completions
-- Typing text should reset history navigation (M-p/M-P)
 - Variable definitions in %timeit calls don't apply to the rest of the session
 - Show file with ??
 - Cannot delete selected text with delete or C-k
