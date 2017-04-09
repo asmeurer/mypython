@@ -57,10 +57,13 @@ class MyBuffer(Buffer):
     """
     Subclass of buffer that fixes some broken behavior of Buffer
     """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._multiline_history_search_index = None
 
     @property
     def multiline_history_search_index(self):
-        if not hasattr(self, '_multiline_history_search_index'):
+        if self._multiline_history_search_index is None:
             self._multiline_history_search_index = len(self._working_lines) - 1
         return self._multiline_history_search_index
 
