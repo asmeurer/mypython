@@ -61,6 +61,10 @@ class MyBuffer(Buffer):
         super().__init__(*args, **kwargs)
         self._multiline_history_search_index = None
 
+    def delete_before_cursor(self, count=1):
+        self.multiline_history_search_index = None
+        return super().delete_before_cursor(count)
+
     @property
     def multiline_history_search_index(self):
         if self._multiline_history_search_index is None:
