@@ -154,6 +154,9 @@ class MyBuffer(Buffer):
         if found_something and not history_search:
             self.cursor_position = len(self.text)
 
+def on_text_insert(buf):
+    buf.multiline_history_search_index = None
+
 def dedent_return_document_handler(cli, buffer):
     dedented_text = dedent(buffer.text).strip()
     buffer.cursor_position -= len(buffer.text) - len(dedented_text)
@@ -473,6 +476,7 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None, e
         # https://github.com/jonathanslenders/python-prompt-toolkit/issues/472
         # is fixed.
         complete_while_typing=False,
+        on_text_insert=on_text_insert,
         )
     application = Application(
         create_prompt_layout(
