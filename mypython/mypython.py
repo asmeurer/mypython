@@ -48,7 +48,7 @@ from .inputhook import inputhook
 from .multiline import document_is_multiline_python
 from .completion import PythonCompleter
 from .theme import OneAMStyle
-from .keys import get_registry
+from .keys import get_registry, LEADING_WHITESPACE
 from .processors import MyHighlightMatchingBracketProcessor
 from .magic import magic, MAGICS
 from .printing import mypython_displayhook
@@ -83,12 +83,13 @@ class MyBuffer(Buffer):
         beginning of the first line, and supports multiline history search.
         """
         # self._set_history_search()
-
         if history_search:
             if self.history_search_text is None:
-                self.history_search_text = self.document.current_line_before_cursor
+                self.history_search_text = self.document.current_line_before_cursor.lstrip()
         else:
             self.history_search_text = None
+        indent = LEADING_WHITESPACE.match(self.document.current_line_before_cursor)
+        current_line_indent = indent.group(1) if indent else ''
 
         # Go back in history.
         found_something = False
@@ -99,11 +100,12 @@ class MyBuffer(Buffer):
             if self._history_matches(i):
                 # XXX: Put this in the multiline_history_search_index
                 # setter?
+                match_text = current_line_indent + self._working_lines[i]
                 if '\n' in self.document.text_before_cursor:
                     lines_before_cursor, _ = self.document.text_before_cursor.rsplit('\n', 1)
-                    self.text = lines_before_cursor + '\n' + self._working_lines[i]
+                    self.text = lines_before_cursor + '\n' + match_text
                 else:
-                    self.text = self._working_lines[i]
+                    self.text = match_text
                 self.multiline_history_search_index = i
                 count -= 1
                 found_something = True
@@ -126,12 +128,13 @@ class MyBuffer(Buffer):
 
         """
         # self._set_history_search()
-
         if history_search:
             if self.history_search_text is None:
-                self.history_search_text = self.document.current_line_before_cursor
+                self.history_search_text = self.document.current_line_before_cursor.strip()
         else:
             self.history_search_text = None
+        indent = LEADING_WHITESPACE.match(self.document.current_line_before_cursor)
+        current_line_indent = indent.group(1) if indent else ''
 
         # Go forward in history.
         found_something = False
@@ -140,11 +143,12 @@ class MyBuffer(Buffer):
 
         for i in range(index + 1, len(self._working_lines)):
             if self._history_matches(i):
+                match_text = current_line_indent + self._working_lines[i]
                 if '\n' in self.document.text_before_cursor:
                     lines_before_cursor, _ = self.document.text_before_cursor.rsplit('\n', 1)
-                    self.text = lines_before_cursor + '\n' + self._working_lines[i]
+                    self.text = lines_before_cursor + '\n' + match_text
                 else:
-                    self.text = self._working_lines[i]
+                    self.text = match_text
                 self.multiline_history_search_index = i
                 count -= 1
                 found_something = True
