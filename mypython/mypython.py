@@ -89,19 +89,18 @@ class MyBuffer(Buffer):
         # Go back in history.
         found_something = False
 
-        multiline_history_search = history_search and '\n' in self.document.text_before_cursor
-
-        index = self.multiline_history_search_index if  multiline_history_search else self.working_index
+        index = self.multiline_history_search_index
 
         for i in range(index - 1, -1, -1):
             if self._history_matches(i):
-                if multiline_history_search:
-                    # XXX: Put this in the multiline_history_search_index setter?
+                # XXX: Put this in the multiline_history_search_index
+                # setter?
+                if '\n' in self.document.text_before_cursor:
                     lines_before_cursor, _ = self.document.text_before_cursor.rsplit('\n', 1)
                     self.text = lines_before_cursor + '\n' + self._working_lines[i]
-                    self.multiline_history_search_index = i
                 else:
-                    self.working_index = i
+                    self.text = self._working_lines[i]
+                self.multiline_history_search_index = i
                 count -= 1
                 found_something = True
             if count == 0:
@@ -133,18 +132,16 @@ class MyBuffer(Buffer):
         # Go forward in history.
         found_something = False
 
-        multiline_history_search = history_search and '\n' in self.document.text_before_cursor
-
-        index = self.multiline_history_search_index if  multiline_history_search else self.working_index
+        index = self.multiline_history_search_index
 
         for i in range(index + 1, len(self._working_lines)):
             if self._history_matches(i):
-                if multiline_history_search:
+                if '\n' in self.document.text_before_cursor:
                     lines_before_cursor, _ = self.document.text_before_cursor.rsplit('\n', 1)
                     self.text = lines_before_cursor + '\n' + self._working_lines[i]
-                    self.multiline_history_search_index = i
                 else:
-                    self.working_index = i
+                    self.text = self._working_lines[i]
+                self.multiline_history_search_index = i
                 count -= 1
                 found_something = True
             if count == 0:
