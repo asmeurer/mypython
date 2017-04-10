@@ -94,19 +94,22 @@ class MyBuffer(Buffer):
         # Go back in history.
         found_something = False
 
-        index = self.multiline_history_search_index
+        index = self.multiline_history_search_index if history_search else self.working_index
 
         for i in range(index - 1, -1, -1):
             if self._history_matches(i):
-                # XXX: Put this in the multiline_history_search_index
-                # setter?
-                match_text = current_line_indent + self._working_lines[i]
-                if '\n' in self.document.text_before_cursor:
-                    lines_before_cursor, _ = self.document.text_before_cursor.rsplit('\n', 1)
-                    self.text = lines_before_cursor + '\n' + match_text
+                if history_search:
+                    # XXX: Put this in the multiline_history_search_index
+                    # setter?
+                    match_text = current_line_indent + self._working_lines[i]
+                    if '\n' in self.document.text_before_cursor:
+                        lines_before_cursor, _ = self.document.text_before_cursor.rsplit('\n', 1)
+                        self.text = lines_before_cursor + '\n' + match_text
+                    else:
+                        self.text = match_text
+                        self.multiline_history_search_index = i
                 else:
-                    self.text = match_text
-                self.multiline_history_search_index = i
+                    self.working_index = i
                 count -= 1
                 found_something = True
             if count == 0:
@@ -139,17 +142,20 @@ class MyBuffer(Buffer):
         # Go forward in history.
         found_something = False
 
-        index = self.multiline_history_search_index
+        index = self.multiline_history_search_index if history_search else self.working_index
 
         for i in range(index + 1, len(self._working_lines)):
             if self._history_matches(i):
-                match_text = current_line_indent + self._working_lines[i]
-                if '\n' in self.document.text_before_cursor:
-                    lines_before_cursor, _ = self.document.text_before_cursor.rsplit('\n', 1)
-                    self.text = lines_before_cursor + '\n' + match_text
+                if history_search:
+                    match_text = current_line_indent + self._working_lines[i]
+                    if '\n' in self.document.text_before_cursor:
+                        lines_before_cursor, _ = self.document.text_before_cursor.rsplit('\n', 1)
+                        self.document.text = lines_before_cursor + '\n' + match_text
+                    else:
+                        self.document.text = match_text
+                    self.multiline_history_search_index = i
                 else:
-                    self.text = match_text
-                self.multiline_history_search_index = i
+                    self.working_index = i
                 count -= 1
                 found_something = True
             if count == 0:
