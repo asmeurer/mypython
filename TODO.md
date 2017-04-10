@@ -23,3 +23,4 @@
 - Show file with ??
 - Cannot delete selected text with delete or C-k
 - Tests for multiline history search
+- dir completion messes up from imports
