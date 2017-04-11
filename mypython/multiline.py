@@ -114,7 +114,7 @@ def auto_newline(buffer):
         insert_text('\n')
 
         unindent_keywords = ['pass', 'continue', 'break', 'return', 'raise']
-        # Unident if the last line ends with 'pass', remove four spaces.
+        # Unident if the last line ends with one of these keywords
         for keyword in unindent_keywords:
             begin = current_line.lstrip()
             if begin.startswith(keyword + ' ') or begin == keyword:
