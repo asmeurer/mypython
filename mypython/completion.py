@@ -90,12 +90,13 @@ class PythonCompleter(Completer):
             while True:
                 completion = completer.complete(document.text_before_cursor, state)
                 if completion:
+                    name = completer.NAME.match(document.text_before_cursor[::-1]).group(0)[::-1]
                     dir_completions.add(completion)
                     if len(completion) < len(document.text_before_cursor):
                         state += 1
                         continue
                     yield Completion(completion,
-                        -len(document.text_before_cursor),
+                        -len(name),
                         display_meta='from dir()')
                     state += 1
                 else:

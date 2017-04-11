@@ -1,8 +1,8 @@
-from prompt_toolkit.key_binding.bindings.named_commands import accept_line
+from prompt_toolkit.key_binding.bindings.named_commands import accept_line, self_insert
 from prompt_toolkit.key_binding.defaults import load_key_bindings
 from prompt_toolkit.key_binding.registry import Registry, MergedRegistry
 from prompt_toolkit.keys import Keys, Key
-from prompt_toolkit.filters import Condition
+from prompt_toolkit.filters import Condition, HasSelection
 from prompt_toolkit.selection import SelectionState
 from prompt_toolkit.clipboard import ClipboardData
 from prompt_toolkit.terminal.vt100_input import ANSI_SEQUENCES
@@ -323,6 +323,22 @@ def select_all(event):
 
     buffer.selection_state = SelectionState(len(buffer.document.text))
     buffer.cursor_position = 0
+
+@r.add_binding(Keys.Delete, filter=HasSelection())
+@r.add_binding(Keys.Backspace, filter=HasSelection())
+def delete_selection(event):
+    event.current_buffer.cut_selection()
+
+@r.add_binding(Keys.Any, filter=HasSelection())
+def self_insert_and_clear_selection(event):
+    event.current_buffer.cut_selection()
+    self_insert(event)
+
+@r.add_binding(Keys.ControlK, filter=HasSelection())
+@r.add_binding(Keys.ControlU, filter=HasSelection())
+def kill_selection(event):
+    data = event.current_buffer.cut_selection()
+    event.cli.clipboard.set_data(data)
 
 def osx_copy(text):
     try:
