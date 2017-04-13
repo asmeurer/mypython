@@ -24,3 +24,4 @@
 - Tests for multiline history search
 - Mismatched parentheses in a string confuses parentheses highlighting
 - Use tokenize to detect multiline (will make "('a" not be multiline)
+- Syntax validation on %timeit
