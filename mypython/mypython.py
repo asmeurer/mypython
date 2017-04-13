@@ -573,6 +573,52 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
         if not DOCTEST_MODE:
             print()
 
+def run_shell(_globals=_default_globals, _locals=_default_locals, *,
+    quiet=False, cmd=None):
+    os.makedirs(os.path.expanduser('~/.mypython/history'), exist_ok=True)
+    try:
+        tty_name = os.path.basename(os.ttyname(sys.stdout.fileno()))
+    except OSError:
+        tty_name = 'unknown'
+
+    history = FileHistory(os.path.expanduser('~/.mypython/history/%s_history'
+        % tty_name))
+
+    registry = get_registry()
+
+    startup(_default_globals, _default_locals, quiet=quiet)
+    prompt_number = 1
+    while True:
+        if prompt_number == 1 and cmd:
+            _input = PipeInput()
+            _input.send_text(cmd + '\n')
+            _history = None
+        else:
+            _input = None
+            _history = history
+
+        cli = get_cli(history=_history, _locals=_default_locals, _globals=_default_globals,
+                registry=registry, _input=_input)
+        cli.prompt_number = prompt_number
+        try:
+            # Replace stdout.
+            patch_context = cli.patch_stdout_context(raw=True)
+            with patch_context:
+                result = cli.run()
+            if isinstance(result, Document):  # Backwards-compatibility.
+                command = result.text
+            else:
+                command = result
+        except KeyboardInterrupt:
+            # TODO: Keep it in the history
+            print("KeyboardInterrupt", file=sys.stderr)
+            continue
+        except EOFError:
+            break
+
+        execute_command(command, cli)
+        prompt_number = cli.prompt_number
+
 def main():
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument("--cmd", "-c", metavar="CMD", action="store",
@@ -600,49 +646,7 @@ def main():
         global DOCTEST_MODE
         DOCTEST_MODE = True
 
-    os.makedirs(os.path.expanduser('~/.mypython/history'), exist_ok=True)
-    try:
-        tty_name = os.path.basename(os.ttyname(sys.stdout.fileno()))
-    except OSError:
-        tty_name = 'unknown'
-
-    history = FileHistory(os.path.expanduser('~/.mypython/history/%s_history'
-        % tty_name))
-
-    registry = get_registry()
-
-    startup(_default_globals, _default_locals, quiet=args.quiet)
-    prompt_number = 1
-    while True:
-        if prompt_number == 1 and args.cmd:
-            _input = PipeInput()
-            _input.send_text(args.cmd + '\n')
-            _history = None
-        else:
-            _input = None
-            _history = history
-
-        cli = get_cli(history=_history, _locals=_default_locals, _globals=_default_globals,
-                registry=registry, _input=_input)
-        cli.prompt_number = prompt_number
-        try:
-            # Replace stdout.
-            patch_context = cli.patch_stdout_context(raw=True)
-            with patch_context:
-                result = cli.run()
-            if isinstance(result, Document):  # Backwards-compatibility.
-                command = result.text
-            else:
-                command = result
-        except KeyboardInterrupt:
-            # TODO: Keep it in the history
-            print("KeyboardInterrupt", file=sys.stderr)
-            continue
-        except EOFError:
-            break
-
-        execute_command(command, cli)
-        prompt_number = cli.prompt_number
+    return run_shell(quiet=args.quiet, cmd=args.cmd)
 
 if __name__ == '__main__':
     main()
