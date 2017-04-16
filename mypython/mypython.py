@@ -586,7 +586,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
 
     registry = get_registry()
 
-    startup(_default_globals, _default_locals, quiet=quiet)
+    startup(_globals, _locals, quiet=quiet)
     prompt_number = 1
     while True:
         if prompt_number == 1 and cmd:
@@ -597,7 +597,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
             _input = None
             _history = history
 
-        cli = get_cli(history=_history, _locals=_default_locals, _globals=_default_globals,
+        cli = get_cli(history=_history, _locals=_locals, _globals=_globals,
                 registry=registry, _input=_input)
         cli.prompt_number = prompt_number
         try:
@@ -616,7 +616,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
         except EOFError:
             break
 
-        execute_command(command, cli)
+        execute_command(command, cli, _globals=_globals, _locals=_locals)
         prompt_number = cli.prompt_number
 
 def main():
