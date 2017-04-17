@@ -17,4 +17,10 @@ if os.path.isdir(mypython_dir):
 from mypython import run_shell
 
 def pudb_shell(_globals, _locals):
-    return run_shell(_globals, _locals, quiet=True)
+    try:
+        tty_name = os.path.basename(os.ttyname(sys.stdout.fileno()))
+    except OSError:
+        tty_name = 'unknown'
+
+    return run_shell(_globals, _locals, quiet=True,
+        history_file='~/.mypython/history/pudb_%s_history' % tty_name)
