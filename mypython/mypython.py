@@ -150,9 +150,9 @@ class MyBuffer(Buffer):
                     match_text = current_line_indent + self._working_lines[i]
                     if '\n' in self.document.text_before_cursor:
                         lines_before_cursor, _ = self.document.text_before_cursor.rsplit('\n', 1)
-                        self.document.text = lines_before_cursor + '\n' + match_text
+                        self.text = lines_before_cursor + '\n' + match_text
                     else:
-                        self.document.text = match_text
+                        self.text = match_text
                     self.multiline_history_search_index = i
                 else:
                     self.working_index = i
