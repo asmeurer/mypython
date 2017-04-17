@@ -550,15 +550,20 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
             print()
 
 def run_shell(_globals=_default_globals, _locals=_default_locals, *,
-    quiet=False, cmd=None):
-    os.makedirs(os.path.expanduser('~/.mypython/history'), exist_ok=True)
-    try:
-        tty_name = os.path.basename(os.ttyname(sys.stdout.fileno()))
-    except OSError:
-        tty_name = 'unknown'
+    quiet=False, cmd=None, history_file=None):
 
-    history = FileHistory(os.path.expanduser('~/.mypython/history/%s_history'
-        % tty_name))
+    if not history_file:
+        try:
+            tty_name = os.path.basename(os.ttyname(sys.stdout.fileno()))
+        except OSError:
+            tty_name = 'unknown'
+        history_file = '~/.mypython/history/%s_history' % tty_name
+
+    history_file = os.path.expanduser(history_file)
+
+    os.makedirs(os.path.dirname(history_file), exist_ok=True)
+
+    history = FileHistory(history_file)
 
     registry = get_registry()
 
