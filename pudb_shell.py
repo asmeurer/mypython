@@ -1,3 +1,8 @@
+"""
+Custom shell for PuDB. Set this as the custom shell in the PuDB settings to
+use mypython as the ! shell in PuDB.
+"""
+
 import os
 import sys
 import inspect
