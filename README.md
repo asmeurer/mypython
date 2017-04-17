@@ -83,7 +83,7 @@ Thanks to Jonathan Slenders for prompt-toolkit and ptpython (which I borrowed
 some of the more tricky things like Python multiline and Jedi completion
 from). Basically all the fancy stuff here is coming from prompt-toolkit. I
 just combined it together into a REPL that I like. Thanks to the IPython guys
-for figuring out the matplotlib eventloop stuff (which I could never to on my
+for figuring out the matplotlib eventloop stuff (which I could never do on my
 own), and for inspiring many of the features I've implemented.
 
 # License
