@@ -14,7 +14,4 @@ mypython_dir = os.path.dirname(mypython_path)
 if os.path.isdir(mypython_dir):
     sys.path.insert(0, mypython_dir)
 
-from mypython import run_shell
-
-def pudb_shell(_globals, _locals, first_time):
-    run_shell(_globals, _locals)
+from mypython import run_shell as pudb_shell
