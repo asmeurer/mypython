@@ -75,13 +75,9 @@ class MyBuffer(Buffer):
     def multiline_history_search_index(self, value):
         self._multiline_history_search_index = value
 
-    def history_backward(self, count=1, history_search=False):
-        """
-        Move backwards through history.
+    def _history(self, direction, count=1, history_search=False):
+        assert direction in ['forward', 'backward'], direction
 
-        Based on Buffer.history_backward, but it moves the cursor to the
-        beginning of the first line, and supports multiline history search.
-        """
         # self._set_history_search()
         if history_search:
             if self.history_search_text is None:
@@ -91,12 +87,12 @@ class MyBuffer(Buffer):
         indent = LEADING_WHITESPACE.match(self.document.current_line_before_cursor)
         current_line_indent = indent.group(1) if indent else ''
 
-        # Go back in history.
         found_something = False
 
         index = self.multiline_history_search_index if history_search else self.working_index
 
-        for i in range(index - 1, -1, -1):
+        r = range(index - 1, -1, -1) if direction == 'backward' else range(index + 1, len(self._working_lines))
+        for i in r:
             if self._history_matches(i):
                 if history_search:
                     # XXX: Put this in the multiline_history_search_index
@@ -118,8 +114,21 @@ class MyBuffer(Buffer):
         # If we move to another entry, move the cursor to the end of the
         # first line.
         if found_something and not history_search:
-            self.cursor_position = 0
-            self.cursor_position += self.document.get_end_of_line_position()
+            if direction == 'backwards':
+                self.cursor_position = 0
+                self.cursor_position += self.document.get_end_of_line_position()
+            else:
+                self.cursor_position = len(self.text)
+
+
+    def history_backward(self, count=1, history_search=False):
+        """
+        Move backwards through history.
+
+        Based on Buffer.history_backward, but it moves the cursor to the
+        beginning of the first line, and supports multiline history search.
+        """
+        return self._history('backward', count=count, history_search=history_search)
 
     def history_forward(self, count=1, history_search=False):
         """
@@ -130,40 +139,7 @@ class MyBuffer(Buffer):
         and supports multiline history search.
 
         """
-        # self._set_history_search()
-        if history_search:
-            if self.history_search_text is None:
-                self.history_search_text = self.document.current_line_before_cursor.strip()
-        else:
-            self.history_search_text = None
-        indent = LEADING_WHITESPACE.match(self.document.current_line_before_cursor)
-        current_line_indent = indent.group(1) if indent else ''
-
-        # Go forward in history.
-        found_something = False
-
-        index = self.multiline_history_search_index if history_search else self.working_index
-
-        for i in range(index + 1, len(self._working_lines)):
-            if self._history_matches(i):
-                if history_search:
-                    match_text = current_line_indent + self._working_lines[i]
-                    if '\n' in self.document.text_before_cursor:
-                        lines_before_cursor, _ = self.document.text_before_cursor.rsplit('\n', 1)
-                        self.text = lines_before_cursor + '\n' + match_text
-                    else:
-                        self.text = match_text
-                    self.multiline_history_search_index = i
-                else:
-                    self.working_index = i
-                count -= 1
-                found_something = True
-            if count == 0:
-                break
-
-        # If we found an entry, move the cursor to the end.
-        if found_something and not history_search:
-            self.cursor_position = len(self.text)
+        return self._history('forward', count=count, history_search=history_search)
 
 def on_text_insert(buf):
     buf.multiline_history_search_index = None
