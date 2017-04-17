@@ -107,7 +107,7 @@ class MyBuffer(Buffer):
                         self.text = lines_before_cursor + '\n' + match_text
                     else:
                         self.text = match_text
-                        self.multiline_history_search_index = i
+                    self.multiline_history_search_index = i
                 else:
                     self.working_index = i
                 count -= 1
