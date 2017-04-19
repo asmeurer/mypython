@@ -114,7 +114,7 @@ class MyBuffer(Buffer):
         # If we move to another entry, move the cursor to the end of the
         # first line.
         if found_something and not history_search:
-            if direction == 'backwards':
+            if direction == 'backward':
                 self.cursor_position = 0
                 self.cursor_position += self.document.get_end_of_line_position()
             else:
