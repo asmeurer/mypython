@@ -232,7 +232,7 @@ def test_test_globals():
     '__spec__'}
     assert _test_globals['__name__'] == _default_globals['__name__'] == '__main__'
 
-def test_normalize():
+def test_normalize(capsys):
     _globals = _locals = _test_globals.copy()
 
     def _normalize(command):
@@ -242,14 +242,33 @@ def test_normalize():
     assert _normalize('  1') == '1'
     assert _normalize('  1  ') == '1'
     assert _normalize('  def test():\n      pass\n') == 'def test():\n    pass'
-    normalize_test =  _normalize('test?')
-    assert 'myhelp' in normalize_test
-    compile(normalize_test, '<test>', 'exec')
-    # TODO: Make ?? testable
+    normalize_help =  _normalize('test?')
+    assert 'myhelp' in normalize_help
+    compile(normalize_help, '<test>', 'exec')
+    normalize_source = _normalize('test??')
+    assert 'getsource' in normalize_source
+    compile(normalize_source, '<test>', 'exec')
     assert _normalize('test???') == 'test???'
     assert _normalize('%timeit 1') == magic('%timeit 1')
     assert _normalize('%notacommand') == '%notacommand'
     assert _normalize('%notacommand 1') == '%notacommand 1'
+
+    compile(_normalize('%timeit 1'), '<test>', 'exec')
+    compile(_normalize('%timeit'), '<test>', 'exec')
+    compile(_normalize('%time 1'), '<test>', 'exec')
+    compile(_normalize('%time'), '<test>', 'exec')
+    compile(_normalize('%sympy'), '<test>', 'exec')
+    compile(_normalize('%sympy 1'), '<test>', 'exec')
+
+    from .. import mypython
+    compile(_normalize('%doctest'), '<test>', 'exec')
+    assert not mypython.DOCTEST_MODE
+    compile(_normalize('%debug'), '<test>', 'exec')
+    assert not mypython.DEBUG
+
+    out, err = capsys.readouterr()
+    assert not out
+    assert not err
 
 def test_syntax_validator():
     validator = PythonSyntaxValidator()

@@ -6,11 +6,8 @@ text after the magic, e.g.,
 
 rest will be '1'.
 
-Also, add the magic to
-
-To make things like ?? and Jedi completion recognize the result of the magic,
-return source code that should be executed. Otherwise, you can do the result
-directly in the function and return ''.
+The magic should return the source that gets run, and not execute any code
+itself.
 """
 
 import textwrap
@@ -67,38 +64,43 @@ del _time, _format_time, _perf_counter, _smart_eval, _sys
 """.format(rest=rest)
 
 def doctest_magic(rest):
-    from . import mypython
-
     if rest:
-        print("%doctest takes no arguments")
+        return "%doctest takes no arguments"
 
-    mypython.DOCTEST_MODE ^= True
+    return """
+from mypython import mypython as _mypython
 
-    if mypython.DOCTEST_MODE:
-        print("doctest mode enabled")
-    else:
-        print("doctest mode disabled")
+_mypython.DOCTEST_MODE ^= True
 
-    return ''
+if _mypython.DOCTEST_MODE:
+    print("doctest mode enabled")
+else:
+    print("doctest mode disabled")
+del _mypython
+"""
 
 def debug_magic(rest):
-    from . import mypython
-
     if rest:
-        print("%debug takes no arguments")
+        return """
+print('%debug takes no arguments')
+"""
 
-    mypython.DEBUG ^= True
+    return """
+from mypython import mypython as _mypython
+_mypython.DEBUG ^= True
 
-    if mypython.DEBUG:
-        print("mypython debugging mode enabled")
-    else:
-        print("mypython debugging mode disabled")
-
-    return ''
+if _mypython.DEBUG:
+    print("mypython debugging mode enabled")
+else:
+    print("mypython debugging mode disabled")
+del _mypython
+"""
 
 def sympy_magic(rest):
     if rest:
-        print("%sympy takes no arguments")
+        return """
+print('%sympy takes no arguments')
+"""
 
     sympy_start = """
 import sympy
@@ -107,9 +109,10 @@ x, y, z, t = symbols('x y z t')
 k, m, n = symbols('k m n', integer=True)
 f, g, h = symbols('f g h', cls=Function)"""
 
-    print(textwrap.indent(sympy_start, '    '))
-
-    return sympy_start
+    return """
+print(%r)
+%s
+""" % (textwrap.indent(sympy_start, '    '), sympy_start)
 
 isympy_magic = sympy_magic
 

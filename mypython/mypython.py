@@ -328,15 +328,19 @@ def getsource(command, _globals, _locals, ret=False, include_info=True):
         linecache.getlines = linecache._orig_getlines
         del linecache._orig_getlines
 
-    return ''
-
 def normalize(command, _globals, _locals):
     command = dedent(command).strip()
     if command.endswith('???'):
         # Too many
         return command
     elif command.endswith('??'):
-        return getsource(command[:-2], _globals, _locals)
+        return """\
+from mypython import getsource as _getsource
+try:
+    _getsource(%s, globals(), locals())
+finally:
+    del _getsource
+""" % command[:-2]
     elif command.endswith('?'):
         return """\
 from mypython import myhelp as _myhelp
