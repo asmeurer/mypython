@@ -19,6 +19,7 @@ import random
 import ast
 import argparse
 import traceback
+from io import StringIO
 from textwrap import dedent
 from pydoc import pager
 
@@ -246,6 +247,17 @@ def mypython_file(prompt_number=None):
         return "<mypython-{prompt_number}>".format(prompt_number=prompt_number)
     return "<mypython>"
 
+def myhelp(item):
+    # Don't import numpy if it isn't imported already
+    if 'numpy' in sys.modules:
+        import numpy
+        sio = StringIO()
+        if isinstance(item, numpy.ufunc):
+            numpy.info(item, output=sio)
+            return pager(sio.getvalue())
+    help(item)
+
+
 def getsource(command, _globals, _locals, ret=False, include_info=True):
     """
     Get and show the source for the given code
@@ -326,7 +338,13 @@ def normalize(command, _globals, _locals):
     elif command.endswith('??'):
         return getsource(command[:-2], _globals, _locals)
     elif command.endswith('?'):
-        return 'help(%s)' % command[:-1]
+        return """\
+from mypython import myhelp as _myhelp
+try:
+    _myhelp(%s)
+finally:
+    del _myhelp
+""" % command[:-1]
     elif command.startswith('%'):
         return magic(command)
     else:

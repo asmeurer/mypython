@@ -35,7 +35,7 @@ without any additional work (unlike REPLs based on readline).
 - A nice theme (the same one I use in emacs, called "1am", based on XCode's
   "midnight").
 - `stuff?` shows the help for `stuff`. Works even if `stuff` is a complex
-  expression.
+  expression. Does the right thing for NumPy ufuncs.
 - `stuff??` shows the source for `stuff`. Works even if `stuff` was defined
   interactively.
 - `%time` and `%timeit` magic commands.

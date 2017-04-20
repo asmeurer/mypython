@@ -26,4 +26,3 @@
 - Use tokenize to detect multiline (will make "('a" not be multiline)
 - Syntax validation on %timeit
 - Skip duplicate consecutive items in history search
-- np.info support for ?
