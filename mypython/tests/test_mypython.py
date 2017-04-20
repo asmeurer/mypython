@@ -263,7 +263,11 @@ def test_normalize(capsys):
     from .. import mypython
     compile(_normalize('%doctest'), '<test>', 'exec')
     assert not mypython.DOCTEST_MODE
+    compile(_normalize('%doctest 1'), '<test>', 'exec')
+    assert not mypython.DOCTEST_MODE
     compile(_normalize('%debug'), '<test>', 'exec')
+    assert not mypython.DEBUG
+    compile(_normalize('%debug 1'), '<test>', 'exec')
     assert not mypython.DEBUG
 
     out, err = capsys.readouterr()

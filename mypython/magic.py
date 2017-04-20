@@ -31,12 +31,17 @@ def magic(command):
         return 'pass'
     return result
 
+def error(message):
+    return """
+import sys as _sys
+print(%r, file=_sys.stderr)
+del _sys
+""" % message
+
 def timeit_magic(rest):
     if not rest:
-        return """
-print('nothing to time')
-pass
-"""
+        return error('nothing to time')
+
     return """
 from mypython.timeit import MyTimer, time_format
 number, time_taken = MyTimer({rest!r}, globals=globals()).autorange()
@@ -46,10 +51,8 @@ del MyTimer, time_format
 
 def time_magic(rest):
     if not rest:
-        return """
-print('nothing to time')
-pass
-"""
+        return error('nothing to time')
+
     return """
 from time import perf_counter as _perf_counter
 from IPython.core.magics.execution import _format_time
@@ -65,7 +68,7 @@ del _time, _format_time, _perf_counter, _smart_eval, _sys
 
 def doctest_magic(rest):
     if rest:
-        return "%doctest takes no arguments"
+        return error('%doctest takes no arguments')
 
     return """
 from mypython import mypython as _mypython
@@ -81,9 +84,7 @@ del _mypython
 
 def debug_magic(rest):
     if rest:
-        return """
-print('%debug takes no arguments')
-"""
+        return error('%debug takes no arguments')
 
     return """
 from mypython import mypython as _mypython
@@ -96,18 +97,16 @@ else:
 del _mypython
 """
 
-def sympy_magic(rest):
-    if rest:
-        return """
-print('%sympy takes no arguments')
-"""
-
-    sympy_start = """
+sympy_start = """
 import sympy
 from sympy import *
 x, y, z, t = symbols('x y z t')
 k, m, n = symbols('k m n', integer=True)
 f, g, h = symbols('f g h', cls=Function)"""
+
+def sympy_magic(rest):
+    if rest:
+        return error('%sympy takes no arguments')
 
     return """
 print(%r)
