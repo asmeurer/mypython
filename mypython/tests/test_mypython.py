@@ -242,7 +242,9 @@ def test_normalize():
     assert _normalize('  1') == '1'
     assert _normalize('  1  ') == '1'
     assert _normalize('  def test():\n      pass\n') == 'def test():\n    pass'
-    assert _normalize('test?') == 'help(test)'
+    normalize_test =  _normalize('test?')
+    assert 'myhelp' in normalize_test
+    compile(normalize_test, '<test>', 'exec')
     # TODO: Make ?? testable
     assert _normalize('test???') == 'test???'
     assert _normalize('%timeit 1') == magic('%timeit 1')
