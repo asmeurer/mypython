@@ -1,5 +1,4 @@
 from io import BytesIO
-from timeit import Timer
 
 from IPython.core.magics.execution import _format_time
 from iterm2_tools.images import display_image_bytes
