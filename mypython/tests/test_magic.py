@@ -7,8 +7,8 @@ from ..magic import sympy_start
 def test_time():
     _globals = _test_globals.copy()
     assert _test_output('import time\n', _globals=_globals) == ('\n', '')
-    out, err = _test_output('%time time.sleep(1)\n', _globals=_globals)
-    assert re.match(r'Total time: [\d\.]+ s\nNone\n\n', out)
+    out, err = _test_output('%time time.sleep(.1)\n', _globals=_globals)
+    assert re.match(r'Total time: [\d\.]+ ms\nNone\n\n', out)
     assert not err
 
     _globals = _test_globals.copy()
