@@ -27,5 +27,3 @@
 - Syntax validation on %timeit
 - Skip duplicate consecutive items in history search
 - Syntax highlight magic
-- Standard deviation for %timeit
-- Histogram for %timeit

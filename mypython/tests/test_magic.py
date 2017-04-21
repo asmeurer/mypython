@@ -20,7 +20,15 @@ def test_timeit():
     _globals = _test_globals.copy()
     assert _test_output('import time\n', _globals=_globals) == ('\n', '')
     # 15 loops is the smallest 2**n - 1 >= 10
-    assert _test_output('%timeit time.sleep(1)\n', _globals=_globals) == ('15 loops, 1 s average\n\n', '')
+    out, err = _test_output('%timeit time.sleep(1)\n', _globals=_globals,
+        remove_terminal_sequences=True)
+    assert re.match(r"""15 loops, 1[\.\d]* s average
+Minimum time: 1[\.\d]* s
+Maximum time: 1[\.\d]* s
+
+
+""", out)
+    assert not err
 
 def test_doctest():
     from .. import mypython

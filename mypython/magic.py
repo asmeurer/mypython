@@ -43,10 +43,11 @@ def timeit_magic(rest):
         return error('nothing to time')
 
     return """
-from mypython.timeit import MyTimer, time_format
-number, time_taken = MyTimer({rest!r}, globals=globals()).autorange()
-print(time_format(number, time_taken))
-del MyTimer, time_format
+from timeit import Timer as _Timer
+from mypython.timeit import time_format as _time_format, autorange as _autorange
+_times = _autorange(_Timer({rest!r}, globals=globals()))
+print(_time_format(_times))
+del _autorange, _time_format, _Timer, _times
 """.format(rest=rest)
 
 def time_magic(rest):
