@@ -334,7 +334,7 @@ def normalize(command, _globals, _locals):
         return """\
 from mypython import getsource as _getsource
 try:
-    _getsource(%s, globals(), locals())
+    _getsource(%r, globals(), locals())
 finally:
     del _getsource
 """ % command[:-2]
