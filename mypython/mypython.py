@@ -43,8 +43,6 @@ from prompt_toolkit.token import Token
 
 import iterm2_tools
 
-# This is needed to make matplotlib plots work
-from .inputhook import inputhook
 from .multiline import document_is_multiline_python
 from .completion import PythonCompleter
 from .theme import OneAMStyle
@@ -466,7 +464,12 @@ def post_command(*, command, res, _globals, _locals, cli):
         cli.prompt_number += 1
 
 def get_eventloop():
-    return create_eventloop(inputhook)
+    # This is needed to make matplotlib plots work
+    if sys.platform == 'darwin':
+        from .inputhook import inputhook
+        return create_eventloop(inputhook)
+    else:
+        return None
 
 def get_cli(*, history, _globals, _locals, registry, _input=None, output=None, eventloop=None):
     def is_buffer_multiline():
