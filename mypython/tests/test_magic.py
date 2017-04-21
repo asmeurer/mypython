@@ -23,8 +23,8 @@ def test_timeit():
     out, err = _test_output('%timeit time.sleep(1)\n', _globals=_globals,
         remove_terminal_sequences=True)
     assert re.match(r"""15 loops, [\.\d]+ s average
-Minimum time: \.\d]+ s
-Maximum time: \.\d]+ s
+Minimum time: [\.\d]+ s
+Maximum time: [\.\d]+ s
 
 
 """, out)
