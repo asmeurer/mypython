@@ -467,9 +467,10 @@ def get_eventloop():
     # This is needed to make matplotlib plots work
     if sys.platform == 'darwin':
         from .inputhook import inputhook
-        return create_eventloop(inputhook)
     else:
-        return None
+        inputhook = None
+
+    return create_eventloop(inputhook)
 
 def get_cli(*, history, _globals, _locals, registry, _input=None, output=None, eventloop=None):
     def is_buffer_multiline():
