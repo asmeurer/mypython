@@ -42,7 +42,6 @@ from prompt_toolkit.filters import Condition, IsDone
 from prompt_toolkit.token import Token
 
 import iterm2_tools
-import catimg
 
 # This is needed to make matplotlib plots work
 from .inputhook import inputhook
@@ -366,7 +365,12 @@ del sys
 
     if not quiet:
         print_tokens([(Token.Welcome, "Welcome to mypython.\n")])
-        image = catimg.get_random_image()
+        try:
+            import catimg
+        except ImportError:
+            image = None
+        else:
+            image = catimg.get_random_image()
         if image:
             print_tokens([(Token.Welcome, "Here is a cat:\n")])
             iterm2_tools.display_image_file(image)
