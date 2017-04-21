@@ -7,7 +7,7 @@ def autorange(timer, callback=None):
     """Return the number of loops so that total time >= 10.
 
     Calls the timeit method with *number* set to successive powers of
-    two (1, 2, 4, 8, ...) up to a maximum of 2**30, until
+    two (1, 2, 4, 8, ...) up to a maximum of 2**22, until
     the time taken is at least 10 seconds, or the maximum is reached.
     Returns ``(number, time_taken)``.
 
@@ -16,7 +16,9 @@ def autorange(timer, callback=None):
     """
     total_number = 0
     times = []
-    for i in range(31):
+    # The overhead of the timer itself takes about 10 seconds for 2**23 runs
+    # (%timeit pass).
+    for i in range(23):
         number = 2**i
         times += timer.repeat(number, 1)
         time_taken = sum(times)

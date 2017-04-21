@@ -1,5 +1,6 @@
 import re
 import textwrap
+import time
 
 from .test_mypython import _test_output, _test_globals
 from ..magic import sympy_start
@@ -27,6 +28,21 @@ def test_timeit():
     assert re.match(r"""15 loops, [\.\d]+ s average
 Minimum time: [\.\d]+ s
 Maximum time: [\.\d]+ s
+
+
+""", out)
+    assert not err
+
+def test_timeit_max():
+    # Make sure the max number of runs isn't too slow. This should take ~10 seconds.
+    _globals = _test_globals.copy()
+    t = time.monotonic()
+    out, err = _test_output('%timeit pass\n', _globals=_globals,
+        remove_terminal_sequences=True)
+    assert time.monotonic() - t < 20
+    assert re.match(r"""8388607 loops, [\.\d]+ ns average
+Minimum time: [\.\d]+ ns
+Maximum time: [\.\d]+ [nmµu]s
 
 
 """, out)

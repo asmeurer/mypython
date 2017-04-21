@@ -27,4 +27,3 @@
 - Syntax validation on %timeit
 - Skip duplicate consecutive items in history search
 - Syntax highlight magic
-- %timeit 1 + 1 takes too long
