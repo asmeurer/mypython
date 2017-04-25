@@ -27,3 +27,4 @@
 - Syntax validation on %timeit
 - Skip duplicate consecutive items in history search
 - Syntax highlight magic
+- Better up-arrow enter heuristics
