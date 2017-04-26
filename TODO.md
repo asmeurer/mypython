@@ -27,3 +27,4 @@
 - Syntax validation on %timeit
 - Skip duplicate consecutive items in history search
 - Syntax highlight magic
+- Deleting selected text messes up indentation
