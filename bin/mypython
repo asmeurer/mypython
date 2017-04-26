@@ -12,7 +12,7 @@ mypython_dir = os.path.join(mypython_top, 'mypython')
 if os.path.isdir(mypython_dir):
     sys.path.insert(0, mypython_top)
 
-from mypython.mypython import main
+from mypython.__main__ import main
 
 if __name__ == '__main__':
     main()

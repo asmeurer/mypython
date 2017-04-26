@@ -1,11 +1,3 @@
-#!/usr/bin/env python
-# PYTHON_ARGCOMPLETE_OK
-"""
-mypython
-
-A Python REPL the way I like it.
-"""
-
 # Define globals first so that names from this module don't get included
 _default_globals = globals().copy()
 _default_globals['__name__'] = '__main__'
@@ -17,7 +9,6 @@ import inspect
 import linecache
 import random
 import ast
-import argparse
 import traceback
 from io import StringIO
 from textwrap import dedent
@@ -629,35 +620,3 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
 
         execute_command(command, cli, _globals=_globals, _locals=_locals)
         prompt_number = cli.prompt_number
-
-def main():
-    parser = argparse.ArgumentParser(__doc__)
-    parser.add_argument("--cmd", "-c", metavar="CMD", action="store",
-        help="""Execute the given command at startup.""")
-    parser.add_argument("--quiet", "-q", action="store_true", help="""Don't
-        print the startup messages.""")
-    parser.add_argument("--doctest-mode", "-d", action="store_true",
-        help="""Enable doctest mode. Mimics the default Python prompt.""")
-    parser.add_argument("--debug", "-D", action="store_true",
-        help="""Enable debug mode. The same as -c '%%debug'.""")
-
-    try:
-        import argcomplete
-        argcomplete.autocomplete(parser)
-    except ImportError:
-        pass
-    args = parser.parse_args()
-
-    if args.debug:
-        global DEBUG
-        DEBUG = True
-        print("mypython debugging mode enabled")
-
-    if args.doctest_mode:
-        global DOCTEST_MODE
-        DOCTEST_MODE = True
-
-    return run_shell(quiet=args.quiet, cmd=args.cmd)
-
-if __name__ == '__main__':
-    main()
