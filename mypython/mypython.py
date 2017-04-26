@@ -45,7 +45,7 @@ import iterm2_tools
 
 from .multiline import document_is_multiline_python
 from .completion import PythonCompleter
-from .theme import OneAMStyle
+from .theme import OneAMStyle, MyPython3Lexer
 from .keys import get_registry, LEADING_WHITESPACE
 from .processors import MyHighlightMatchingBracketProcessor
 from .magic import magic, MAGICS
@@ -498,7 +498,7 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None, e
     application = Application(
         create_prompt_layout(
             get_prompt_tokens=get_in_prompt_tokens,
-            lexer=PygmentsLexer(Python3Lexer),
+            lexer=PygmentsLexer(MyPython3Lexer),
             multiline=True,
             get_continuation_tokens=get_continuation_tokens,
             display_completions_in_columns=True,

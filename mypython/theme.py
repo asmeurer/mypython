@@ -5,6 +5,35 @@ Translated from http://raebear.net/comp/emacscolors.html
 """
 from pygments.token import Keyword, Name, Comment, String, Operator
 from pygments.style import Style
+from pygments.lexers import Python3Lexer
+
+from .magic import MAGICS
+
+class MyPython3Lexer(Python3Lexer):
+    def get_tokens_unprocessed(self, text):
+        magic = False
+        first = True
+        prev = None
+        for index, token, value in \
+            super().get_tokens_unprocessed(text):
+            if magic:
+                magic = False
+                if token is Name and value in [i[1:] for i in MAGICS]:
+                    yield index, Keyword.Pseudo, '%' + value
+                    prev = None
+                    continue
+                else:
+                    yield prev
+                    prev = None
+            if first and token is Operator and value == '%':
+                magic = True
+                prev = index, token, value
+                continue
+            yield index, token, value
+            first = False
+
+        if prev:
+            yield prev
 
 class OneAMStyle(Style):
     default_style = ''
