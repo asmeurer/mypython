@@ -26,5 +26,5 @@
 - Use tokenize to detect multiline (will make "('a" not be multiline)
 - Syntax validation on %timeit
 - Skip duplicate consecutive items in history search
-- Syntax highlight magic
 - Better up-arrow enter heuristics
+- Deleting selected text messes up indentation
