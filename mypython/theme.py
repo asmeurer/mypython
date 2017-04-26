@@ -19,7 +19,7 @@ class MyPython3Lexer(Python3Lexer):
             if magic:
                 magic = False
                 if token is Name and value in [i[1:] for i in MAGICS]:
-                    yield index, Keyword.Pseudo, '%' + value
+                    yield index, Keyword.Magic, '%' + value
                     prev = None
                     continue
                 else:
@@ -42,6 +42,7 @@ class OneAMStyle(Style):
         String.Doc:          "#ffff00", # yellow
         Comment:             "#ffffff", # white
         Keyword:             "#a020f0", # purple
+        Keyword.Magic:       "#ff1493", # deep pink
         Operator.Word:       "#a020f0", # purple
         # Doesn't work for some reason. Should highlight True, False, and
         # None.
