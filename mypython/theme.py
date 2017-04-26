@@ -3,7 +3,10 @@ Based on https://github.com/asmeurer/dotfiles/blob/master/.emacs.d/themes/1am-th
 
 Translated from http://raebear.net/comp/emacscolors.html
 """
-from pygments.token import Keyword, Name, Comment, String, Operator
+from collections import OrderedDict
+from itertools import cycle
+
+from pygments.token import Keyword, Name, Comment, String, Operator, Text
 from pygments.style import Style
 from pygments.lexers import Python3Lexer
 
@@ -19,7 +22,8 @@ class MyPython3Lexer(Python3Lexer):
             if magic:
                 magic = False
                 if token is Name and value in [i[1:] for i in MAGICS]:
-                    yield index, Keyword.Magic, '%' + value
+                    for i, color in zip('%' + value, cycle(rainbow)):
+                        yield index, color, i
                     prev = None
                     continue
                 else:
@@ -35,6 +39,16 @@ class MyPython3Lexer(Python3Lexer):
         if prev:
             yield prev
 
+rainbow = OrderedDict([
+    (Text.Red, "#ff0000"),
+    (Text.Orange, "#ffa500"),
+    (Text.Yellow, "#ffff00"),
+    (Text.Green, "#00ff00"),
+    (Text.Blue, "#0000ff"),
+    (Text.Indigo, "#4b0082"),
+    (Text.Violet, "#ee82ee"),
+    ])
+
 class OneAMStyle(Style):
     default_style = ''
     styles = {
@@ -42,7 +56,6 @@ class OneAMStyle(Style):
         String.Doc:          "#ffff00", # yellow
         Comment:             "#ffffff", # white
         Keyword:             "#a020f0", # purple
-        Keyword.Magic:       "#ff1493", # deep pink
         Operator.Word:       "#a020f0", # purple
         # Doesn't work for some reason. Should highlight True, False, and
         # None.
@@ -54,7 +67,7 @@ class OneAMStyle(Style):
         Name.Decorator:      "#228b22", # ForestGreen
         # Doesn't work
         Name.Variable:       "#a0522d", # sienna
-
+        **rainbow,
     }
 
 # Uncomment this to register the style with pygments
