@@ -406,6 +406,7 @@ def bracketed_paste(event):
     data = data.replace('\r', '\n')
 
     # Strip prompts off pasted text
+    # XXX: Should be if not in string instead of cursor_position == 0
     if event.current_buffer.cursor_position == 0:
         dedented_data = textwrap.dedent(data)
         ps1_prompts = [r'>>> '] + [i*3 + r'\[\d+\]: ' for i, j in emoji]
