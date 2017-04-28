@@ -103,6 +103,10 @@ class MyBuffer(Buffer):
                 found_something = True
             if count == 0:
                 break
+        else:
+            # Can't access cli.output.bell()
+            print("\a", end='')
+            sys.stdout.flush()
 
         # If we move to another entry, move the cursor to the end of the
         # first line.
