@@ -27,3 +27,4 @@
 - Syntax validation on %timeit
 - Better up-arrow enter heuristics
 - Deleting selected text messes up indentation
+- >>> stripping doesn't work when pasting more text to a multiline input
