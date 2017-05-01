@@ -26,6 +26,6 @@
 - Use tokenize to detect multiline (will make "('a" not be multiline)
 - Syntax validation on %timeit
 - Better up-arrow enter heuristics
-- Deleting selected text messes up indentation
+- Deleting selected text messes up indentation (https://github.com/jonathanslenders/python-prompt-toolkit/issues/324)
 - >>> stripping doesn't work when pasting more text to a multiline input
 - test_timeit_max fails sometimes
