@@ -38,7 +38,8 @@ without any additional work (unlike REPLs based on readline).
   expression. Does the right thing for NumPy ufuncs.
 - `stuff??` shows the source for `stuff`. Works even if `stuff` was defined
   interactively.
-- `%time` and `%timeit` magic commands.
+- `%time` and `%timeit` magic commands. `%timeit` displays a histogram of
+  times in the terminal (using iTerm2).
 - `%doctest` mode to emulate standard Python REPL (for copy-paste purposes).
 - `%sympy` magic (works like `sympy.init_session()`.
 - SymPy objects automatically pretty print.
