@@ -415,6 +415,7 @@ def smart_eval(stmt, _globals, _locals, filename=None):
         code = compile(stmt, filename, 'eval')
         res = eval(code, _globals, _locals)
     except SyntaxError as s:
+        # s.__suppress_context__ = True here?
         p = ast.parse(stmt)
         expr = None
         res = NoResult
