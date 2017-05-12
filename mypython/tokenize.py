@@ -1,35 +1,43 @@
 import io
-from tokenize import tokenize
+from tokenize import tokenize, TokenError
 from token import LPAR, RPAR, LSQB, RSQB, LBRACE, RBRACE
 
-matching = {
+braces = {
     LPAR: RPAR,
     LSQB: RSQB,
     LBRACE: RBRACE,
     }
 
-def matching_paren_before_position(s, row, col):
+def matching_parens(s):
     """
-    Returns a tuple (match, row, col), or None
-
-    If match is True, (row, col) is the position of the matching bracket. If
-    match is False, (row, col) is the position of an invalidly bracket.
-    The return type is None if
     """
-    input_code = io.StringIO(s)
+    input_code = io.BytesIO(s.encode('utf-8'))
     stack = []
-    for token in tokenize(input_code.readline):
-        toknum, tokval, (srow, scol), (erow, ecol), line = token
-        exact_type = token.exact_type
-        if exact_type in matching:
-            stack.insert(token)
-        elif exact_type in matching.values():
-            if not stack:
-                if erow >= row and ecol > col:
-                    return (False, srow, scol)
-                break
-            prevtoken = stack.pop()
-            if matching[prevtoken.exact_type] != exact_type:
-                return (False, )
-        if erow >= row and ecol > col:
-            break
+    matching = []
+    mismatching = []
+    try:
+        for token in tokenize(input_code.readline):
+            toknum, tokval, (srow, scol), (erow, ecol), line = token
+            exact_type = token.exact_type
+            if exact_type in braces:
+                stack.append(token)
+            elif exact_type in braces.values():
+                if not stack:
+                    mismatching.append(token)
+                    continue
+                prevtoken = stack.pop()
+                if braces[prevtoken.exact_type] == exact_type:
+                    matching.append((prevtoken, token))
+                else:
+                    mismatching.append(token)
+                    stack.append(prevtoken)
+            else:
+                continue
+    except TokenError as e:
+        pass
+
+    # Anything remaining on the stack is mismatching. Keep the mismatching
+    # list in order.
+    stack.reverse()
+    mismatching = stack + mismatching
+    return matching, mismatching
