@@ -29,3 +29,4 @@
 - Deleting selected text messes up indentation (https://github.com/jonathanslenders/python-prompt-toolkit/issues/324)
 - >>> stripping doesn't work when pasting more text to a multiline input
 - test_timeit_max fails sometimes
+- pudb inside mypython doesn't work
