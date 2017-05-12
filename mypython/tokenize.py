@@ -1,6 +1,6 @@
 import io
 from tokenize import tokenize, TokenError
-from token import LPAR, RPAR, LSQB, RSQB, LBRACE, RBRACE
+from token import LPAR, RPAR, LSQB, RSQB, LBRACE, RBRACE, ERRORTOKEN
 
 braces = {
     LPAR: RPAR,
@@ -19,7 +19,11 @@ def matching_parens(s):
         for token in tokenize(input_code.readline):
             toknum, tokval, (srow, scol), (erow, ecol), line = token
             exact_type = token.exact_type
-            if exact_type in braces:
+            if exact_type == ERRORTOKEN:
+                # There is an unclosed string. If we do not break here,
+                # tokenize will tokenize the stuff after the string delimiter.
+                break
+            elif exact_type in braces:
                 stack.append(token)
             elif exact_type in braces.values():
                 if not stack:
