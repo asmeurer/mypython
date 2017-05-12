@@ -76,7 +76,7 @@ There is none. It's already configured the way I like it.
 # Features and bugs and stuff
 
 I wrote this for me. You can request features, submit PRs, and report bugs,
-but I'm be aware that I won't accept any PR unless it's a feature I want. I'm
+but be aware that I won't accept any PR unless it's a feature I want. I'm
 really not designing this to be used by other people.
 
 # Acknowledgments
