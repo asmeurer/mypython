@@ -12,7 +12,7 @@
 - Jedi completion within multiline inputs
 - Open command in EDITOR shortcut
 - Better indication when no tab completions are found
-- Enter wants to add a newline after a \ in a string
+ - Enter wants to add a newline after a \ in a string
 - M-;
 - Ability to do history search in multiline
 - History browser (like ptpython)
@@ -22,8 +22,8 @@
 - Variable definitions in %timeit calls don't apply to the rest of the session
 - Show file with ??
 - Tests for multiline history search
-- Mismatched parentheses in a string confuses parentheses highlighting
-- Use tokenize to detect multiline (will make "('a" not be multiline)
+ - Mismatched parentheses in a string confuses parentheses highlighting
+ - Use tokenize to detect multiline (will make "('a" not be multiline)
 - Syntax validation on %timeit
 - Better up-arrow enter heuristics
 - Deleting selected text messes up indentation (https://github.com/jonathanslenders/python-prompt-toolkit/issues/324)
