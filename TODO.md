@@ -22,7 +22,6 @@
 - Variable definitions in %timeit calls don't apply to the rest of the session
 - Show file with ??
 - Tests for multiline history search
- - Mismatched parentheses in a string confuses parentheses highlighting
  - Use tokenize to detect multiline (will make "('a" not be multiline)
 - Syntax validation on %timeit
 - Better up-arrow enter heuristics
@@ -30,3 +29,4 @@
 - >>> stripping doesn't work when pasting more text to a multiline input
 - test_timeit_max fails sometimes
 - pudb inside mypython doesn't work
+  - Test parentheses matching

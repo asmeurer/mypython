@@ -30,8 +30,12 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-from prompt_toolkit.layout.processors import HighlightMatchingBracketProcessor
-from prompt_toolkit.document import Document
+from prompt_toolkit.layout.processors import (Transformation,
+    HighlightMatchingBracketProcessor)
+from prompt_toolkit.layout.utils import explode_tokens
+from prompt_toolkit.token import Token
+
+from .tokenize import matching_parens
 
 class MyHighlightMatchingBracketProcessor(HighlightMatchingBracketProcessor):
     def _get_positions_to_highlight(self, document):
@@ -41,21 +45,57 @@ class MyHighlightMatchingBracketProcessor(HighlightMatchingBracketProcessor):
         Same as HighlightMatchingBracketProcessor._get_positions_to_highlight
         except only highlights the position before the cursor.
         """
-        # Try for the character before the cursor.
-        if (document.char_before_cursor and document.char_before_cursor in
-              self._closing_braces and document.char_before_cursor in self.chars):
-            document = Document(document.text, document.cursor_position - 1)
+        good = []
+        matching, mismatching = matching_parens(document.text)
 
-            pos = document.find_matching_bracket_position(
-                    start_pos=document.cursor_position - self.max_cursor_distance,
-                    end_pos=document.cursor_position + self.max_cursor_distance)
-        else:
-            pos = None
+        row, col = document.translate_index_to_position(document.cursor_position)
+        prow, pcol = document.translate_index_to_position(document.cursor_position - 1)
+        for left, right in matching:
+            if left.start == (row+1, col):
+                good.extend([
+                    (left.start[0]-1, left.start[1]),
+                    (right.start[0]-1, right.start[1]),
+                    ])
+            # Highlight the character before the cursor for end braces.
+            if right.start == (prow+1, pcol):
+                good.extend([
+                    (left.start[0]-1, left.start[1]),
+                    (right.start[0]-1, right.start[1]),
+                    ])
+        bad = [(i.start[0]-1, i.start[1]) for i in mismatching]
+        return good, bad
 
-        # Return a list of (row, col) tuples that need to be highlighted.
-        if pos:
-            pos += document.cursor_position  # pos is relative.
-            row, col = document.translate_index_to_position(pos)
-            return [(row, col), (document.cursor_position_row, document.cursor_position_col)]
-        else:
-            return []
+    def apply_transformation(self, cli, document, lineno, source_to_display, tokens):
+        # Get the highlight positions.
+        key = (cli.render_counter, document.text, document.cursor_position)
+        good, bad = self._positions_cache.get(
+            key, lambda: self._get_positions_to_highlight(document))
+
+        # Apply if positions were found at this line.
+        for row, col in good:
+            if row == lineno:
+                col = source_to_display(col)
+                tokens = explode_tokens(tokens)
+                token, text = tokens[col]
+
+                if col == document.cursor_position_col:
+                    token += (':', ) + Token.MatchingBracket.Cursor
+                else:
+                    token += (':', ) + Token.MatchingBracket.Other
+
+                tokens[col] = (token, text)
+
+        for row, col in bad:
+            if row == lineno:
+                col = source_to_display(col)
+                tokens = explode_tokens(tokens)
+                token, text = tokens[col]
+
+                if col == document.cursor_position_col:
+                    token += (':', ) + Token.MismatchingBracket.Cursor
+                else:
+                    token += (':', ) + Token.MismatchingBracket.Other
+
+                tokens[col] = (token, text)
+
+        return Transformation(tokens)
