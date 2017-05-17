@@ -26,9 +26,9 @@
 - Syntax validation on %timeit
 - Better up-arrow enter heuristics
 - Deleting selected text messes up indentation (https://github.com/jonathanslenders/python-prompt-toolkit/issues/324)
-  - >>> stripping doesn't work when pasting more text to a multiline input.
-    Should work always unless in a string literal.
 - pudb inside mypython doesn't work
   - Test parentheses matching
 - traceback.print_exc() prints mypython syntax error (https://bugs.python.org/issue30384)
-  - Triple quote inside string confuses mutiline
+  - Triple quote inside string confuses multiline
+- >>> stripping should also strip outputs
+- Test >>> stripping
