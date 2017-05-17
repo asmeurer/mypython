@@ -32,4 +32,3 @@
   - Test parentheses matching
 - traceback.print_exc() prints mypython syntax error (https://bugs.python.org/issue30384)
   - Triple quote inside string confuses mutiline
-  - Test inside_string()
