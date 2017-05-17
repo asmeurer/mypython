@@ -54,6 +54,9 @@ def matching_parens(s):
     return matching, mismatching
 
 def inside_string(s, row, col):
+    """
+    Returns True if row, col is inside a string in s, False otherwise.
+    """
     input_code = io.BytesIO(s.encode('utf-8'))
     try:
         for token in tokenize(input_code.readline):
@@ -71,6 +74,4 @@ def inside_string(s, row, col):
         # Uncompleted docstring or braces.
         return 'string' in e.args[0]
 
-    # XXX: Invalid row, col will return True if the input ends in an unclosed
-    # string.
-    raise ValueError("Did not find (row, col) = (%s, %s) in the input" % (row, col))
+    return False

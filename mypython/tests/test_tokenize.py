@@ -1,5 +1,3 @@
-from pytest import raises
-
 from ..tokenize import inside_string
 
 def test_inside_string():
@@ -98,7 +96,7 @@ def test_inside_string():
     assert inside_string(s, 2, 4)
     assert inside_string(s, 2, 5)
     assert not inside_string(s, 2, 6)
-    raises(ValueError, lambda: inside_string(s, 2, 7))
+    assert not inside_string(s, 2, 7)
 
 
     s = '1 + "a" + """abc\ndef"""'
@@ -125,7 +123,7 @@ def test_inside_string():
     assert inside_string(s, 2, 4)
     assert inside_string(s, 2, 5)
     assert not inside_string(s, 2, 6)
-    raises(ValueError, lambda: inside_string(s, 2, 7))
+    assert not inside_string(s, 2, 7)
 
     s = """\
 1, 2
@@ -271,4 +269,8 @@ f"""
     assert inside_string(s, 2, 1)
     assert inside_string(s, 2, 2)
     assert inside_string(s, 2, 3)
+    assert not inside_string(s, 2, 4)
+
+    s = """def test():
+    """
     assert not inside_string(s, 2, 4)
