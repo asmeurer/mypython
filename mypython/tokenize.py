@@ -44,7 +44,9 @@ def matching_parens(s):
                     stack.append(prevtoken)
             else:
                 continue
-    except TokenError as e:
+    except TokenError:
+        pass
+    except IndentationError:
         pass
 
     # Anything remaining on the stack is mismatching. Keep the mismatching
@@ -73,5 +75,7 @@ def inside_string(s, row, col):
     except TokenError as e:
         # Uncompleted docstring or braces.
         return 'string' in e.args[0]
+    except IndentationError:
+        return False
 
     return False

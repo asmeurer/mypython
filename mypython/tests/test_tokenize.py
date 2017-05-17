@@ -274,3 +274,9 @@ f"""
     s = """def test():
     """
     assert not inside_string(s, 2, 4)
+
+    s = """\
+a = 1
+     b = 2
+"""
+    assert not inside_string(s, 0, 1)
