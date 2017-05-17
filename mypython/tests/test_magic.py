@@ -40,12 +40,12 @@ def test_timeit_max():
     out, err = _test_output('%timeit pass\n', _globals=_globals,
         remove_terminal_sequences=True)
     assert time.perf_counter() - t < 20
-    assert re.match(r"""8388607 loops, [\.\d]+ ns average
+    assert re.match(r"""4194303 loops, [\.\d]+ ns average
 Minimum time: [\.\d]+ ns
 Maximum time: [\.\d]+ [nmµu]s
 
 
-""", out)
+""", out), out
     assert not err
 
 def test_doctest():
