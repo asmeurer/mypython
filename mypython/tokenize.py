@@ -7,7 +7,7 @@ them at 0.
 
 import io
 from tokenize import tokenize, TokenError
-from token import LPAR, RPAR, LSQB, RSQB, LBRACE, RBRACE, ERRORTOKEN
+from token import LPAR, RPAR, LSQB, RSQB, LBRACE, RBRACE, ERRORTOKEN, STRING
 
 braces = {
     LPAR: RPAR,
@@ -52,3 +52,22 @@ def matching_parens(s):
     stack.reverse()
     mismatching = stack + mismatching
     return matching, mismatching
+
+def inside_string(s, row, col):
+    input_code = io.BytesIO(s.encode('utf-8'))
+    try:
+        for token in tokenize(input_code.readline):
+            toknum, tokval, (srow, scol), (erow, ecol), line = token
+            if toknum == ERRORTOKEN:
+                # There is an unclosed string. We haven't gotten to the
+                # position yet, so it must be inside this string
+                return True
+            if srow <= row <= erow and scol <= col <= ecol:
+                return toknum == STRING
+    except TokenError as e:
+        # Uncompleted docstring or braces.
+        return 'string' in e.args[0]
+
+    # XXX: Invalid row, col will return True if the input ends in an unclosed
+    # string.
+    raise ValueError("Did not find row, col = %s, %s in the input" % (row, col))
