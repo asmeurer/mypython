@@ -73,4 +73,4 @@ def inside_string(s, row, col):
 
     # XXX: Invalid row, col will return True if the input ends in an unclosed
     # string.
-    raise ValueError("Did not find row, col = %s, %s in the input" % (row, col))
+    raise ValueError("Did not find (row, col) = (%s, %s) in the input" % (row, col))
