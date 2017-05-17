@@ -10,6 +10,7 @@ from prompt_toolkit.terminal.vt100_input import ANSI_SEQUENCES
 from .multiline import (ends_in_multiline_string,
     document_is_multiline_python, auto_newline,
     TabShouldInsertWhitespaceFilter)
+from .tokenize import inside_string
 
 import re
 import subprocess
@@ -397,6 +398,7 @@ def bracketed_paste(event):
     from .mypython import emoji
 
     data = event.data
+    buffer = event.current_buffer
 
     # Be sure to use \n as line ending.
     # This part is the same as the default binding
@@ -407,7 +409,10 @@ def bracketed_paste(event):
 
     # Strip prompts off pasted text
     # XXX: Should be if not in string instead of cursor_position == 0
-    if event.current_buffer.cursor_position == 0:
+    document = buffer.document
+    row, col = document.translate_index_to_position(buffer.cursor_position)
+    row += 1
+    if not inside_string(event.current_buffer.text, row, col):
         dedented_data = textwrap.dedent(data)
         ps1_prompts = [r'>>> '] + [i*3 + r'\[\d+\]: ' for i, j in emoji]
         ps2_prompts = [r'\.\.\. ', '\N{CLAPPING HANDS SIGN}+⎢']
