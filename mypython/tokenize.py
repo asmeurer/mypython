@@ -57,12 +57,15 @@ def inside_string(s, row, col):
     input_code = io.BytesIO(s.encode('utf-8'))
     try:
         for token in tokenize(input_code.readline):
-            toknum, tokval, (srow, scol), (erow, ecol), line = token
+            toknum, tokval, start, end, line = token
             if toknum == ERRORTOKEN:
                 # There is an unclosed string. We haven't gotten to the
                 # position yet, so it must be inside this string
                 return True
-            if srow <= row <= erow and scol <= col <= ecol:
+            if start <= (row, col) <= end:
+                if (row, col) == end:
+                    # Position after the end of the string
+                    return False
                 return toknum == STRING
     except TokenError as e:
         # Uncompleted docstring or braces.
