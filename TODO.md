@@ -30,4 +30,4 @@
 - test_timeit_max fails sometimes
 - pudb inside mypython doesn't work
   - Test parentheses matching
-- traceback.print_exc() prints mypython syntax error
+- traceback.print_exc() prints mypython syntax error (https://bugs.python.org/issue30384)

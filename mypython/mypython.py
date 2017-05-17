@@ -418,7 +418,10 @@ def smart_eval(stmt, _globals, _locals, filename=None):
         code = compile(stmt, filename, 'eval')
         res = eval(code, _globals, _locals)
     except SyntaxError as s:
-        # s.__suppress_context__ = True here?
+        # This almost hides the exception, but not completely. See
+        # https://bugs.python.org/issue30384
+        # if DEBUG:
+        #     s.__traceback__ = None
         p = ast.parse(stmt)
         expr = None
         res = NoResult
