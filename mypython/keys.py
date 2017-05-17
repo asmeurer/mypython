@@ -408,7 +408,6 @@ def bracketed_paste(event):
     data = data.replace('\r', '\n')
 
     # Strip prompts off pasted text
-    # XXX: Should be if not in string instead of cursor_position == 0
     document = buffer.document
     row, col = document.translate_index_to_position(buffer.cursor_position)
     row += 1
