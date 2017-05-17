@@ -1,3 +1,10 @@
+"""
+Various helpers that are based on Python tokenization
+
+Note that the tokenize module starts the rows at 0 and prompt_toolkit starts
+them at 1.
+"""
+
 import io
 from tokenize import tokenize, TokenError
 from token import LPAR, RPAR, LSQB, RSQB, LBRACE, RBRACE, ERRORTOKEN
