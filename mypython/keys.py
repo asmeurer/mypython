@@ -413,11 +413,15 @@ def bracketed_paste(event):
     row, col = document.translate_index_to_position(buffer.cursor_position)
     row += 1
     if not inside_string(event.current_buffer.text, row, col):
+        indent = LEADING_WHITESPACE.match(document.current_line_before_cursor)
+        current_line_indent = indent.group(1) if indent else ''
         dedented_data = textwrap.dedent(data)
         ps1_prompts = [r'>>> '] + [i*3 + r'\[\d+\]: ' for i, j in emoji]
         ps2_prompts = [r'\.\.\. ', '\N{CLAPPING HANDS SIGN}+⎢']
         PROMPTS_RE = re.compile('|'.join(ps1_prompts + ps2_prompts))
         dedented_data = PROMPTS_RE.sub('', dedented_data)
-        data = dedented_data
+        data = textwrap.indent(dedented_data, current_line_indent,
+            # Don't indent the first line, it's already indented
+            lambda line, _x=[]: bool(_x or _x.append(1)))
 
     event.current_buffer.insert_text(data)

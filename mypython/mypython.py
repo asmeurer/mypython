@@ -86,6 +86,7 @@ class MyBuffer(Buffer):
                 if history_search:
                     # XXX: Put this in the multiline_history_search_index
                     # setter?
+                    # TODO: Use textwrap.indent()
                     match_text = current_line_indent + self._working_lines[i]
                     if '\n' in self.document.text_before_cursor:
                         lines_before_cursor, line_before_cursor = self.document.text_before_cursor.rsplit('\n', 1)
