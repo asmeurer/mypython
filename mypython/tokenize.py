@@ -1,8 +1,8 @@
 """
 Various helpers that are based on Python tokenization
 
-Note that the tokenize module starts the rows at 0 and prompt_toolkit starts
-them at 1.
+Note that the tokenize module starts the rows at 1 and prompt_toolkit starts
+them at 0.
 """
 
 import io
