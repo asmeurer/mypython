@@ -434,8 +434,6 @@ def smart_eval(stmt, _globals, _locals, filename=None):
                 code = compile(ast.Expression(expr.value), filename, 'eval')
                 res = eval(code, _globals, _locals)
         except BaseException as e:
-            # TODO: Should this use sys.excepthook instead?
-
             # Remove the SyntaxError from the tracebacks. Note, the
             # SyntaxError is still in the frames (run 'a =
             # sys.exc_info()'). I don't know if this will be an issue,
