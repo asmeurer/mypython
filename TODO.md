@@ -31,4 +31,3 @@
 - pudb inside mypython doesn't work
   - Test parentheses matching
 - traceback.print_exc() prints mypython syntax error
-- Large "1e7" on fast %timeit graphs

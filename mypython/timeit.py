@@ -57,8 +57,10 @@ def histogram(times):
     try:
         plt.interactive(False)
         plt.figure(figsize=(2, 1.5), dpi=300)
+        ax = plt.gca()
         plt.hist(times)
         b = BytesIO()
+        ax.ticklabel_format(style='plain', axis='both', useOffset=False)
         plt.xlabel("Time", fontsize=6)
         plt.ylabel("Runs", fontsize=6)
         locs, labels = plt.xticks()
