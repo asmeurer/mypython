@@ -93,6 +93,9 @@ def is_multiline_python(text):
     if '\n' in text:
         return True
 
+    # Dedent the text, otherwise, the last token will be DEDENT
+    text = text.lstrip()
+
     input_code = io.BytesIO(text.encode('utf-8'))
     try:
         first = True

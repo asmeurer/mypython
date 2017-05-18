@@ -284,7 +284,9 @@ a = 1
 def test_is_multiline_python():
     multiline = [
         "def test():",
+        "    def test():",
         "@property",
+        "  @property"
         "1 + \\",
         "1 + 'a\\",
         '1 + "a\\',
@@ -310,7 +312,9 @@ def test_is_multiline_python():
         '1 + "a\\n"',
         "1 + 'a\\n'",
         '1 + 1',
+        '  1 + 1',
         '1 + ',
+        '  1 + ',
         '("a',
     ]
 
