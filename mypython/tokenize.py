@@ -105,14 +105,19 @@ def is_multiline_python(text):
                     # Decorator
                     return True
                 first = False
+            if toknum == ERRORTOKEN:
+                # Error means unclosed (non doc-) string or backslash
+                # continuation. We want a backslash continuation to be
+                # multiline, which is caught below. Every other case shouldn't
+                # be multiline.
+                error = True
             if toknum == ENDMARKER and prev.type == ERRORTOKEN and prev.string == '\\':
-                # Unclosed (non doc-) string or backslash continuation.
-                # If it is backslash, we want to be multiline, otherwise no.
                 return True
 
-    except TokenError:
+    except TokenError as e:
         # Uncompleted docstring or braces
-        return True
+        # Multiline unless there is an uncompleted non-docstring
+        return not error
     except IndentationError:
         # Shouldn't ever happen, since we have no newlines in text
         return False
