@@ -6,8 +6,10 @@ them at 0.
 """
 
 import io
+from itertools import tee
 from tokenize import tokenize, TokenError
-from token import LPAR, RPAR, LSQB, RSQB, LBRACE, RBRACE, ERRORTOKEN, STRING
+from token import (LPAR, RPAR, LSQB, RSQB, LBRACE, RBRACE, ERRORTOKEN, STRING,
+    COLON, AT, ENDMARKER)
 
 braces = {
     LPAR: RPAR,
@@ -79,3 +81,41 @@ def inside_string(s, row, col):
         return False
 
     return False
+
+# From https://docs.python.org/3/library/itertools.html
+def pairwise(iterable):
+    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    a, b = tee(iterable)
+    next(b, None)
+    return zip(a, b)
+
+def is_multiline_python(text):
+    if '\n' in text:
+        return True
+
+    input_code = io.BytesIO(text.encode('utf-8'))
+    try:
+        first = True
+        error = False
+        for (prev, token) in pairwise(tokenize(input_code.readline)):
+            toknum, tokval, start, end, line = token
+            if first:
+                # The first token is encoding, which will be prev
+                if token.exact_type == AT:
+                    # Decorator
+                    return True
+                first = False
+            if toknum == ENDMARKER and prev.type == ERRORTOKEN and prev.string == '\\':
+                # Unclosed (non doc-) string or backslash continuation.
+                # If it is backslash, we want to be multiline, otherwise no.
+                return True
+
+    except TokenError:
+        # Uncompleted docstring or braces
+        return True
+    except IndentationError:
+        # Shouldn't ever happen, since we have no newlines in text
+        return False
+    if error:
+        return False
+    return prev.exact_type == COLON

@@ -7,9 +7,8 @@ from prompt_toolkit.selection import SelectionState
 from prompt_toolkit.clipboard import ClipboardData
 from prompt_toolkit.terminal.vt100_input import ANSI_SEQUENCES
 
-from .multiline import (ends_in_multiline_string,
-    document_is_multiline_python, auto_newline,
-    TabShouldInsertWhitespaceFilter)
+from .multiline import (auto_newline, TabShouldInsertWhitespaceFilter,
+    document_is_multiline_python)
 from .tokenize import inside_string
 
 import re
@@ -188,12 +187,10 @@ def multiline_enter(event):
 
     text_after_cursor = event.current_buffer.document.text_after_cursor
     text_before_cursor = event.current_buffer.document.text_before_cursor
-    if ends_in_multiline_string(document):
-        auto_newline(event.current_buffer)
-    elif not multiline:
-        accept_line(event)
     # isspace doesn't respect vacuous truth
-    elif (not text_after_cursor or text_after_cursor.isspace()) and text_before_cursor.replace(' ', '').endswith('\n'):
+    if (not text_after_cursor or text_after_cursor.isspace()) and text_before_cursor.replace(' ', '').endswith('\n'):
+        accept_line(event)
+    elif not multiline:
         accept_line(event)
     else:
         auto_newline(event.current_buffer)

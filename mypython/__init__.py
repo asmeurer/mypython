@@ -14,11 +14,10 @@ from .theme import OneAMStyle
 
 __all__ += ['OneAMStyle']
 
-from .multiline import (has_unclosed_brackets, ends_in_multiline_string,
-    document_is_multiline_python, auto_newline,
+from .multiline import (document_is_multiline_python, auto_newline,
     TabShouldInsertWhitespaceFilter)
 
-__all__ += ['has_unclosed_brackets', 'ends_in_multiline_string', 'document_is_multiline_python',
+__all__ += ['document_is_multiline_python',
     'auto_newline', 'TabShouldInsertWhitespaceFilter']
 
 from .completion import get_jedi_script_from_document, PythonCompleter
@@ -32,3 +31,8 @@ __all__ += ['magic', 'MAGICS']
 from .printing import can_print_sympy, mypython_displayhook
 
 __all__ += ['can_print_sympy', 'mypython_displayhook']
+
+from .tokenize import (braces, matching_parens, inside_string,
+    is_multiline_python)
+
+__all__ += ['braces', 'matching_parens', 'inside_string', 'is_multiline_python']

@@ -1,4 +1,4 @@
-from ..tokenize import inside_string
+from ..tokenize import inside_string, is_multiline_python
 
 def test_inside_string():
     s = "1 + 2 + 'abc'"
@@ -280,3 +280,41 @@ a = 1
      b = 2
 """
     assert not inside_string(s, 0, 1)
+
+def test_is_multiline_python():
+    multiline = [
+        "def test():",
+        "@property",
+        "1 + \\",
+        "1 + 'a\\",
+        '1 + "a\\',
+        '"""',
+        '"""abc',
+        "'''",
+        "'''abc",
+        "(1 + ",
+        "{1: 2,",
+        "[1, ",
+        # Anything with a newline is multiline
+        "def test():\n    pass",
+        '"""\nabc\n"""',
+    ]
+
+    notmultiline = [
+        "'",
+        '"',
+        "'ab",
+        '"ab',
+        '1 + "a\\n',
+        "1 + 'a\\n",
+        '1 + "a\\n"',
+        "1 + 'a\\n'",
+        '1 + 1',
+        '1 + ',
+    ]
+
+    for s in multiline:
+        assert is_multiline_python(s)
+
+    for s in notmultiline:
+        assert not is_multiline_python(s)
