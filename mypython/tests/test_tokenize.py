@@ -316,6 +316,8 @@ def test_is_multiline_python():
         '1 + ',
         '  1 + ',
         '("a',
+        '\'"""',
+        "\"'''",
     ]
 
     for s in multiline:
