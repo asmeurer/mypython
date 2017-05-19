@@ -412,7 +412,7 @@ def smart_eval(stmt, _globals, _locals, filename=None):
         # Don't show context lines in doctest mode
         if filename != "<stdin>":
             # (size, mtime, lines, fullname)
-            linecache.cache[filename] = (len(stmt), None, stmt.splitlines(), filename)
+            linecache.cache[filename] = (len(stmt), None, stmt.splitlines(keepends=True), filename)
     else:
         filename = mypython_file()
 
