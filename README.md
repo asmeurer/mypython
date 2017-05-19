@@ -29,7 +29,7 @@ without any additional work (unlike REPLs based on readline).
 - prompts are stripped automatically from pasted text.
 - Emacs command editing keybindings.
 - Automatic syntax highlighting.
-- Matching parentheses highlighting.
+- Matching and mismatching parentheses highlighting.
 - Tracebacks for stuff defined interactively show the code line.
 - Tab completion using [Jedi](https://github.com/davidhalter/jedi).
 - Per-terminal history.
@@ -43,6 +43,7 @@ without any additional work (unlike REPLs based on readline).
   times in the terminal (using iTerm2).
 - `%doctest` mode to emulate standard Python REPL (for copy-paste purposes).
 - `%sympy` magic (works like `sympy.init_session()`.
+- `%pudb` magic to run code in [PuDB](https://documen.tician.de/pudb/).
 - SymPy objects automatically pretty print.
 - Automatic "error" mode on syntax error, that moves the cursor to the error.
 - [Shell integration](https://www.iterm2.com/documentation-shell-integration.html) with iTerm2.
