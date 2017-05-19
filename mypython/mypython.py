@@ -583,19 +583,19 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
     startup(_globals, _locals, quiet=quiet)
     prompt_number = 1
     while True:
-        if cmd:
-            _input = PipeInput()
-            _input.send_text(cmd + '\n')
-            _history = None
-            cmd = None
-        else:
-            _input = None
-            _history = history
-
-        cli = get_cli(history=_history, _locals=_locals, _globals=_globals,
-                registry=registry, _input=_input)
-        cli.prompt_number = prompt_number
         try:
+            if cmd:
+                _input = PipeInput()
+                _input.send_text(cmd + '\n')
+                _history = None
+                cmd = None
+            else:
+                _input = None
+                _history = history
+
+            cli = get_cli(history=_history, _locals=_locals, _globals=_globals,
+                    registry=registry, _input=_input)
+            cli.prompt_number = prompt_number
             # Replace stdout.
             patch_context = cli.patch_stdout_context(raw=True)
             with patch_context:
