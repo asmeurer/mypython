@@ -583,10 +583,11 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
     startup(_globals, _locals, quiet=quiet)
     prompt_number = 1
     while True:
-        if prompt_number == 1 and cmd:
+        if cmd:
             _input = PipeInput()
             _input.send_text(cmd + '\n')
             _history = None
+            cmd = None
         else:
             _input = None
             _history = history
