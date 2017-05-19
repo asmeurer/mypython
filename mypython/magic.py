@@ -117,6 +117,20 @@ print(%r)
 isympy_magic = sympy_magic
 
 def pudb_magic(rest):
+    # See if rest is an expression. This won't work for multiline inputs that
+    # end in expressions.
+    try:
+        compile(rest, 'test', 'eval')
+        expr = True
+    except SyntaxError:
+        expr = False
+
+    if expr:
+        rest = '_val = ' + rest
+        end = '_val'
+    else:
+        end = ''
+
     return """\
 import pudb as _pudb
 _pudb.set_trace()
@@ -126,7 +140,8 @@ _pudb.set_trace()
 # Exit PuDB cleanly, without entering mypython code
 _pudb._get_debugger().set_quit()
 del _pudb
-""".format(rest=rest)
+{end}
+""".format(rest=rest, end=end)
 
 MAGICS = {}
 
