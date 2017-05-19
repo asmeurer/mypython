@@ -193,8 +193,6 @@ emoji = [
     ('\N{FULL MOON WITH FACE}', '\N{NEW MOON WITH FACE}'),
 ]
 
-IN, OUT = random.choice(emoji)
-
 DOCTEST_MODE = False
 DEBUG = False
 
@@ -209,7 +207,7 @@ def get_in_prompt_tokens(cli):
     return [
         (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
 
-        (Token.Emoji, IN*3),
+        (Token.Emoji, cli.IN*3),
         (Token.InBracket, '['),
         (Token.InNumber, str(cli.prompt_number)),
         (Token.InBracket, ']'),
@@ -233,7 +231,7 @@ def get_out_prompt_tokens(cli):
     if DOCTEST_MODE:
         return []
     return [
-        (Token.Emoji, OUT*3),
+        (Token.Emoji, cli.OUT*3),
         (Token.OutBracket, '['),
         (Token.OutNumber, str(cli.prompt_number)),
         (Token.OutBracket, ']'),
@@ -504,6 +502,7 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None, e
         output=output,
         input=_input,
     )
+    cli.IN, cli.OUT = random.choice(emoji)
     cli.prompt_number = 1
     return cli
 
