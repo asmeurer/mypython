@@ -85,6 +85,9 @@ def _test_output(_input, *, doctest_mode=False, remove_terminal_sequences=True,
 
     IMPORTANT: Only things printed directly to stdout/stderr are tested.
     Things printed via prompt_toolkit (e.g., print_tokens) are not caught.
+
+    For now, the input must be a single command. Use \x1b\n (M-Enter) to keep
+    multiple lines in the same input.
     """
     mypython.DOCTEST_MODE = doctest_mode
 
