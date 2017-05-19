@@ -19,7 +19,6 @@
 - Different continuation prompt for soft- and hard-wrapping.
 - Up arrow shouldn't navigate completions
 - Variable definitions in %timeit calls don't apply to the rest of the session
-- Show file with ??
 - Tests for multiline history search
 - Syntax validation on %timeit
 - Better up-arrow enter heuristics
