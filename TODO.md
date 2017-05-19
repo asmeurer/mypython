@@ -27,3 +27,4 @@
   - Test parentheses matching
 - >>> stripping should also strip outputs
 - Test >>> stripping
+- %pudb magic
