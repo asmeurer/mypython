@@ -109,12 +109,24 @@ def sympy_magic(rest):
     if rest:
         return error('%sympy takes no arguments')
 
-    return """
+    return """\
 print(%r)
 %s
 """ % (textwrap.indent(sympy_start, '    '), sympy_start)
 
 isympy_magic = sympy_magic
+
+def pudb_magic(rest):
+    return """\
+import pudb as _pudb
+_pudb.set_trace()
+
+{rest}
+
+# Exit PuDB cleanly, without entering mypython code
+_pudb._get_debugger().set_quit()
+del _pudb
+""".format(rest=rest)
 
 MAGICS = {}
 
