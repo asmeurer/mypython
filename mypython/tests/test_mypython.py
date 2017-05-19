@@ -216,6 +216,9 @@ def test_completions():
     # The extra space at the end is removed by the validator
     assert _test_completion("%sy\t\n") == "%sympy"
 
+    # Test Python completion with magic
+    assert _test_completion('%time copy\t\n')
+
 def test_startup():
     _globals = _locals = {}
     try:

@@ -27,5 +27,4 @@
   - Test parentheses matching
 - >>> stripping should also strip outputs
 - Test >>> stripping
-- tab completions with magic don't work
 - Make similar %timeit graphs easier to compare to each other

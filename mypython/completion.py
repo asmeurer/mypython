@@ -72,7 +72,7 @@ class PythonCompleter(Completer):
         """
         Get Python completions.
         """
-        if document.text.startswith('%'):
+        if document.text.startswith('%') and ' ' not in document.text_before_cursor:
             for magic in MAGICS:
                 if magic.startswith(document.text):
                     yield Completion(magic + ' ',
