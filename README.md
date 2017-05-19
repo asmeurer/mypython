@@ -44,6 +44,7 @@ without any additional work (unlike REPLs based on readline).
 - `%doctest` mode to emulate standard Python REPL (for copy-paste purposes).
 - `%sympy` magic (works like `sympy.init_session()`.
 - `%pudb` magic to run code in [PuDB](https://documen.tician.de/pudb/).
+  Debugging functions defined interactively is possible.
 - SymPy objects automatically pretty print.
 - Automatic "error" mode on syntax error, that moves the cursor to the error.
 - [Shell integration](https://www.iterm2.com/documentation-shell-integration.html) with iTerm2.
