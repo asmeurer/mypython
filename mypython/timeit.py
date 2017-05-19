@@ -44,11 +44,11 @@ def time_format(times):
     s = 's' if number > 1 else ''
     minimum = _format_time(min(times))
     maximum = _format_time(max(times))
-    hist = histogram(times)
+    hist = timeit_histogram(times)
     return TIME_REPORT_TEMPLATE.format(number=number, avg=avg, s=s,
         minimum=minimum, maximum=maximum, hist=hist)
 
-def histogram(times):
+def timeit_histogram(times):
     try:
         import matplotlib.pyplot as plt
     except ImportError:
