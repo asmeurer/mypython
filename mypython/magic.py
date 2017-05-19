@@ -127,7 +127,7 @@ def pudb_magic(rest):
 
     if expr:
         rest = '_val = ' + rest
-        end = '_val'
+        end = 'locals().pop("_val")'
     else:
         end = ''
 
