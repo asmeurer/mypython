@@ -26,6 +26,5 @@
 - Deleting selected text messes up indentation (https://github.com/jonathanslenders/python-prompt-toolkit/issues/324)
 - pudb inside mypython doesn't work
   - Test parentheses matching
-- traceback.print_exc() prints mypython syntax error (https://bugs.python.org/issue30384)
 - >>> stripping should also strip outputs
 - Test >>> stripping

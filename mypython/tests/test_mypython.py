@@ -432,6 +432,18 @@ NameError: name 'undefined' is not defined
 NameError: name 'undefined' is not defined
 """
 
+def test_traceback_exception():
+    # Functions from the traceback module shouldn't include any mypython lines
+    # \x1b\n = M-Enter. _test_output only works with a single command
+    out, err = _test_output('import traceback\x1b\ntry:\nraise ValueError("error")\nexcept:\ntraceback.print_exc()\n\n')
+    assert out == '\n'
+    assert err == \
+r"""Traceback (most recent call last):
+  File "<mypython-1>", line 3, in <module>
+    raise ValueError("error")
+ValueError: error
+"""
+
 def test_exceptionhook_catches_recursionerror():
     # Make sure this doesn't crash
     try:

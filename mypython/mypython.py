@@ -416,39 +416,16 @@ def smart_eval(stmt, _globals, _locals, filename=None):
     else:
         filename = mypython_file()
 
-    try:
-        code = compile(stmt, filename, 'eval')
+    p = ast.parse(stmt)
+    expr = None
+    res = NoResult
+    if p.body and isinstance(p.body[-1], ast.Expr):
+        expr = p.body.pop()
+    code = compile(p, filename, 'exec')
+    exec(code, _globals, _locals)
+    if expr:
+        code = compile(ast.Expression(expr.value), filename, 'eval')
         res = eval(code, _globals, _locals)
-    except SyntaxError as s:
-        # This almost hides the exception, but not completely. See
-        # https://bugs.python.org/issue30384
-        # if DEBUG:
-        #     s.__traceback__ = None
-        p = ast.parse(stmt)
-        expr = None
-        res = NoResult
-        if p.body and isinstance(p.body[-1], ast.Expr):
-            expr = p.body.pop()
-        code = compile(p, filename, 'exec')
-        try:
-            exec(code, _globals, _locals)
-            if expr:
-                code = compile(ast.Expression(expr.value), filename, 'eval')
-                res = eval(code, _globals, _locals)
-        except BaseException as e:
-            # Remove the SyntaxError from the tracebacks. Note, the
-            # SyntaxError is still in the frames (run 'a =
-            # sys.exc_info()'). I don't know if this will be an issue,
-            # but until it does, I'll leave it in for debugging (and
-            # also I don't know how to remove it).
-            if DEBUG:
-                raise e
-
-            c = e
-            while c.__context__ != s:
-                c = c.__context__
-            c.__suppress_context__ = True
-            raise e
 
     return res
 
