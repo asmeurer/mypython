@@ -32,7 +32,7 @@ def magic(command):
     return result
 
 def error(message):
-    return """
+    return """\
 import sys as _sys
 print(%r, file=_sys.stderr)
 del _sys
@@ -42,7 +42,7 @@ def timeit_magic(rest):
     if not rest:
         return error('nothing to time')
 
-    return """
+    return """\
 from timeit import Timer as _Timer
 from mypython.timeit import time_format as _time_format, autorange as _autorange
 _times = _autorange(_Timer({rest!r}, globals=globals()))
@@ -54,7 +54,7 @@ def time_magic(rest):
     if not rest:
         return error('nothing to time')
 
-    return """
+    return """\
 from time import perf_counter as _perf_counter
 from IPython.core.magics.execution import _format_time
 from mypython import smart_eval as _smart_eval
@@ -71,7 +71,7 @@ def doctest_magic(rest):
     if rest:
         return error('%doctest takes no arguments')
 
-    return """
+    return """\
 from mypython import mypython as _mypython
 
 _mypython.DOCTEST_MODE ^= True
@@ -87,7 +87,7 @@ def debug_magic(rest):
     if rest:
         return error('%debug takes no arguments')
 
-    return """
+    return """\
 from mypython import mypython as _mypython
 _mypython.DEBUG ^= True
 
@@ -98,7 +98,7 @@ else:
 del _mypython
 """
 
-sympy_start = """
+sympy_start = """\
 import sympy
 from sympy import *
 x, y, z, t = symbols('x y z t')
