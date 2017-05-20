@@ -164,5 +164,5 @@ def format_time(timespan, precision=3):
     if timespan > 0.0:
         order = min(-int(math.floor(math.log10(timespan)) // 3), 3)
     else:
-        order = 3
+        order = 0
     return u"%.*g %s" % (precision, timespan * scaling[order], units[order])
