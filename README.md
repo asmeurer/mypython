@@ -70,6 +70,8 @@ from [conda-forge](https://conda-forge.github.io/):
 - iterm2_tools
 - catimg
 - ipython
+- matplotlib
+- seaborn
 
 # Configuration
 

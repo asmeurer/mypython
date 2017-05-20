@@ -57,10 +57,17 @@ def timeit_histogram(times):
         return 'Could not import matplotlib'
 
     try:
+        import seaborn as sns
+    except ImportError:
+        return 'Could not import seaborn'
+
+    try:
         plt.interactive(False)
         plt.figure(figsize=(2, 1.5), dpi=300)
         ax = plt.gca()
-        plt.hist(times)
+        # rug plots are too slow for large number of data points
+        extra = dict(rug=True, rug_kws={"lw": .2}) if len(times) < 1024 else {}
+        sns.distplot(times, kde_kws={"lw": .5}, **extra)
         b = BytesIO()
         ax.ticklabel_format(style='plain', axis='both', useOffset=False)
         plt.xlabel("Time", fontsize=6)
