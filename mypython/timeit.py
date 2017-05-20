@@ -72,6 +72,8 @@ def timeit_histogram(times):
         ax.ticklabel_format(style='plain', axis='both', useOffset=False)
         plt.xlabel("Time", fontsize=6)
         plt.ylabel("Runs", fontsize=6)
+        x1,x2,y1,y2 = plt.axis()
+        plt.xlim([0, x2])
         locs, labels = plt.xticks()
         plt.xticks(locs, [_format_time(i) for i in locs], fontsize=6)
         plt.yticks(fontsize=6)
