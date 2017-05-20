@@ -56,8 +56,7 @@ def time_magic(rest):
 
     return """\
 from time import perf_counter as _perf_counter
-from IPython.core.magics.execution import _format_time
-from mypython import smart_eval as _smart_eval
+from mypython import smart_eval as _smart_eval, format_time as _format_time
 import sys as _sys
 _time = _perf_counter()
 res = _smart_eval({rest!r}, globals(), locals())
