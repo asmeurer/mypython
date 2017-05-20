@@ -27,4 +27,3 @@
   - Test parentheses matching
 - >>> stripping should also strip outputs
 - Test >>> stripping
-- Make similar %timeit graphs easier to compare to each other
