@@ -44,10 +44,10 @@ def timeit_magic(rest):
 
     return """\
 from timeit import Timer as _Timer
-from mypython.timeit import time_format as _time_format, autorange as _autorange
+from mypython.timeit import timeit_format as _timeit_format, autorange as _autorange
 _times = _autorange(_Timer({rest!r}, globals=globals()))
-print(_time_format(_times))
-del _autorange, _time_format, _Timer, _times
+print(_timeit_format(_times))
+del _autorange, _timeit_format, _Timer, _times
 """.format(rest=rest)
 
 def time_magic(rest):

@@ -40,7 +40,7 @@ Maximum time: {maximum}
 {hist}
 """.strip()
 
-def time_format(times):
+def timeit_format(times):
     number = len(times)
     time_taken = sum(times)
     avg = format_time(time_taken/number)
