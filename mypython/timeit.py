@@ -6,6 +6,8 @@ from iterm2_tools.images import display_image_bytes
 def autorange(timer, callback=None):
     """Return the number of loops so that total time >= 10.
 
+    timer should be a timeit.Timer instance.
+
     Calls the timeit method with *number* set to successive powers of
     two (1, 2, 4, 8, ...) up to a maximum of 2**21, until
     the time taken is at least 10 seconds, or the maximum is reached.
