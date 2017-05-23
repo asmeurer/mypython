@@ -453,7 +453,8 @@ def get_eventloop():
 
     return create_eventloop(inputhook)
 
-def get_cli(*, history, _globals, _locals, registry, _input=None, output=None, eventloop=None):
+def get_cli(*, history, _globals, _locals, registry, _input=None, output=None,
+    eventloop=None, IN_OUT=None):
     def is_buffer_multiline():
         return document_is_multiline_python(buffer.document)
 
@@ -502,7 +503,9 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None, e
         output=output,
         input=_input,
     )
-    cli.IN, cli.OUT = random.choice(emoji)
+    if not IN_OUT:
+        IN_OUT = random.choice(emoji)
+    cli.IN, cli.OUT = IN_OUT
     cli.prompt_number = 1
     return cli
 
@@ -579,6 +582,8 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
 
     registry = get_registry()
 
+    IN, OUT = random.choice(emoji)
+
     startup(_globals, _locals, quiet=quiet)
     prompt_number = 1
     while True:
@@ -593,7 +598,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
                 _history = history
 
             cli = get_cli(history=_history, _locals=_locals, _globals=_globals,
-                    registry=registry, _input=_input)
+                    registry=registry, _input=_input, IN_OUT=(IN, OUT))
             cli.prompt_number = prompt_number
             # Replace stdout.
             patch_context = cli.patch_stdout_context(raw=True)
