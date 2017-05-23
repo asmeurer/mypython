@@ -142,6 +142,13 @@ del _pudb
 {end}
 """.format(rest=rest, end=end)
 
+def error_magic(rest):
+    """
+    Always raise an exception. For testing
+    """
+    raise RuntimeError("Error magic")
+
+
 MAGICS = {}
 
 for name in dir():

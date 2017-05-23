@@ -408,3 +408,26 @@ numpy.array(b, dtype=float)\x1b
     assert out == '\n'
     assert "RecursionError" in err
     # assert print_tokens_output == "Warning: RecursionError from mypython_excepthook"
+
+def test_error_magic():
+    # Make sure %error shows the full mypython traceback.
+    # Here instead of test_magic.py because it tests the exception handling
+    _globals = _test_globals.copy()
+    out, err = _test_output('%error\n', _globals=_globals)
+    assert out == '\n'
+    assert re.match(
+r"""Traceback \(most recent call last\):
+  File\ ".*/mypython/mypython\.py", line \d+, in execute_command
+    command = normalize\(command, _globals, _locals\)
+  File ".*/mypython/mypython\.py", line \d+, in normalize
+    return magic\(command\)
+  File ".*/mypython/magic\.py", line \d+, in magic
+    result = MAGICS\[magic_command\]\(rest\)
+  File ".*/mypython/magic\.py", line \d+, in error_magic
+    raise RuntimeError\("Error magic"\)
+RuntimeError: Error magic
+"""
+# Should include this, but it's printed with print_tokens:
+
+# !!!!!! ERROR from mypython !!!!!!
+, err), repr(err)

@@ -516,13 +516,15 @@ def format_exception(etype, value, tb, limit=None, chain=True):
     if DEBUG:
         return traceback.format_exception(etype, value, tb, limit=limit, chain=chain)
 
-    l = []
+    lines = traceback.format_exception(etype, value, tb, limit=limit, chain=chain)
+    if lines[-2].startswith('  File "{}'.format(mypython_dir)):
+        return traceback.format_exception(etype, value, tb, limit=limit, chain=chain)
 
-    for i in traceback.format_exception(etype, value, tb, limit=limit, chain=chain):
+    l = []
+    for i in lines:
         if i.startswith('  File "{}'.format(mypython_dir)):
             continue
         l.append(i)
-
     return l
 
 def format_exc(limit=None, chain=True):
@@ -537,6 +539,12 @@ def mypython_excepthook(etype, value, tb):
         print(highlight(tb_str, Python3TracebackLexer(),
             TerminalTrueColorFormatter(style=OneAMStyle)),
             file=sys.stderr, end='')
+        if mypython_dir in tb_str:
+            print_tokens([(Token.Newline, '\n'), (Token.InternalError,
+                "!!!!!! ERROR from mypython !!!!!!")],
+                style=style_from_dict({Token.InternalError: "#ansired"}),
+                file=sys.stderr)
+
     except RecursionError:
         sys.__excepthook__(*sys.exc_info())
         print_tokens([(Token.Newline, '\n'), (Token.InternalError,
