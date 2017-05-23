@@ -437,6 +437,8 @@ def comment(event):
 
     max_indent = 0
     for line in document.lines[start_line:end_line]:
+        if not line.strip():
+            continue
         indent = LEADING_WHITESPACE.search(line)
         if indent:
             max_indent = max(max_indent, len(indent.group(1)))
