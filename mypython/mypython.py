@@ -624,14 +624,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
         except EOFError:
             break
         except:
-            tb_str = "".join(traceback.format_exception(*sys.exc_info()))
-            print(highlight(tb_str, Python3TracebackLexer(),
-                TerminalTrueColorFormatter(style=OneAMStyle)),
-                file=sys.stderr, end='')
-            print_tokens([(Token.Newline, '\n'), (Token.InternalError,
-                "!!!!!! ERROR from mypython !!!!!!")],
-                style=style_from_dict({Token.InternalError: "#ansired"}),
-                file=sys.stderr)
+            sys.excepthook(*sys.exc_info())
 
         execute_command(command, cli, _globals=_globals, _locals=_locals)
         prompt_number = cli.prompt_number
