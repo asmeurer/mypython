@@ -257,6 +257,9 @@ def test_syntax_validator():
     doesntvalidate('def test():\n')
     doesntvalidate('%notarealmagic')
     doesntvalidate('%notarealmagic 1')
+    doesntvalidate('a b?')
+    doesntvalidate('a b??')
+    doesntvalidate('%timeit a b')
 
 def test_getsource():
     _globals = _test_globals.copy()

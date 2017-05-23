@@ -17,7 +17,6 @@
 - Up arrow shouldn't navigate completions
 - Variable definitions in %timeit calls don't apply to the rest of the session
 - Tests for multiline history search
-- Syntax validation on %timeit
 - Better up-arrow enter heuristics
 - Deleting selected text messes up indentation (https://github.com/jonathanslenders/python-prompt-toolkit/issues/324)
 - pudb inside mypython doesn't work

@@ -153,14 +153,20 @@ def dedent_return_document_handler(cli, buffer):
 class PythonSyntaxValidator(Validator):
     def validate(self, document):
         text = dedent(document.text)
+        offset = 0
         if text.endswith('?') and not text.endswith('???'):
-            return
+            text = text.rstrip('??')
         if any(text.startswith(i) for i in MAGICS):
-            return
+            if ' ' not in text:
+                text = ''
+                offset = len(text)
+            else:
+                magic, text = text.split(' ', 1)
+                offset = len(magic) + 1
         try:
             compile(text, "<None>", 'exec')
         except SyntaxError as e:
-            index = document.translate_row_col_to_index(e.lineno - 1,  (e.offset or 1) - 1)
+            index = document.translate_row_col_to_index(e.lineno - 1, (e.offset or 1) - 1 + offset)
             raise ValidationError(message="SyntaxError: %s" % e.args[0], cursor_position=index)
 
 prompt_style = {
