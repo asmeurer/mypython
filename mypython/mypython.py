@@ -548,13 +548,14 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
     _globals = _globals or _default_globals
     _locals = _locals or _default_locals
 
-    command = normalize(command, _globals, _locals)
     with iterm2_tools.Output() as o:
-        if not command:
-            if not DOCTEST_MODE:
-                print()
-            return
         try:
+            command = normalize(command, _globals, _locals)
+
+            if not command:
+                if not DOCTEST_MODE:
+                    print()
+                return
             res = smart_eval(command, _globals, _locals, filename=mypython_file(cli.prompt_number))
             post_command(command=command, res=res, _globals=_globals,
                 _locals=_locals, cli=cli)
