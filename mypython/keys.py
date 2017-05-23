@@ -182,14 +182,22 @@ def multiline_enter(event):
     When not in multiline, execute. When in multiline, try to
     intelligently add a newline or execute.
     """
-    document = event.current_buffer.document
+    buffer = event.current_buffer
+    document = buffer.document
     multiline = document_is_multiline_python(document)
 
-    text_after_cursor = event.current_buffer.document.text_after_cursor
-    text_before_cursor = event.current_buffer.document.text_before_cursor
+    text_after_cursor = document.text_after_cursor
+    text_before_cursor = document.text_before_cursor
+    text = buffer.text
     # isspace doesn't respect vacuous truth
     if (not text_after_cursor or text_after_cursor.isspace()) and text_before_cursor.replace(' ', '').endswith('\n'):
-        accept_line(event)
+        row, col = document.translate_index_to_position(buffer.cursor_position)
+        row += 1
+        if multiline and inside_string(text, row, col):
+            # We are inside a docstring
+            auto_newline(event.current_buffer)
+        else:
+            accept_line(event)
     elif not multiline:
         accept_line(event)
     else:
