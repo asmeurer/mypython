@@ -13,7 +13,6 @@
 - Open command in EDITOR shortcut
 - Better indication when no tab completions are found
 - M-;
-- Ability to do history search in multiline
 - History browser (like ptpython)
 - Different continuation prompt for soft- and hard-wrapping.
 - Up arrow shouldn't navigate completions
