@@ -11,7 +11,6 @@
 - Jedi completion within multiline inputs
 - Open command in EDITOR shortcut
 - Better indication when no tab completions are found
-- M-;
 - History browser (like ptpython)
 - Different continuation prompt for soft- and hard-wrapping.
 - Up arrow shouldn't navigate completions
@@ -24,3 +23,4 @@
 - >>> stripping should also strip outputs
 - Test >>> stripping
 - Can't create triple quoted string with multiple blank lines
+- Cursor position with M-;
