@@ -421,3 +421,35 @@ def bracketed_paste(event):
             lambda line, _x=[]: bool(_x or _x.append(1)))
 
     event.current_buffer.insert_text(data)
+
+@r.add_binding(Keys.Escape, ';')
+def comment(event):
+    buffer = event.current_buffer
+    document = buffer.document
+
+    if document.selection:
+        from_, to = document.selection_range()
+        start_line, start_col = document.translate_index_to_position(from_ + 1)
+        end_line, end_col = document.translate_index_to_position(to - 1)
+    else:
+        start_line, _ = document.translate_index_to_position(document.cursor_position)
+        end_line = start_line + 1
+
+    max_indent = 0
+    for line in document.lines[start_line:end_line]:
+        indent = LEADING_WHITESPACE.search(line)
+        if indent:
+            max_indent = max(max_indent, len(indent.group(1)))
+        else:
+            max_indent = 0
+        if max_indent == 0:
+            break
+
+    lines = []
+    for i, line in enumerate(document.lines):
+        if start_line <= i <= end_line:
+            lines.append(line[:max_indent] + '# ' + line[max_indent:])
+        else:
+            lines.append(line)
+
+    buffer.text = '\n'.join(lines)
