@@ -23,3 +23,4 @@
   - Test parentheses matching
 - >>> stripping should also strip outputs
 - Test >>> stripping
+- Can't create triple quoted string with multiple blank lines
