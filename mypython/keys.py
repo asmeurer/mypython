@@ -447,11 +447,19 @@ def comment(event):
         if max_indent == 0:
             break
 
+    uncomment = all(not line.strip() or line[max_indent] == '#' for line in document.lines[start_line:end_line+1])
+
     lines = []
     for i, line in enumerate(document.lines):
         if start_line <= i <= end_line:
-            lines.append(line[:max_indent] + '# ' + line[max_indent:])
+            if uncomment:
+                lines.append(line[:max_indent] + line[max_indent+2:])
+            else:
+                lines.append(line[:max_indent] + '# ' + line[max_indent:])
         else:
             lines.append(line)
 
-    buffer.text = '\n'.join(lines)
+    new_text = '\n'.join(lines)
+    # TODO: Set the cursor position correctly
+    buffer.cursor_position = min(buffer.cursor_position, len(new_text))
+    buffer.text = new_text
