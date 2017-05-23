@@ -573,6 +573,8 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
             res = smart_eval(command, _globals, _locals, filename=mypython_file(cli.prompt_number))
             post_command(command=command, res=res, _globals=_globals,
                 _locals=_locals, cli=cli)
+        except SystemExit:
+            raise
         except BaseException as e:
             sys.excepthook(*sys.exc_info())
             o.set_command_status(1)
@@ -627,7 +629,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
             # TODO: Keep it in the history
             print("KeyboardInterrupt", file=sys.stderr)
             continue
-        except EOFError:
+        except (EOFError, SystemExit):
             break
         except:
             sys.excepthook(*sys.exc_info())
