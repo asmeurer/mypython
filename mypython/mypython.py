@@ -156,7 +156,7 @@ class PythonSyntaxValidator(Validator):
         offset = 0
         if text.endswith('?') and not text.endswith('???'):
             text = text.rstrip('??')
-        if any(text.startswith(i) for i in MAGICS):
+        elif any(text.startswith(i) for i in MAGICS):
             if ' ' not in text:
                 text = ''
                 offset = len(text)
