@@ -24,3 +24,4 @@
 - Test >>> stripping
 - Can't create triple quoted string with multiple blank lines
 - Cursor position with M-;
+- Unexpected indent for indented syntax error
