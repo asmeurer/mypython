@@ -249,6 +249,7 @@ def test_syntax_validator():
     validate('test?')
     validate('test??')
     validate('%timeit 1')
+    validate('%timeit  1')
     validate('%timeit')
 
     doesntvalidate('test???')
@@ -263,6 +264,8 @@ def test_syntax_validator():
     doesntvalidate('%timeit a?')
     doesntvalidate('%timeit a??')
     doesntvalidate('%timeit a???')
+    doesntvalidate('%timeit  a b')
+    doesntvalidate('%timeit  a b?')
 
 def test_getsource():
     _globals = _test_globals.copy()
