@@ -297,9 +297,14 @@ def test_is_multiline_python():
         "(1 + ",
         "{1: 2,",
         "[1, ",
-        # Anything with a newline is multiline
+        # Anything with a newline is multiline, unless it has an unfinished
+        # single quoted string
         "def test():\n    pass",
         '"""\nabc\n"""',
+        '"""\n\n',
+        'def test():\n    """',
+        'def test():\n    "\\',
+        'def test():\n    "\\\n1"',
     ]
 
     notmultiline = [
@@ -318,6 +323,10 @@ def test_is_multiline_python():
         '("a',
         '\'"""',
         "\"'''",
+        'def test():\n    "',
+        'def test():\n    "\\\n1',
+        'def test():\n    "\n',
+        'def test():\n    "\n1',
     ]
 
     for s in multiline:

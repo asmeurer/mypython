@@ -9,7 +9,7 @@ import io
 from itertools import tee
 from tokenize import tokenize, TokenError
 from token import (LPAR, RPAR, LSQB, RSQB, LBRACE, RBRACE, ERRORTOKEN, STRING,
-    COLON, AT, ENDMARKER)
+    COLON, AT, ENDMARKER, DEDENT)
 
 braces = {
     LPAR: RPAR,
@@ -90,9 +90,6 @@ def pairwise(iterable):
     return zip(a, b)
 
 def is_multiline_python(text):
-    if '\n' in text:
-        return True
-
     # Dedent the text, otherwise, the last token will be DEDENT
     text = text.lstrip()
 
@@ -114,7 +111,7 @@ def is_multiline_python(text):
                 # multiline, which is caught below. Every other case shouldn't
                 # be multiline.
                 error = True
-            if toknum == ENDMARKER and prev.type == ERRORTOKEN and prev.string == '\\':
+            if toknum in {ENDMARKER, DEDENT} and prev.type == ERRORTOKEN and prev.string == '\\':
                 return True
 
     except TokenError as e:
@@ -126,4 +123,8 @@ def is_multiline_python(text):
         return False
     if error:
         return False
+
+    if '\n' in text:
+        return True
+
     return prev.exact_type == COLON
