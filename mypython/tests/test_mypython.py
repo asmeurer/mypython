@@ -238,6 +238,7 @@ def test_syntax_validator():
     validate('\n')
     validate('def test():\n    pass')
     validate('a = 1')
+    validate('  def test():\n      pass')
 
     # Incomplete multiline Python (also tested in test_multiline.py)
     doesntvalidate('def test():')
