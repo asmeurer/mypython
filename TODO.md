@@ -14,7 +14,6 @@
 - Better indication when no tab completions are found
 - History browser (like ptpython)
 - Different continuation prompt for soft- and hard-wrapping.
-- Up arrow shouldn't navigate completions
 - Variable definitions in %timeit calls don't apply to the rest of the session
 - Tests for multiline history search
 - Better up-arrow enter heuristics

@@ -300,15 +300,26 @@ def select_right(event):
 
 @r.add_binding(Keys.Up)
 def auto_up(event):
-    event.current_buffer.auto_up(count=event.arg)
-    if getattr(event.current_buffer.selection_state, "shift_arrow", False):
-        event.current_buffer.selection_state = None
+    buffer = event.current_buffer
+    count = event.arg
+    if buffer.document.cursor_position_row > 0:
+        buffer.cursor_up(count=count)
+    elif not buffer.selection_state:
+        buffer.history_backward(count=count)
+    if getattr(buffer.selection_state, "shift_arrow", False):
+        buffer.selection_state = None
 
 @r.add_binding(Keys.Down)
 def auto_down(event):
-    event.current_buffer.auto_down(count=event.arg)
-    if getattr(event.current_buffer.selection_state, "shift_arrow", False):
-        event.current_buffer.selection_state = None
+    buffer = event.current_buffer
+    count = event.arg
+    if buffer.document.cursor_position_row < buffer.document.line_count - 1:
+        buffer.cursor_down(count=count)
+    elif not buffer.selection_state:
+        buffer.history_forward(count=count)
+
+    if getattr(buffer.selection_state, "shift_arrow", False):
+        buffer.selection_state = None
 
 @r.add_binding(Keys.ShiftUp)
 def select_line_up(event):
