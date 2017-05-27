@@ -252,6 +252,19 @@ def back_to_indentation(event):
     if indent:
         event.cli.current_buffer.cursor_position -= len(before_cursor) - indent.end(1)
 
+@r.add_binding(Keys.Escape, ' ')
+def just_one_space(event):
+    buffer = event.cli.current_buffer
+    rstripped = buffer.text[:buffer.cursor_position].rstrip()
+    lstripped = buffer.text[buffer.cursor_position:].lstrip()
+    if (len(buffer.text[:buffer.cursor_position]) - len(rstripped) == 1 and
+        len(lstripped) == len(buffer.text[buffer.cursor_position:])):
+        buffer.cursor_position -= 1
+        buffer.text = rstripped + lstripped
+    else:
+        buffer.cursor_position -= len(buffer.document.text_before_cursor) - len(rstripped) - 1
+        buffer.text = rstripped + ' ' + lstripped
+
 # Selection stuff
 
 @r.add_binding(Keys.ShiftLeft)

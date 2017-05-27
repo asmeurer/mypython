@@ -24,5 +24,4 @@
 - >>> stripping should also strip outputs
 - Test >>> stripping
 - Cursor position with M-;
-- Cmd-space
 - Better delete on indentation behavior
