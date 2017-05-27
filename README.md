@@ -29,6 +29,7 @@ without any additional work (unlike REPLs based on readline).
 - prompts are stripped automatically from pasted text.
 - Emacs command editing keybindings.
 - Automatic syntax highlighting.
+- On syntax error, the cursor is moved to the error.
 - Matching and mismatching parentheses highlighting.
 - Tracebacks for stuff defined interactively show the code line.
 - Tab completion using [Jedi](https://github.com/davidhalter/jedi).
@@ -46,7 +47,6 @@ without any additional work (unlike REPLs based on readline).
 - `%pudb` magic to run code in [PuDB](https://documen.tician.de/pudb/).
   Debugging functions defined interactively is possible.
 - SymPy objects automatically pretty print.
-- Automatic "error" mode on syntax error, that moves the cursor to the error.
 - [Shell integration](https://www.iterm2.com/documentation-shell-integration.html) with iTerm2.
 - GUI Matplotlib plots on macOS work correctly.
 - At startup you get a [cat](https://github.com/asmeurer/catimg).
