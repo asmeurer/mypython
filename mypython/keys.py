@@ -1,4 +1,6 @@
-from prompt_toolkit.key_binding.bindings.named_commands import accept_line, self_insert
+from prompt_toolkit.key_binding.bindings.named_commands import (accept_line,
+    self_insert, backward_delete_char)
+from prompt_toolkit.key_binding.bindings.basic import if_no_repeat
 from prompt_toolkit.key_binding.defaults import load_key_bindings
 from prompt_toolkit.key_binding.registry import Registry, MergedRegistry
 from prompt_toolkit.keys import Keys, Key
@@ -251,6 +253,15 @@ def back_to_indentation(event):
     indent = LEADING_WHITESPACE.search(current_line)
     if indent:
         event.cli.current_buffer.cursor_position -= len(before_cursor) - indent.end(1)
+
+@r.add_binding(Keys.Backspace, save_before=if_no_repeat)
+def delete_char_or_unindent(event):
+    buffer = event.cli.current_buffer
+    if (buffer.document.current_line_before_cursor.isspace() and
+        len(buffer.document.current_line_before_cursor) >= 4):
+        buffer.delete_before_cursor(count=4)
+    else:
+        backward_delete_char(event)
 
 @r.add_binding(Keys.Escape, ' ')
 def just_one_space(event):
