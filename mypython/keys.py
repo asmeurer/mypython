@@ -478,27 +478,28 @@ def comment(event):
         start_line, _ = document.translate_index_to_position(document.cursor_position)
         end_line = start_line + 1
 
-    max_indent = 0
+    # Get the indentation for the comment delimiters
+    min_indent = float('inf')
     for line in document.lines[start_line:end_line]:
         if not line.strip():
             continue
         indent = LEADING_WHITESPACE.search(line)
         if indent:
-            max_indent = max(max_indent, len(indent.group(1)))
+            min_indent = min(min_indent, len(indent.group(1)))
         else:
-            max_indent = 0
-        if max_indent == 0:
+            min_indent = 0
+        if min_indent == 0:
             break
 
-    uncomment = all(not line.strip() or line[max_indent] == '#' for line in document.lines[start_line:end_line+1])
+    uncomment = all(not line.strip() or line[min_indent] == '#' for line in document.lines[start_line:end_line+1])
 
     lines = []
     for i, line in enumerate(document.lines):
         if start_line <= i <= end_line:
             if uncomment:
-                lines.append(line[:max_indent] + line[max_indent+2:])
+                lines.append(line[:min_indent] + line[min_indent+2:])
             else:
-                lines.append(line[:max_indent] + '# ' + line[max_indent:])
+                lines.append(line[:min_indent] + '# ' + line[min_indent:])
         else:
             lines.append(line)
 
