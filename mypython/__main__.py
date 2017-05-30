@@ -14,7 +14,7 @@ def main():
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument("--cmd", "-c", metavar="CMD", action="store",
         help="""Execute the given command at startup.""")
-    parser.add_argument("--quiet", "-q", action="store_true", help="""Don't
+    parser.add_argument("--quiet", "-q", "-Q", action="store_true", help="""Don't
         print the startup messages.""")
     parser.add_argument("--doctest-mode", "-d", action="store_true",
         help="""Enable doctest mode. Mimics the default Python prompt.""")
