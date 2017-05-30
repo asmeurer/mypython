@@ -23,3 +23,7 @@
 - >>> stripping should also strip outputs
 - Test >>> stripping
 - Cursor position with M-;
+- Error trying to add newline in the middle of
+
+    for i in range(1):
+        for j in range(2):
