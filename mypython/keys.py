@@ -39,11 +39,13 @@ r = custom_bindings_registry = Registry()
 
 @r.add_binding(Keys.Escape, 'p')
 def previous_history_search(event):
+    event.key_sequence[-1].accept_next = True
     buffer = event.current_buffer
     buffer.history_backward(count=event.arg, history_search=True)
 
 @r.add_binding(Keys.Escape, 'P')
 def forward_history_search(event):
+    event.key_sequence[-1].accept_next = True
     buffer = event.current_buffer
     buffer.history_forward(count=event.arg, history_search=True)
 
@@ -210,12 +212,10 @@ def multiline_enter(event):
 # We don't need a parallel for down because down is already at the end of the
 # prompt.
 
-# TODO: Only do this when the previous key was up and we just did a
-# history_backward().
 @r.add_binding(Keys.Enter, filter=is_returnable)
 def accept_after_history_backward(event):
     pks = event.previous_key_sequence
-    if pks and ((len(pks) == 1 and isinstance(pks[0].key, Key) and pks[0].key.name == "<Up>") \
+    if pks and getattr(pks[-1], 'accept_next', False) and ((len(pks) == 1 and isinstance(pks[0].key, Key) and pks[0].key.name == "<Up>") \
        or (len(pks) == 2 and isinstance(pks[0].key, Key) and pks[0].key.name == "<Escape>"
            and isinstance(pks[1].key, str) and pks[1].key in 'pP')):
         accept_line(event)
@@ -305,6 +305,7 @@ def auto_up(event):
     if buffer.document.cursor_position_row > 0:
         buffer.cursor_up(count=count)
     elif not buffer.selection_state:
+        event.key_sequence[-1].accept_next = True
         buffer.history_backward(count=count)
     if getattr(buffer.selection_state, "shift_arrow", False):
         buffer.selection_state = None
