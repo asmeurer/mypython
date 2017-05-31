@@ -119,7 +119,6 @@ def is_multiline_python(text):
         # Multiline unless there is an uncompleted non-docstring
         return not error
     except IndentationError:
-        # Shouldn't ever happen, since we have no newlines in text
         return False
     if error:
         return False

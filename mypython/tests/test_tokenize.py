@@ -327,6 +327,7 @@ def test_is_multiline_python():
         'def test():\n    "\\\n1',
         'def test():\n    "\n',
         'def test():\n    "\n1',
+        'def test():\n    if 1:\n  if 1:',
     ]
 
     for s in multiline:
