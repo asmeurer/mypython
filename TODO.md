@@ -22,3 +22,4 @@
 - >>> stripping should also strip outputs
 - Test >>> stripping
 - Cursor position with M-;
+- Load the cat asynchronously
