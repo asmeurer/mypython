@@ -23,3 +23,4 @@
 - Test >>> stripping
 - Cursor position with M-;
 - Load the cat asynchronously
+- Help for magics
