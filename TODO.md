@@ -24,3 +24,4 @@
 - Cursor position with M-;
 - Load the cat asynchronously
 - Help for magics
+- Show output with %pudb
