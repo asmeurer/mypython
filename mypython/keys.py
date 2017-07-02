@@ -471,12 +471,13 @@ def comment(event):
     buffer = event.current_buffer
     document = buffer.document
 
+    cursor_line, _ = document.translate_index_to_position(document.cursor_position)
     if document.selection:
         from_, to = document.selection_range()
         start_line, start_col = document.translate_index_to_position(from_ + 1)
         end_line, end_col = document.translate_index_to_position(to - 1)
     else:
-        start_line, _ = document.translate_index_to_position(document.cursor_position)
+        start_line = cursor_line
         end_line = start_line + 1
 
     # Get the indentation for the comment delimiters
@@ -491,12 +492,14 @@ def comment(event):
             min_indent = 0
         if min_indent == 0:
             break
+    if min_indent == float('inf'):
+        min_indent = 0
 
-    uncomment = all(not line.strip() or line[min_indent] == '#' for line in document.lines[start_line:end_line+1])
+    uncomment = all(not line.strip() or line[min_indent] == '#' for line in document.lines[start_line:end_line])
 
     lines = []
     for i, line in enumerate(document.lines):
-        if start_line <= i <= end_line:
+        if start_line <= i < end_line:
             if uncomment:
                 lines.append(line[:min_indent] + line[min_indent+2:])
             else:
@@ -506,5 +509,8 @@ def comment(event):
 
     new_text = '\n'.join(lines)
     # TODO: Set the cursor position correctly
-    buffer.cursor_position = min(buffer.cursor_position, len(new_text))
+    if uncomment:
+        buffer.cursor_position -= 2*(cursor_line - start_line + 1)
+    else:
+        buffer.cursor_position += 2*(cursor_line - start_line + 1)
     buffer.text = new_text
