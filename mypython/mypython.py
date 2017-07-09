@@ -154,7 +154,7 @@ class PythonSyntaxValidator(Validator):
     def validate(self, document):
         text = dedent(document.text)
         if text.endswith('?') and not text.endswith('???'):
-            text = text.rstrip('??')
+            text = text.rstrip('?')
         elif any(text.startswith(i) for i in MAGICS):
             if ' ' not in text.splitlines()[0]:
                 text = ''
