@@ -156,7 +156,7 @@ class PythonSyntaxValidator(Validator):
         if text.endswith('?') and not text.endswith('???'):
             text = text.rstrip('??')
         elif any(text.startswith(i) for i in MAGICS):
-            if ' ' not in text:
+            if ' ' not in text.splitlines()[0]:
                 text = ''
             else:
                 magic, text = text.split(' ', 1)

@@ -5,6 +5,30 @@ import time
 from .test_mypython import _test_output, _test_globals
 from ..magic import sympy_start
 
+def test_echo():
+    # Test basic magic and magic syntax checking
+    _globals = _test_globals.copy()
+    out, err = _test_output('%echo\n', _globals=_globals)
+    assert out == '\nNone\n\n'
+    assert not err
+
+    _globals = _test_globals.copy()
+    out, err = _test_output('%echo 1\n', _globals=_globals)
+    assert out == '1\nNone\n\n'
+    assert not err
+
+    # \x1b\n == M-Enter
+    _globals = _test_globals.copy()
+    out, err = _test_output('%echo\x1b\n1\n\n', _globals=_globals)
+    assert out == '1\nNone\n\n'
+    assert not err
+
+    _globals = _test_globals.copy()
+    out, err = _test_output('%echo \x1b\n1\n\n', _globals=_globals)
+    assert out == '\n1\nNone\n\n'
+    assert not err
+
+
 def test_time():
     _globals = _test_globals.copy()
     assert _test_output('import time\n', _globals=_globals) == ('\n', '')
@@ -16,7 +40,6 @@ def test_time():
     out, err = _test_output('%time 1 + 1\n', _globals=_globals)
     assert re.match(r'Total time: [\d\.]+ [µu]s\n2\n\n', out), repr(out)
     assert not err
-
 
 def test_timeit():
     # Each timeit takes ~10 seconds, so only one test here :)

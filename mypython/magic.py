@@ -16,7 +16,9 @@ def magic(command):
     """
     You can do magic, you can have anything that you desire
     """
-    if not ' ' in command:
+    if '\n' in command and ' ' not in command.splitlines()[0]:
+        magic_command, rest = command.split('\n', 1)
+    elif not ' ' in command:
         magic_command, rest = command, ''
     else:
         magic_command, rest = command.split(' ', 1)
@@ -148,6 +150,12 @@ def error_magic(rest):
     """
     raise RuntimeError("Error magic")
 
+
+def echo_magic(rest):
+    """
+    Echo the argument, for testing.
+    """
+    return "print(%r)" % rest
 
 MAGICS = {}
 
