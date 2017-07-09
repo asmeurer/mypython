@@ -358,7 +358,7 @@ finally:
     else:
         return command
 
-def startup(_globals, _locals, quiet=False):
+def startup(_globals, _locals, quiet=False, cat=False):
     exec("""
 import sys
 sys.path.insert(0, '.')
@@ -369,16 +369,17 @@ del sys
     _locals['Out'] = {}
 
     if not quiet:
-        print_tokens([(Token.Welcome, "Welcome to mypython.\n")])
-        try:
-            import catimg
-        except ImportError:
-            image = None
-        else:
-            image = catimg.get_random_image()
-        if image:
-            print_tokens([(Token.Welcome, "Here is a cat:\n")])
-            iterm2_tools.display_image_file(image)
+        print_tokens([(Token.Welcome, "Welcome to mypython.\n\n")])
+        if cat:
+            try:
+                import catimg
+            except ImportError:
+                image = None
+            else:
+                image = catimg.get_random_image()
+            if image:
+                print_tokens([(Token.Welcome, "Here is a cat:\n")])
+                iterm2_tools.display_image_file(image)
 
     sys.displayhook = mypython_displayhook
     sys.excepthook = mypython_excepthook
