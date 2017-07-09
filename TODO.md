@@ -23,6 +23,6 @@
 - Test >>> stripping
 - Cursor position with M-;
 - Load the cat asynchronously
-- Show output with %pudb
+- Show output with multiline %pudb
 - If pudb crashes mypython crashes
 - Magics at end of multiline?
