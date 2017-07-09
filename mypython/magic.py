@@ -41,6 +41,12 @@ del _sys
 """ % message
 
 def timeit_magic(rest):
+    """
+    Run the code many times and display timing statistics.
+
+    The number of times is based on how fast the code runs. It should finish
+    within 10-20 seconds.
+    """
     if not rest:
         return error('nothing to time')
 
@@ -53,6 +59,11 @@ del _autorange, _timeit_format, _Timer, _times
 """.format(rest=rest)
 
 def time_magic(rest):
+    """
+    Time the code, running it once.
+
+    The output is also shown.
+    """
     if not rest:
         return error('nothing to time')
 
@@ -69,6 +80,15 @@ del _time, _format_time, _perf_counter, _smart_eval, _sys
 """.format(rest=rest)
 
 def doctest_magic(rest):
+    """
+    Enable/disable doctest mode.
+
+    Doctest mode tries to emulate the output of a regular Python prompt as
+    much as possible, for copy-pasting purposes.
+
+    A known issue is that soft-wrapped code shows a ... (this is an issue with
+    upstream prompt-toolkit).
+    """
     if rest:
         return error('%doctest takes no arguments')
 
@@ -85,6 +105,12 @@ del _mypython
 """
 
 def debug_magic(rest):
+    """
+    Enable/disable debug mode
+
+    In debug mode, tracebacks are not truncated to prevent showing code in
+    mypython itself.
+    """
     if rest:
         return error('%debug takes no arguments')
 
@@ -107,6 +133,12 @@ k, m, n = symbols('k m n', integer=True)
 f, g, h = symbols('f g h', cls=Function)"""
 
 def sympy_magic(rest):
+    """
+    Import SymPy names and common symbols.
+
+    This the mypython version of sympy.init_session(). Note that SymPy pretty
+    printing is always enabled in mypython.
+    """
     if rest:
         return error('%sympy takes no arguments')
 
@@ -118,6 +150,9 @@ print(%r)
 isympy_magic = sympy_magic
 
 def pudb_magic(rest):
+    """
+    Debug the code with PuDB.
+    """
     # See if rest is an expression. This won't work for multiline inputs that
     # end in expressions.
     try:
@@ -146,7 +181,7 @@ del _pudb
 
 def error_magic(rest):
     """
-    Always raise an exception. For testing
+    Always raise an exception. For testing.
     """
     raise RuntimeError("Error magic")
 

@@ -153,6 +153,8 @@ def dedent_return_document_handler(cli, buffer):
 class PythonSyntaxValidator(Validator):
     def validate(self, document):
         text = dedent(document.text)
+        if any(text == i + '?' for i in MAGICS):
+            return
         if text.endswith('?') and not text.endswith('???'):
             text = text.rstrip('?')
         elif any(text.startswith(i) for i in MAGICS):
@@ -346,6 +348,15 @@ finally:
     del _getsource
 """ % command[:-2]
     elif command.endswith('?'):
+        if command.startswith('%'):
+            return """\
+from mypython import myhelp as _myhelp
+from mypython.magic import MAGICS as _MAGICS
+try:
+    _myhelp(_MAGICS[%r])
+finally:
+    del _myhelp, _MAGICS
+""" % command[:-1]
         return """\
 from mypython import myhelp as _myhelp
 try:

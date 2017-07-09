@@ -252,6 +252,7 @@ def test_syntax_validator():
     validate('%timeit 1')
     validate('%timeit  1')
     validate('%timeit')
+    validate('%timeit?')
 
     doesntvalidate('test???')
     doesntvalidate('1 2')
@@ -259,6 +260,7 @@ def test_syntax_validator():
     doesntvalidate('def test():\n')
     doesntvalidate('%notarealmagic')
     doesntvalidate('%notarealmagic 1')
+    doesntvalidate('%notarealmagic?')
     doesntvalidate('a b?')
     doesntvalidate('a b??')
     doesntvalidate('%timeit a b')
