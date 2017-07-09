@@ -26,3 +26,4 @@
 - Help for magics
 - Show output with %pudb
 - If pudb crashes mypython crashes
+- Magics at end of multiline?
