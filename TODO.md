@@ -26,3 +26,4 @@
 - Show output with multiline %pudb
 - If pudb crashes mypython crashes
 - Magics at end of multiline?
+- Pasting prompts with multiple outputs
