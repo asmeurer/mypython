@@ -27,3 +27,5 @@
 - If pudb crashes mypython crashes
 - Magics at end of multiline?
 - Pasting prompts with multiple outputs
+- Python 3.6
+- Mypython doesn't run in the current conda env
