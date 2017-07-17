@@ -9,6 +9,16 @@ from pygments.lexers import Python3Lexer
 
 from .magic import MAGICS
 
+# The emoji mess up emacs, so use the escaped forms
+emoji = [
+    ('\N{SNAKE}', '\N{PERSONAL COMPUTER}'),
+    ('\N{INBOX TRAY}', '\N{OUTBOX TRAY}'),
+    # iTerm2 doesn't make DARK SUNGLASSES double width
+    ('\N{DARK SUNGLASSES} ', '\N{SMILING FACE WITH SUNGLASSES}'),
+    ('\N{SUN WITH FACE}', '\N{LAST QUARTER MOON WITH FACE}'),
+    ('\N{FULL MOON WITH FACE}', '\N{NEW MOON WITH FACE}'),
+]
+
 class MyPython3Lexer(Python3Lexer):
     def get_tokens_unprocessed(self, text):
         magic = False

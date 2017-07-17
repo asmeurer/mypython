@@ -37,7 +37,7 @@ import iterm2_tools
 
 from .multiline import document_is_multiline_python
 from .completion import PythonCompleter
-from .theme import OneAMStyle, MyPython3Lexer
+from .theme import OneAMStyle, MyPython3Lexer, emoji
 from .keys import get_registry, LEADING_WHITESPACE
 from .processors import MyHighlightMatchingBracketProcessor
 from .magic import magic, MAGICS
@@ -189,16 +189,6 @@ style_extra = {
     Token.MismatchingBracket.Cursor: "bg:#ff0000", # red
     Token.MismatchingBracket.Other:  "bg:#ff0000", # red
 }
-
-# The emoji mess up emacs, so use the escaped forms
-emoji = [
-    ('\N{SNAKE}', '\N{PERSONAL COMPUTER}'),
-    ('\N{INBOX TRAY}', '\N{OUTBOX TRAY}'),
-    # iTerm2 doesn't make DARK SUNGLASSES double width
-    ('\N{DARK SUNGLASSES} ', '\N{SMILING FACE WITH SUNGLASSES}'),
-    ('\N{SUN WITH FACE}', '\N{LAST QUARTER MOON WITH FACE}'),
-    ('\N{FULL MOON WITH FACE}', '\N{NEW MOON WITH FACE}'),
-]
 
 DOCTEST_MODE = False
 DEBUG = False
