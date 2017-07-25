@@ -29,3 +29,4 @@
 - Pasting prompts with multiple outputs
 - Python 3.6
 - Mypython doesn't run in the current conda env
+- Seaborn error on %timeit very slow function
