@@ -12,6 +12,7 @@ from prompt_toolkit.terminal.vt100_input import ANSI_SEQUENCES
 from .multiline import (auto_newline, TabShouldInsertWhitespaceFilter,
     document_is_multiline_python)
 from .tokenize import inside_string
+from .theme import emoji
 
 import re
 import subprocess
@@ -434,10 +435,38 @@ def redo(event):
     event.current_buffer.redo()
 
 
+# Need to escape all spaces here because of verbose (x) option below
+ps1_prompts = [r'>>>\ '] + [i*3 + r'\[\d+\]:\ ' for i, j in emoji]
+ps2_prompts = [r'\.\.\.\ ', '\N{CLAPPING HANDS SIGN}+⎢']
+PS1_PROMPTS_RE = re.compile('|'.join(ps1_prompts))
+PS2_PROMPTS_RE = re.compile('|'.join(ps2_prompts))
+PROMPTED_TEXT_RE = re.compile(r'''(?mx) # Multiline and verbose
+
+    ^(?P<prompt>
+        (?P<ps1prompt>{PS1_PROMPTS_RE.pattern})   # Match prompts at the front of the line
+      | (?P<ps2prompt>{PS2_PROMPTS_RE.pattern}))? # Match prompts at the front of the line
+
+    (?P<noprompt>(?(prompt)\r|))?                 # If the prompt is not
+                                                  # matched, this is a special
+                                                  # marker group that will match
+                                                  # the empty string.
+
+    (?P<line>.*)                                  # The actual line
+'''.format(PS1_PROMPTS_RE=PS1_PROMPTS_RE, PS2_PROMPTS_RE=PS2_PROMPTS_RE))
+
+def prompt_repl(match):
+    """
+    repl function for re.sub for clearing prompts
+
+    Replaces PS1 prompts with \r and removes PS2 prompts.
+    """
+    # TODO: Remove the lines with no prompt
+    if match.group('ps1prompt') is not None:
+        return '\r' + match.group('line')
+    return match.group('line')
+
 @r.add_binding(Keys.BracketedPaste)
 def bracketed_paste(event):
-    from .mypython import emoji
-
     data = event.data
     buffer = event.current_buffer
 
@@ -455,16 +484,16 @@ def bracketed_paste(event):
     if not inside_string(event.current_buffer.text, row, col):
         indent = LEADING_WHITESPACE.match(document.current_line_before_cursor)
         current_line_indent = indent.group(1) if indent else ''
-        dedented_data = textwrap.dedent(data)
-        ps1_prompts = [r'>>> '] + [i*3 + r'\[\d+\]: ' for i, j in emoji]
-        ps2_prompts = [r'\.\.\. ', '\N{CLAPPING HANDS SIGN}+⎢']
-        PROMPTS_RE = re.compile('|'.join(ps1_prompts + ps2_prompts))
-        dedented_data = PROMPTS_RE.sub('', dedented_data)
+        dedented_data = textwrap.dedent(data).strip()
+        dedented_data = PROMPTED_TEXT_RE.sub(prompt_repl, dedented_data)
         data = textwrap.indent(dedented_data, current_line_indent,
             # Don't indent the first line, it's already indented
             lambda line, _x=[]: bool(_x or _x.append(1)))
 
-    event.current_buffer.insert_text(data)
+    # event.current_buffer.insert_text(data)
+    for text in data.split('\r'):
+        event.current_buffer.insert_text(text)
+        accept_line(event)
 
 @r.add_binding(Keys.Escape, ';')
 def comment(event):

@@ -20,7 +20,7 @@ from pygments.formatters import TerminalTrueColorFormatter
 from pygments import highlight
 
 from prompt_toolkit.buffer import Buffer, AcceptAction
-from prompt_toolkit.input import PipeInput
+from prompt_toolkit.input import PipeInput, StdinInput, Input
 from prompt_toolkit.interface import Application, CommandLineInterface
 from prompt_toolkit.shortcuts import (create_prompt_layout, print_tokens,
     create_eventloop, create_output)
@@ -139,6 +139,31 @@ class MyBuffer(Buffer):
 
         """
         return self._history('forward', count=count, history_search=history_search)
+
+class StdinPipeInput(Input):
+    """
+    A mix of stdin and a pipe
+
+    If there is data in the pipe, use that. Otherwise, use stdin.
+    """
+    def __init__(self, *, pipeinput=None, stdininput=None):
+        self.pipeinput = pipeinput or PipeInput()
+        self.stdininput = stdininput or StdinInput()
+        # StdinInput doesn't set the descriptors to nonblocking
+        os.set_blocking(self.stdininput._r, False)
+        os.set_blocking(self.stdininput._w, False) # XXX: Do we need this one?
+
+    def fileno():
+        pass
+
+    def read():
+        pass
+
+    def raw_mode():
+        return self.stdininput.raw_mode()
+
+    def cooked_mode():
+        return self.stdininput.cooked_mode()
 
 def on_text_insert(buf):
     buf.multiline_history_search_index = None
