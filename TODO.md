@@ -32,3 +32,4 @@
 - C-M-b and so on
 - Tests for command queue
 - Tests for prompt stripping pasting
+- History for pasted text
