@@ -14,6 +14,7 @@ import textwrap
 from io import StringIO
 from textwrap import dedent
 from pydoc import pager
+from collections import deque
 
 from pygments.lexers import Python3Lexer, Python3TracebackLexer
 from pygments.formatters import TerminalTrueColorFormatter
@@ -614,9 +615,14 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
         if not DOCTEST_MODE:
             print()
 
+
+CMD_QUEUE = deque()
+
 def run_shell(_globals=_default_globals, _locals=_default_locals, *,
     quiet=False, cmd=None, history_file=None):
 
+    if cmd:
+        CMD_QUEUE.append(cmd)
     if not history_file:
         try:
             tty_name = os.path.basename(os.ttyname(sys.stdout.fileno()))
@@ -638,11 +644,10 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
     prompt_number = 1
     while True:
         try:
-            if cmd:
+            if CMD_QUEUE:
                 _input = PipeInput()
-                _input.send_text(cmd + '\n')
+                _input.send_text(CMD_QUEUE.popleft() + '\n')
                 _history = None
-                cmd = None
             else:
                 _input = None
                 _history = history
