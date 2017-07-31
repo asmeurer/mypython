@@ -147,22 +147,29 @@ class StdinPipeInput(Input):
     If there is data in the pipe, use that. Otherwise, use stdin.
     """
     def __init__(self, *, pipeinput=None, stdininput=None):
+        import select
+        self.poll = select.poll()
         self.pipeinput = pipeinput or PipeInput()
         self.stdininput = stdininput or StdinInput()
+        self.poll.register(self.pipeinput._r)
         # StdinInput doesn't set the descriptors to nonblocking
-        os.set_blocking(self.stdininput._r, False)
-        os.set_blocking(self.stdininput._w, False) # XXX: Do we need this one?
+        # os.set_blocking(self.stdininput._r, False)
+        # os.set_blocking(self.stdininput._w, False) # XXX: Do we need this one?
 
-    def fileno():
+    def fileno(self):
+        import select
+        res = self.poll.poll()
+        if res and res[0][1] & select.POLLIN:
+            return self.pipeinput.fileno()
+        return self.stdininput.fileno()
+
+    def read(self):
         pass
 
-    def read():
-        pass
-
-    def raw_mode():
+    def raw_mode(self):
         return self.stdininput.raw_mode()
 
-    def cooked_mode():
+    def cooked_mode(self):
         return self.stdininput.cooked_mode()
 
 def on_text_insert(buf):
