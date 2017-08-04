@@ -34,3 +34,4 @@
 - Tests for prompt stripping pasting
 - History for pasted text
 - Emoji prompts not being cleared on paste
+- debug mode always says error from mypython
