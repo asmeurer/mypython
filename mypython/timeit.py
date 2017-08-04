@@ -68,6 +68,9 @@ def timeit_histogram(times):
         ax = plt.gca()
         # rug plots are too slow for large number of data points
         extra = dict(rug=True, rug_kws={"lw": .2}) if len(times) < 1024 else {}
+        if len(times) == 1:
+            # Workaround a bug in seaborn https://github.com/mwaskom/seaborn/issues/1256
+            times = times*2
         sns.distplot(times, kde_kws={"lw": .5}, **extra)
         b = BytesIO()
         ax.ticklabel_format(style='plain', axis='both', useOffset=False)
