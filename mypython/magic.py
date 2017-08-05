@@ -54,7 +54,7 @@ def timeit_magic(rest):
 from timeit import Timer as _Timer
 from mypython.timeit import timeit_format as _timeit_format, autorange as _autorange
 _times = _autorange(_Timer({rest!r}, globals=globals()))
-print(_timeit_format(_times))
+print(_timeit_format(_times, {rest!r}))
 del _autorange, _timeit_format, _Timer, _times
 """.format(rest=rest)
 

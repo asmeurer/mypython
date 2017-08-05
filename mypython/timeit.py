@@ -40,18 +40,18 @@ Maximum time: {maximum}
 {hist}
 """.strip()
 
-def timeit_format(times):
+def timeit_format(times, expr):
     number = len(times)
     time_taken = sum(times)
     avg = format_time(time_taken/number)
     s = 's' if number > 1 else ''
     minimum = format_time(min(times))
     maximum = format_time(max(times))
-    hist = timeit_histogram(times)
+    hist = timeit_histogram(times, expr)
     return TIME_REPORT_TEMPLATE.format(number=number, avg=avg, s=s,
         minimum=minimum, maximum=maximum, hist=hist)
 
-def timeit_histogram(times):
+def timeit_histogram(times, expr):
     try:
         import matplotlib.pyplot as plt
     except ImportError:
@@ -76,6 +76,7 @@ def timeit_histogram(times):
         ax.ticklabel_format(style='plain', axis='both', useOffset=False)
         plt.xlabel("Time", fontsize=6)
         plt.ylabel("Runs", fontsize=6)
+        plt.title("%%timeit {expr}".format(expr=expr), fontsize=6)
         x1,x2,y1,y2 = plt.axis()
         plt.xlim([0, x2])
         locs, labels = plt.xticks()
