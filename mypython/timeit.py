@@ -40,18 +40,18 @@ Maximum time: {maximum}
 {hist}
 """.strip()
 
-def timeit_format(times):
+def timeit_format(times, expr):
     number = len(times)
     time_taken = sum(times)
     avg = format_time(time_taken/number)
     s = 's' if number > 1 else ''
     minimum = format_time(min(times))
     maximum = format_time(max(times))
-    hist = timeit_histogram(times)
+    hist = timeit_histogram(times, expr)
     return TIME_REPORT_TEMPLATE.format(number=number, avg=avg, s=s,
         minimum=minimum, maximum=maximum, hist=hist)
 
-def timeit_histogram(times):
+def timeit_histogram(times, expr):
     try:
         import matplotlib.pyplot as plt
     except ImportError:
@@ -64,15 +64,25 @@ def timeit_histogram(times):
 
     try:
         plt.interactive(False)
-        plt.figure(figsize=(2, 1.5), dpi=300)
         ax = plt.gca()
+        fig2, ax2 = plt.subplots()
+        plt.figure(figsize=(2, 1.5), dpi=300)
+
         # rug plots are too slow for large number of data points
         extra = dict(rug=True, rug_kws={"lw": .2}) if len(times) < 1024 else {}
-        sns.distplot(times, kde_kws={"lw": .5}, **extra)
+        if len(times) == 1:
+            # Workaround a bug in seaborn https://github.com/mwaskom/seaborn/issues/1256
+            times = times*2
+        # Workaround seaborn forcing normalization with kde=True
+        # https://github.com/mwaskom/seaborn/issues/479
+        sns.distplot(times, kde_kws={'lw': .5}, color='b', **extra)
+        sns.distplot(times, ax=ax2, kde=False, norm_hist=False, color='b', **extra)
+        ax.yaxis = ax2.yaxis
         b = BytesIO()
         ax.ticklabel_format(style='plain', axis='both', useOffset=False)
         plt.xlabel("Time", fontsize=6)
         plt.ylabel("Runs", fontsize=6)
+        plt.title("%%timeit {expr}".format(expr=expr), fontsize=6)
         x1,x2,y1,y2 = plt.axis()
         plt.xlim([0, x2])
         locs, labels = plt.xticks()
