@@ -484,6 +484,7 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None,
         # is fixed.
         complete_while_typing=False,
         on_text_insert=on_text_insert,
+        tempfile_suffix='.py',
         )
     application = Application(
         create_prompt_layout(
