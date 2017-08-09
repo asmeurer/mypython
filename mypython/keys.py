@@ -27,8 +27,8 @@ def get_registry():
             # Not using now but may in the future
             enable_auto_suggest_bindings=True,
             enable_extra_page_navigation=True,
-            # Needs prompt_toolkit release
-            # enable_open_in_editor=True,
+            # C-x C-e
+            enable_open_in_editor=True,
             enable_system_bindings=True,
         ),
         custom_bindings_registry,
