@@ -27,8 +27,8 @@ def get_registry():
             # Not using now but may in the future
             enable_auto_suggest_bindings=True,
             enable_extra_page_navigation=True,
-            # C-x C-e
-            enable_open_in_editor=True,
+            # Custom one defined below, without execute
+            enable_open_in_editor=False,
             enable_system_bindings=True,
         ),
         custom_bindings_registry,
@@ -550,3 +550,7 @@ def comment(event):
     else:
         buffer.cursor_position += 2*(cursor_line - start_line + 1)
     buffer.text = new_text
+
+@r.add_binding(Keys.ControlX, Keys.ControlE)
+def open_in_editor(event):
+    event.current_buffer.open_in_editor(event.cli)
