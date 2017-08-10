@@ -33,13 +33,13 @@ def matching_parens(s):
     >>> matching
     [
       (
-        TokenInfo(type=53 (OP), string='(', start=(1, 7), end=(1, 8), line="('a', {(1, 2)}, ]"),
-        TokenInfo(type=53 (OP), string=')', start=(1, 12), end=(1, 13), line="('a', {(1, 2)}, ]")
-      ),
-      (
         TokenInfo(type=53 (OP), string='{', start=(1, 6), end=(1, 7), line="('a', {(1, 2)}, ]"),
         TokenInfo(type=53 (OP), string='}', start=(1, 13), end=(1, 14), line="('a', {(1, 2)}, ]")
       )
+      (
+        TokenInfo(type=53 (OP), string='(', start=(1, 7), end=(1, 8), line="('a', {(1, 2)}, ]"),
+        TokenInfo(type=53 (OP), string=')', start=(1, 12), end=(1, 13), line="('a', {(1, 2)}, ]")
+      ),
     ]
     >>> mismatching
     [
@@ -78,6 +78,8 @@ def matching_parens(s):
         pass
     except IndentationError:
         pass
+
+    matching.reverse()
 
     # Anything remaining on the stack is mismatching. Keep the mismatching
     # list in order.
