@@ -35,10 +35,10 @@ def matching_parens(s, allow_intermediary_mismatches=True):
     closed with the wrong brace it, and any unclosed braces before it, cannot
     be matched.
 
-    For example, consider '( { ) }'. If allow_intermediary_mismatches is
+    For example, consider '[ { ] }'. If allow_intermediary_mismatches is
     False, all the braces are considered mismatched. However, if it is True,
-    the { and } are considered matching. Furthermore, with '( { ) } )' only
-    the middle ) will be considered mismatched (with False, all would be
+    the { and } are considered matching. Furthermore, with '[ { ] } ]' only
+    the middle ] will be considered mismatched (with False, all would be
     mismatched).
 
     allow_intermediary_mismatches=False is a more technically correct version,
