@@ -19,6 +19,34 @@ braces = {
 
 def matching_parens(s):
     """
+    Find matching and mismatching parentheses and braces
+
+    Returns matching, mismatching
+
+    matching is a list of tuples of matching TokenInfo objects for matching
+    parentheses/braces.
+
+    mismatching is a list of TokenInfo objects for mismatching
+    parentheses/braces.
+
+    >>> matching, mismatching = matching_parens("('a', {(1, 2)}, ]")
+    >>> matching
+    [
+      (
+        TokenInfo(type=53 (OP), string='(', start=(1, 7), end=(1, 8), line="('a', {(1, 2)}, ]"),
+        TokenInfo(type=53 (OP), string=')', start=(1, 12), end=(1, 13), line="('a', {(1, 2)}, ]")
+      ),
+      (
+        TokenInfo(type=53 (OP), string='{', start=(1, 6), end=(1, 7), line="('a', {(1, 2)}, ]"),
+        TokenInfo(type=53 (OP), string='}', start=(1, 13), end=(1, 14), line="('a', {(1, 2)}, ]")
+      )
+    ]
+    >>> mismatching
+    [
+      TokenInfo(type=53 (OP), string='(', start=(1, 0), end=(1, 1), line="('a', {(1, 2)}, ]"),
+      TokenInfo(type=53 (OP), string=']', start=(1, 16), end=(1, 17), line="('a', {(1, 2)}, ]")
+    ]
+
     """
     input_code = io.BytesIO(s.encode('utf-8'))
     stack = []
