@@ -17,7 +17,7 @@ braces = {
     LBRACE: RBRACE,
     }
 
-def matching_parens(s):
+def matching_parens(s, allow_intermediary_mismatches=True):
     """
     Find matching and mismatching parentheses and braces
 
@@ -28,6 +28,23 @@ def matching_parens(s):
 
     mismatching is a list of TokenInfo objects for mismatching
     parentheses/braces.
+
+    allow_intermediary_mismatches should be True (the default), or False. If
+    it is True, an opening brace can still be considered matching if it is
+    closed with the wrong brace. If it is False, once an opening brace is
+    closed with the wrong brace it, and any unclosed braces before it, cannot
+    be matched.
+
+    For example, consider '( { ) }'. If allow_intermediary_mismatches is
+    False, all the braces are considered mismatched. However, if it is True,
+    the { and } are considered matching. Furthermore, with '( { ) } )' only
+    the middle ) will be considered mismatched (with False, all would be
+    mismatched).
+
+    allow_intermediary_mismatches=False is a more technically correct version,
+    but allow_intermediary_mismatches=True may provide more useful feedback if
+    mismatching braces are highlighted, as it is more likely to only highlight
+    the "mistake" braces.
 
     >>> matching, mismatching = matching_parens("('a', {(1, 2)}, ]")
     >>> matching
@@ -70,8 +87,11 @@ def matching_parens(s):
                 if braces[prevtoken.exact_type] == exact_type:
                     matching.append((prevtoken, token))
                 else:
+                    if allow_intermediary_mismatches:
+                        stack.append(prevtoken)
+                    else:
+                        mismatching.insert(0, prevtoken)
                     mismatching.append(token)
-                    stack.append(prevtoken)
             else:
                 continue
     except TokenError:

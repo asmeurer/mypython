@@ -61,6 +61,59 @@ def test_matching_parens():
         []
     )
 
+    s = "({})"
+    assert _tokenvals(*matching_parens(s)) == (
+        [
+            ((1, 0), (1, 3)),
+            ((1, 1), (1, 2)),
+        ],
+        []
+    )
+
+    s = "({)}"
+    assert _tokenvals(*matching_parens(s, allow_intermediary_mismatches=False)) == (
+        [],
+        [
+            (1, 0),
+            (1, 1),
+            (1, 2),
+            (1, 3),
+        ]
+    )
+
+    s = "({)}"
+    assert _tokenvals(*matching_parens(s, allow_intermediary_mismatches=True)) == (
+        [
+            ((1, 1), (1, 3))
+        ],
+        [
+            (1, 0),
+            (1, 2),
+        ]
+    )
+
+    s = "({)})"
+    assert _tokenvals(*matching_parens(s, allow_intermediary_mismatches=False)) == (
+        [],
+        [
+            (1, 0),
+            (1, 1),
+            (1, 2),
+            (1, 3),
+            (1, 4),
+        ]
+    )
+
+    s = "({)})"
+    assert _tokenvals(*matching_parens(s, allow_intermediary_mismatches=True)) == (
+        [
+            ((1, 0), (1, 4)),
+            ((1, 1), (1, 3)),
+        ],
+        [
+            (1, 2),
+        ]
+    )
 
 def test_inside_string():
     s = "1 + 2 + 'abc'"
