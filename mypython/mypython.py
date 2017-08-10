@@ -613,13 +613,16 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
     prompt_number = 1
     while True:
         try:
+            _history = history
+
             if CMD_QUEUE:
                 _input = PipeInput()
                 _input.send_text(CMD_QUEUE.popleft())
-                _history = None
+                if cmd:
+                    # Don't store --cmd in the history
+                    _history = cmd = None
             else:
                 _input = None
-                _history = history
 
             cli = get_cli(history=_history, _locals=_locals, _globals=_globals,
                     registry=registry, _input=_input, IN_OUT=(IN, OUT))

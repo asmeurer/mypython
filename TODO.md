@@ -31,7 +31,6 @@
 - C-M-b and so on
 - Tests for command queue
 - Tests for prompt stripping pasting
-- History for pasted text
 - Emoji prompts not being cleared on paste
 - debug mode always says error from mypython
 - Completion is too damn slow
