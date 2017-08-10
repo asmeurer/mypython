@@ -591,7 +591,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
     quiet=False, cmd=None, history_file=None):
 
     if cmd:
-        CMD_QUEUE.append(cmd)
+        CMD_QUEUE.append(cmd + '\n')
     if not history_file:
         try:
             tty_name = os.path.basename(os.ttyname(sys.stdout.fileno()))
@@ -615,7 +615,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
         try:
             if CMD_QUEUE:
                 _input = PipeInput()
-                _input.send_text(CMD_QUEUE.popleft() + '\n')
+                _input.send_text(CMD_QUEUE.popleft())
                 _history = None
             else:
                 _input = None
