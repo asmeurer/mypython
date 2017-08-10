@@ -61,6 +61,12 @@ def test_matching_parens():
         []
     )
 
+    s = "'('"
+    assert _tokenvals(*matching_parens(s)) == ([], [])
+
+    s = "')'"
+    assert _tokenvals(*matching_parens(s)) == ([], [])
+
     s = "({})"
     assert _tokenvals(*matching_parens(s)) == (
         [
@@ -113,6 +119,15 @@ def test_matching_parens():
         [
             (1, 2),
         ]
+    )
+
+    # Test IndentationError
+    s = 'def test():\n    if 1:\n  if 1:'
+    assert _tokenvals(*matching_parens(s)) == (
+        [
+            ((1, 8), (1, 9)),
+        ],
+        []
     )
 
 def test_inside_string():

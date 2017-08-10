@@ -18,7 +18,6 @@
 - Tests for multiline history search
 - Deleting selected text messes up indentation (https://github.com/jonathanslenders/python-prompt-toolkit/issues/324)
 - pudb inside mypython doesn't work
-  - Test parentheses matching
 - >>> stripping should also strip outputs
 - Test >>> stripping
 - Cursor position with M-;
