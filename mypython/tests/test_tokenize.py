@@ -1,4 +1,38 @@
-from ..tokenize import inside_string, is_multiline_python
+from ..tokenize import matching_parens, inside_string, is_multiline_python
+
+def test_matching_parens():
+    def _tokenvals(matching, mismatching):
+        _matching = [tuple(j.start for j in i) for i in matching]
+        _mismatching = [i.start for i in mismatching]
+        return _matching, _mismatching
+
+    s = "(())"
+    assert _tokenvals(*matching_parens(s)) == (
+        [
+            ((1, 0), (1, 3)),
+            ((1, 1), (1, 2))
+        ],
+        []
+    )
+
+    s = "(()))"
+    assert _tokenvals(*matching_parens(s)) == (
+        [
+            ((1, 0), (1, 3)),
+            ((1, 1), (1, 2))
+        ],
+        [(1, 4)]
+    )
+
+    s = "((())"
+    assert _tokenvals(*matching_parens(s)) == (
+        [
+            ((1, 1), (1, 4)),
+            ((1, 2), (1, 3))
+        ],
+        [(1, 0)]
+    )
+
 
 def test_inside_string():
     s = "1 + 2 + 'abc'"
