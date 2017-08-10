@@ -6,31 +6,59 @@ def test_matching_parens():
         _mismatching = [i.start for i in mismatching]
         return _matching, _mismatching
 
-    s = "(())"
+    open_close = ['()', '[]', '{}']
+
+    S = "(())"
+    for o, c in open_close:
+        s = S.replace('(', o).replace(')', c)
+        assert _tokenvals(*matching_parens(s)) == (
+            [
+                ((1, 0), (1, 3)),
+                ((1, 1), (1, 2))
+            ],
+            []
+        )
+
+    S = "(()))"
+    for o, c in open_close:
+        s = S.replace('(', o).replace(')', c)
+        assert _tokenvals(*matching_parens(s)) == (
+            [
+                ((1, 0), (1, 3)),
+                ((1, 1), (1, 2))
+            ],
+            [(1, 4)]
+        )
+
+    S = "((())"
+    for o, c in open_close:
+        s = S.replace('(', o).replace(')', c)
+        assert _tokenvals(*matching_parens(s)) == (
+            [
+                ((1, 1), (1, 4)),
+                ((1, 2), (1, 3))
+            ],
+            [(1, 0)]
+        )
+
+    s = "(')"
+    assert _tokenvals(*matching_parens(s)) == (
+        [],
+        [(1, 0)]
+    )
+
+    s = '(")'
+    assert _tokenvals(*matching_parens(s)) == (
+        [],
+        [(1, 0)]
+    )
+
+    s = "('()')"
     assert _tokenvals(*matching_parens(s)) == (
         [
-            ((1, 0), (1, 3)),
-            ((1, 1), (1, 2))
+            ((1, 0), (1, 5))
         ],
         []
-    )
-
-    s = "(()))"
-    assert _tokenvals(*matching_parens(s)) == (
-        [
-            ((1, 0), (1, 3)),
-            ((1, 1), (1, 2))
-        ],
-        [(1, 4)]
-    )
-
-    s = "((())"
-    assert _tokenvals(*matching_parens(s)) == (
-        [
-            ((1, 1), (1, 4)),
-            ((1, 2), (1, 3))
-        ],
-        [(1, 0)]
     )
 
 
