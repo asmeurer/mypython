@@ -548,7 +548,7 @@ def mypython_excepthook(etype, value, tb):
         print(highlight(tb_str, Python3TracebackLexer(),
             TerminalTrueColorFormatter(style=OneAMStyle)),
             file=sys.stderr, end='')
-        if mypython_dir in tb_str:
+        if not DEBUG and mypython_dir in tb_str:
             print_tokens([(Token.Newline, '\n'), (Token.InternalError,
                 "!!!!!! ERROR from mypython !!!!!!")],
                 style=style_from_dict({Token.InternalError: "#ansired"}),
