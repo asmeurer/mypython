@@ -120,6 +120,23 @@ def backward_word(event):
             return
     event.current_buffer.cursor_position = 0
 
+@r.add_binding(Keys.Escape, Keys.ControlF)
+def forward_sexp(event):
+    buffer = event.current_buffer
+    document = buffer.document
+    text = buffer.text
+
+    row, col = document.translate_index_to_position(buffer.cursor_position)
+    row += 1
+    matching, mismatching = matching_parens(text)
+
+    for opening, closing in matching:
+        if opening[0].start == (row, col):
+            new_pos = document.translate_row_col_to_index(opening[1].start)
+            buffer.cursor_position = new_pos
+            return
+    # TODO: BEEP
+
 @r.add_binding(Keys.Escape, 'd')
 def kill_word(event):
     buffer = event.current_buffer
