@@ -106,6 +106,20 @@ def forward_word(event):
             event.current_buffer.cursor_position = m.end(0)
             return
 
+@r.add_binding(Keys.Escape, 'b') # Keys.Escape, Keys.Left
+def backward_word(event):
+    """
+    Move back one paragraph of text
+    """
+    text = event.current_buffer.text
+    cursor_position = event.current_buffer.cursor_position
+
+    for m in reversed(list(WORD.finditer(text))):
+        if m.start(0) <  cursor_position:
+            event.current_buffer.cursor_position = m.start(0)
+            return
+    event.current_buffer.cursor_position = 0
+
 @r.add_binding(Keys.Escape, 'd')
 def kill_word(event):
     buffer = event.current_buffer
@@ -120,20 +134,6 @@ def kill_word(event):
     if pos:
         deleted = buffer.delete(count=pos)
         event.cli.clipboard.set_text(deleted)
-
-@r.add_binding(Keys.Escape, 'b') # Keys.Escape, Keys.Left
-def backward_word(event):
-    """
-    Move back one paragraph of text
-    """
-    text = event.current_buffer.text
-    cursor_position = event.current_buffer.cursor_position
-
-    for m in reversed(list(WORD.finditer(text))):
-        if m.start(0) <  cursor_position:
-            event.current_buffer.cursor_position = m.start(0)
-            return
-    event.current_buffer.cursor_position = 0
 
 @r.add_binding(Keys.Escape, Keys.Backspace)
 def backward_kill_word(event):
