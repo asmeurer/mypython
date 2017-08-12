@@ -11,7 +11,7 @@ from prompt_toolkit.terminal.vt100_input import ANSI_SEQUENCES
 
 from .multiline import (auto_newline, TabShouldInsertWhitespaceFilter,
     document_is_multiline_python)
-from .tokenize import inside_string
+from .tokenize import inside_string, matching_parens
 from .theme import emoji
 
 import re
@@ -131,11 +131,11 @@ def forward_sexp(event):
     matching, mismatching = matching_parens(text)
 
     for opening, closing in matching:
-        if opening[0].start == (row, col):
-            new_pos = document.translate_row_col_to_index(opening[1].start)
+        if opening.start == (row, col):
+            new_pos = document.translate_row_col_to_index(*closing.end)
             buffer.cursor_position = new_pos
             return
-    # TODO: BEEP
+    event.cli.output.bell()
 
 @r.add_binding(Keys.Escape, 'd')
 def kill_word(event):
