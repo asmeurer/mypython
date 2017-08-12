@@ -132,7 +132,24 @@ def forward_sexp(event):
 
     for opening, closing in matching:
         if opening.start == (row, col):
-            new_pos = document.translate_row_col_to_index(*closing.end)
+            new_pos = document.translate_row_col_to_index(closing.end[0]-1, closing.end[1])
+            buffer.cursor_position = new_pos
+            return
+    event.cli.output.bell()
+
+@r.add_binding(Keys.Escape, Keys.ControlB)
+def backward_sexp(event):
+    buffer = event.current_buffer
+    document = buffer.document
+    text = buffer.text
+
+    row, col = document.translate_index_to_position(buffer.cursor_position)
+    row += 1
+    matching, mismatching = matching_parens(text)
+
+    for opening, closing in matching:
+        if closing.end == (row, col):
+            new_pos = document.translate_row_col_to_index(opening.start[0]-1, opening.start[1])
             buffer.cursor_position = new_pos
             return
     event.cli.output.bell()
