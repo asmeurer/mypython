@@ -27,7 +27,6 @@
 - Magics at end of multiline?
 - Python 3.6
 - Mypython doesn't run in the current conda env
-- C-M-b and so on
 - Tests for command queue
 - Tests for prompt stripping pasting
 - Emoji prompts not being cleared on paste
