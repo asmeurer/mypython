@@ -31,3 +31,4 @@
 - Tests for prompt stripping pasting
 - Emoji prompts not being cleared on paste
 - Completion is too damn slow
+- Also strip IPython-style prompts on paste
