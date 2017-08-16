@@ -484,6 +484,10 @@ PROMPTED_TEXT_RE = re.compile(r'''(?mx) # Multiline and verbose
                                                   # matched, this is a special
                                                   # marker group that will match
                                                   # the empty string.
+                                                  # Otherwise it will not
+                                                  # match (because all \r's
+                                                  # have been stripped from
+                                                  # the string).
 
     (?P<line>.*)                                  # The actual line
 '''.format(PS1_PROMPTS_RE=PS1_PROMPTS_RE, PS2_PROMPTS_RE=PS2_PROMPTS_RE))
