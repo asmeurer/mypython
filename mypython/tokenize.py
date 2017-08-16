@@ -52,11 +52,11 @@ def matching_parens(s, allow_intermediary_mismatches=True):
       (
         TokenInfo(type=53 (OP), string='{', start=(1, 6), end=(1, 7), line="('a', {(1, 2)}, ]"),
         TokenInfo(type=53 (OP), string='}', start=(1, 13), end=(1, 14), line="('a', {(1, 2)}, ]")
-      )
+      ),
       (
         TokenInfo(type=53 (OP), string='(', start=(1, 7), end=(1, 8), line="('a', {(1, 2)}, ]"),
         TokenInfo(type=53 (OP), string=')', start=(1, 12), end=(1, 13), line="('a', {(1, 2)}, ]")
-      ),
+      )
     ]
     >>> mismatching
     [
