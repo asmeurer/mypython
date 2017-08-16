@@ -503,14 +503,18 @@ def prompt_repl(match):
         return '\r' + match.group('line')
     return match.group('line')
 
-def split_prompts(text):
-    """
+def split_prompts(text, indent=''):
+    r"""
     Takes text copied from mypython, Python, or IPython session and returns a
     list of inputs
 
     Outputs are stripped. If no prompts are found the text is left alone.
 
-    Example
+    The resulting text is indented by indent, except for the first line.
+
+    It is assumed that the text contains no carriage returns (\r).
+
+    Example:
 
     >>> split_prompts('''
     ... In [1]: a = 1
@@ -522,9 +526,17 @@ def split_prompts(text):
     ...    ...:     pass
     ...   ...:
     ... ''')
-    ['a = 1\n', 'a\n', 'def test():\n    pass\n']
-    """
 
+    ['a = 1\n', 'a\n', 'def test():\n    pass\n']
+
+    """
+    text = textwrap.dedent(text).strip()
+    text = PROMPTED_TEXT_RE.sub(prompt_repl, text).strip()
+    text = textwrap.indent(text, indent,
+        # Don't indent the first line, it's already indented
+        lambda line, _x=[]: bool(_x or _x.append(1)))
+
+    return text.split('\r')
 
 @r.add_binding(Keys.BracketedPaste)
 def bracketed_paste(event):
