@@ -503,6 +503,29 @@ def prompt_repl(match):
         return '\r' + match.group('line')
     return match.group('line')
 
+def split_prompts(text):
+    """
+    Takes text copied from mypython, Python, or IPython session and returns a
+    list of inputs
+
+    Outputs are stripped. If no prompts are found the text is left alone.
+
+    Example
+
+    >>> split_prompts('''
+    ... In [1]: a = 1
+    ...
+    ... In [2]: a
+    ... Out[2]: 1
+    ...
+    ... In [3]: def test():
+    ...    ...:     pass
+    ...   ...:
+    ... ''')
+    ['a = 1\n', 'a\n', 'def test():\n    pass\n']
+    """
+
+
 @r.add_binding(Keys.BracketedPaste)
 def bracketed_paste(event):
     from .mypython import CMD_QUEUE
