@@ -474,9 +474,9 @@ ps1_prompts = [r'>>>\ '] + [i*3 + r'\[\d+\]:\ ' for i, j in emoji] + [r'In\ \[\d
 ps2_prompts = [r'\.\.\.\ ', '\N{CLAPPING HANDS SIGN}+⎢'] + [r'\ +\.\.\.:\ ']
 PS1_PROMPTS_RE = re.compile('|'.join(ps1_prompts))
 PS2_PROMPTS_RE = re.compile('|'.join(ps2_prompts))
-PROMPTED_TEXT_RE = re.compile(r'''(?mx) # Multiline and verbose
+PROMPTED_TEXT_RE = re.compile(r'''(?x) # Multiline and verbose
 
-    ^(?P<prompt>
+    (?P<prompt>
         (?P<ps1prompt>{PS1_PROMPTS_RE.pattern})   # Match prompts at the front
       | (?P<ps2prompt>{PS2_PROMPTS_RE.pattern}))? # of the line.
 
@@ -489,7 +489,7 @@ PROMPTED_TEXT_RE = re.compile(r'''(?mx) # Multiline and verbose
                                                   # have been stripped from
                                                   # the string).
 
-    (?P<line>.*)                                  # The actual line.
+    (?P<line>.*)\n                                # The actual line.
 '''.format(PS1_PROMPTS_RE=PS1_PROMPTS_RE, PS2_PROMPTS_RE=PS2_PROMPTS_RE))
 
 def prompt_repl(match):
@@ -500,9 +500,9 @@ def prompt_repl(match):
     """
     # TODO: Remove the lines with no prompt
     if match.group('ps1prompt') is not None:
-        return '\r' + match.group('line')
+        return '\r' + match.group('line') + '\n'
     elif match.group('ps2prompt') is not None:
-        return match.group('line')
+        return match.group('line') + '\n'
     return ''
 
 def split_prompts(text, indent=''):
@@ -531,8 +531,8 @@ def split_prompts(text, indent=''):
     ['a = 1\n', 'a\n', 'def test():\n    pass\n']
 
     """
-    text = textwrap.dedent(text).strip()
-    text = PROMPTED_TEXT_RE.sub(prompt_repl, text).strip()
+    text = textwrap.dedent(text).strip() + '\n'
+    text = PROMPTED_TEXT_RE.sub(prompt_repl, text).lstrip()
     text = textwrap.indent(text, indent,
         # Don't indent the first line, it's already indented
         lambda line, _x=[]: bool(_x or _x.append(1)))
