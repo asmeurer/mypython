@@ -526,9 +526,9 @@ def split_prompts(text, indent=''):
     ...
     ... In [3]: def test():
     ...    ...:     pass
-    ...   ...:
+    ...    ...:
     ... ''')
-    ['a = 1\n', 'a\n', 'def test():\n    pass\n']
+    ['a = 1\n', 'a\n', 'def test():\n    pass\n\n']
 
     """
     text = textwrap.dedent(text).strip() + '\n'
@@ -537,7 +537,13 @@ def split_prompts(text, indent=''):
         # Don't indent the first line, it's already indented
         lambda line, _x=[]: bool(_x or _x.append(1)))
 
-    return text.split('\r')
+    lines = text.split('\r')
+    # Make sure multilines end in two newlines
+    for i, line in enumerate(lines):
+        if '\n' in line.rstrip():
+            lines[i] += '\n'
+
+    return lines
 
 @r.add_binding(Keys.BracketedPaste)
 def bracketed_paste(event):
