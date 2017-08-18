@@ -560,17 +560,11 @@ def bracketed_paste(event):
     if not inside_string(event.current_buffer.text, row, col):
         indent = LEADING_WHITESPACE.match(document.current_line_before_cursor)
         current_line_indent = indent.group(1) if indent else ''
-        dedented_data = textwrap.dedent(data).strip()
-        # From the above, the data does not contain \r, so use that as a
-        # marker to split out separate prompts.
-        dedented_data = PROMPTED_TEXT_RE.sub(prompt_repl, dedented_data).strip()
-        data = textwrap.indent(dedented_data, current_line_indent,
-            # Don't indent the first line, it's already indented
-            lambda line, _x=[]: bool(_x or _x.append(1)))
+        lines = split_prompts(data, current_line_indent)
 
-    event.current_buffer.insert_text(data.split('\r')[0])
+    event.current_buffer.insert_text(lines[0])
 
-    for text in data.split('\r')[1:]:
+    for text in lines[1:]:
         # TODO: Send last chunk as bracketed paste, so it can be edited
         CMD_QUEUE.append(text)
     if CMD_QUEUE:
