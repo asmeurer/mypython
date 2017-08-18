@@ -189,7 +189,7 @@ prompt_style = {
     Token.OutNumber: '#ansiblue',
     Token.OutColon: '#ansired',
     Token.VerticalLine: '#757575', # grey50
-    }
+}
 
 style_extra = {
     Token.MatchingBracket.Cursor:    "bg:#0000ff", # blue
