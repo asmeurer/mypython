@@ -7,7 +7,7 @@ from prompt_toolkit.input import PipeInput
 from .test_mypython import _cli_with_input
 
 UP_TO_TAB = re.compile('[^\t]*\t?')
-def _input_with_tabs(text, _input, sleep_time=0.6):
+def _input_with_tabs(text, _input, sleep_time=0.7):
     """
     Send the input with a pause after tabs, to allow the (async) completion
     happen.
