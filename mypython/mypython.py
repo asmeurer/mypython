@@ -164,7 +164,7 @@ class PythonSyntaxValidator(Validator):
             else:
                 magic, text = text.split(' ', 1)
                 text = text.lstrip()
-        offset = len(document.text.split('\n')[0]) - len(text.split('\n')[0])
+        offset = len(text.split('\n')[0]) - len(text.split('\n')[0])
         try:
             compile(text, "<None>", 'exec')
         except SyntaxError as e:
