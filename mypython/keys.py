@@ -531,6 +531,8 @@ def split_prompts(text, indent=''):
     ['a = 1\n', 'a\n', 'def test():\n    pass\n\n']
 
     """
+    from .mypython import validate_text
+
     text = textwrap.dedent(text).strip() + '\n'
     text = PROMPTED_TEXT_RE.sub(prompt_repl, text).lstrip()
     text = textwrap.indent(text, indent,
@@ -540,6 +542,12 @@ def split_prompts(text, indent=''):
     lines = text.split('\r')
     # Make sure multilines end in two newlines
     for i, line in enumerate(lines):
+        try:
+            validate_text(line)
+        except SyntaxError:
+            # If there is a syntax error, we can't use the CMD_QUEUE (it
+            # breaks things).
+            return ['\n'.join(lines)]
         if '\n' in line.rstrip():
             lines[i] += '\n'
 
