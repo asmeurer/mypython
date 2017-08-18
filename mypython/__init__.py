@@ -7,9 +7,9 @@ __all__ = ['validate_text', 'PythonSyntaxValidator', 'get_continuation_tokens', 
     'get_in_prompt_tokens', 'get_out_prompt_tokens', 'NoResult', 'smart_eval',
     'normalize', 'startup', 'execute_command', 'run_shell', 'myhelp', 'getsource']
 
-from .keys import get_registry, custom_bindings_registry
+from .keys import get_registry, custom_bindings_registry, split_prompts
 
-__all__ += ['get_registry', 'custom_bindings_registry']
+__all__ += ['get_registry', 'custom_bindings_registry', 'split_prompts']
 
 from .theme import OneAMStyle
 
