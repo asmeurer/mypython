@@ -493,7 +493,7 @@ PROMPTED_TEXT_RE = re.compile(r'''(?mx) # Multiline and verbose
 '''.format(PS1_PROMPTS_RE=PS1_PROMPTS_RE, PS2_PROMPTS_RE=PS2_PROMPTS_RE))
 
 def prompt_repl(match):
-    """
+    r"""
     repl function for re.sub for clearing prompts
 
     Replaces PS1 prompts with \r and removes PS2 prompts.
