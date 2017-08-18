@@ -21,7 +21,7 @@ def matching_parens(s, allow_intermediary_mismatches=True):
     """
     Find matching and mismatching parentheses and braces
 
-    Returns matching, mismatching
+    Returns a tuple (matching, mismatching).
 
     matching is a list of tuples of matching TokenInfo objects for matching
     parentheses/braces.
@@ -29,40 +29,70 @@ def matching_parens(s, allow_intermediary_mismatches=True):
     mismatching is a list of TokenInfo objects for mismatching
     parentheses/braces.
 
-    allow_intermediary_mismatches should be True (the default), or False. If
+    allow_intermediary_mismatches can be True (the default), or False. If
     it is True, an opening brace can still be considered matching if it is
     closed with the wrong brace. If it is False, once an opening brace is
     closed with the wrong brace it, and any unclosed braces before it, cannot
     be matched.
 
     For example, consider '[ { ] }'. If allow_intermediary_mismatches is
-    False, all the braces are considered mismatched. However, if it is True,
-    the { and } are considered matching. Furthermore, with '[ { ] } ]' only
-    the middle ] will be considered mismatched (with False, all would be
-    mismatched).
+    False, all the braces are considered mismatched.
+
+        >>> matching, mismatching = matching_parens('[ { ] }',
+        ... allow_intermediary_mismatches=False)
+        >>> matching
+        []
+        >>> mismatching
+        [TokenInfo(..., string='[', ...),
+         TokenInfo(..., string='{', ...),
+         TokenInfo(..., string=']', ...),
+         TokenInfo(..., string='}', ...)]
+
+    However, if it is True, the { and } are considered matching.
+
+        >>> matching, mismatching = matching_parens('[ { ] }',
+        ... allow_intermediary_mismatches=True)
+        >>> matching
+        [(TokenInfo(..., string='{', ...), TokenInfo(..., string='}', ...))]
+        >>> mismatching
+        [TokenInfo(..., string='[', ...),
+         TokenInfo(..., string=']', ...)]
+
+    Furthermore, with '[ { ] } ]' only the middle ] will be considered
+    mismatched (with False, all would be mismatched).
+
+        >>> matching, mismatching = matching_parens('[ { ] } ]',
+        ... allow_intermediary_mismatches=True)
+        >>> matching
+        [(TokenInfo(..., string='[', ...), TokenInfo(..., string=']', start=(1, 8), ...)),
+         (TokenInfo(..., string='{', ...), TokenInfo(..., string='}', ...))]
+        >>> mismatching
+        [TokenInfo(..., string=']', start=(1, 4), ...)]
+
+        >>> matching, mismatching = matching_parens('[ { ] } ]',
+        ... allow_intermediary_mismatches=False)
+        >>> matching
+        []
+        >>> mismatching
+        [TokenInfo(..., string='[', ...),
+         TokenInfo(..., string='{', ...),
+         TokenInfo(..., string=']', ...),
+         TokenInfo(..., string='}', ...),
+         TokenInfo(..., string=']', ...)]
 
     allow_intermediary_mismatches=False is a more technically correct version,
     but allow_intermediary_mismatches=True may provide more useful feedback if
     mismatching braces are highlighted, as it is more likely to only highlight
     the "mistake" braces.
 
-    >>> matching, mismatching = matching_parens("('a', {(1, 2)}, ]")
-    >>> matching
-    [
-      (
-        TokenInfo(type=53 (OP), string='{', start=(1, 6), end=(1, 7), line="('a', {(1, 2)}, ]"),
-        TokenInfo(type=53 (OP), string='}', start=(1, 13), end=(1, 14), line="('a', {(1, 2)}, ]")
-      ),
-      (
-        TokenInfo(type=53 (OP), string='(', start=(1, 7), end=(1, 8), line="('a', {(1, 2)}, ]"),
-        TokenInfo(type=53 (OP), string=')', start=(1, 12), end=(1, 13), line="('a', {(1, 2)}, ]")
-      )
-    ]
-    >>> mismatching
-    [
-      TokenInfo(type=53 (OP), string='(', start=(1, 0), end=(1, 1), line="('a', {(1, 2)}, ]"),
-      TokenInfo(type=53 (OP), string=']', start=(1, 16), end=(1, 17), line="('a', {(1, 2)}, ]")
-    ]
+    Example:
+
+        >>> matching, mismatching = matching_parens("('a', {(1, 2)}, ]")
+        >>> matching
+        [(TokenInfo(..., string='{', ...), TokenInfo(..., string='}', ...)),
+         (TokenInfo(..., string='(', ...), TokenInfo(..., string=')', ...))]
+        >>> mismatching
+        [TokenInfo(..., string='(', ...), TokenInfo(..., string=']', ...)]
 
     """
     input_code = io.BytesIO(s.encode('utf-8'))
