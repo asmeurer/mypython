@@ -477,8 +477,8 @@ PS2_PROMPTS_RE = re.compile('|'.join(ps2_prompts))
 PROMPTED_TEXT_RE = re.compile(r'''(?mx) # Multiline and verbose
 
     ^(?P<prompt>
-        (?P<ps1prompt>{PS1_PROMPTS_RE.pattern})   # Match prompts at the front of the line
-      | (?P<ps2prompt>{PS2_PROMPTS_RE.pattern}))? # Match prompts at the front of the line
+        (?P<ps1prompt>{PS1_PROMPTS_RE.pattern})   # Match prompts at the front
+      | (?P<ps2prompt>{PS2_PROMPTS_RE.pattern}))? # of the line.
 
     (?P<noprompt>(?(prompt)\r|))?                 # If the prompt is not
                                                   # matched, this is a special
@@ -489,7 +489,7 @@ PROMPTED_TEXT_RE = re.compile(r'''(?mx) # Multiline and verbose
                                                   # have been stripped from
                                                   # the string).
 
-    (?P<line>.*)                                  # The actual line
+    (?P<line>.*)                                  # The actual line.
 '''.format(PS1_PROMPTS_RE=PS1_PROMPTS_RE, PS2_PROMPTS_RE=PS2_PROMPTS_RE))
 
 def prompt_repl(match):
