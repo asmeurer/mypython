@@ -526,7 +526,6 @@ def split_prompts(text, indent=''):
     ...    ...:     pass
     ...   ...:
     ... ''')
-
     ['a = 1\n', 'a\n', 'def test():\n    pass\n']
 
     """
