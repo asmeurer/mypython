@@ -389,6 +389,7 @@ del sys
             if image:
                 print_tokens([(Token.Welcome, "Here is a cat:\n")])
                 iterm2_tools.display_image_file(image)
+                print()
 
     sys.displayhook = mypython_displayhook
     sys.excepthook = mypython_excepthook
@@ -595,7 +596,7 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
 CMD_QUEUE = deque()
 
 def run_shell(_globals=_default_globals, _locals=_default_locals, *,
-    quiet=False, cmd=None, history_file=None):
+    quiet=False, cmd=None, history_file=None, cat=False):
 
     if cmd:
         CMD_QUEUE.append(cmd + '\n')
@@ -616,7 +617,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
 
     IN, OUT = random.choice(emoji)
 
-    startup(_globals, _locals, quiet=quiet)
+    startup(_globals, _locals, quiet=quiet, cat=cat)
     prompt_number = 1
     while True:
         try:

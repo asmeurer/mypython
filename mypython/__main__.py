@@ -18,6 +18,8 @@ def main():
         print the startup messages.""")
     parser.add_argument("--doctest-mode", "-d", action="store_true",
         help="""Enable doctest mode. Mimics the default Python prompt.""")
+    parser.add_argument("--cat", action="store_true",
+        help="""Print an image of a cat at startup. Requires catimg to be installed.""")
     parser.add_argument("--debug", "-D", action="store_true",
         help="""Enable debug mode. The same as -c '%%debug'.""")
 
@@ -35,7 +37,7 @@ def main():
     if args.doctest_mode:
         mypython.DOCTEST_MODE = True
 
-    return run_shell(quiet=args.quiet, cmd=args.cmd)
+    return run_shell(quiet=args.quiet, cmd=args.cmd, cat=args.cat)
 
 if __name__ == '__main__':
     main()
