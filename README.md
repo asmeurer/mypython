@@ -49,7 +49,7 @@ without any additional work (unlike REPLs based on readline).
 - SymPy objects automatically pretty print.
 - [Shell integration](https://www.iterm2.com/documentation-shell-integration.html) with iTerm2.
 - GUI Matplotlib plots on macOS work correctly.
-- At startup you get a [cat](https://github.com/asmeurer/catimg).
+- If you use the `--cat` option, at startup you get a [cat](https://github.com/asmeurer/catimg).
 
 And some [other stuff](TODO.md) that I haven't implemented yet.
 
