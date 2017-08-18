@@ -29,7 +29,6 @@
 - Mypython doesn't run in the current conda env
 - Tests for command queue
 - Tests for prompt stripping pasting
-- Emoji prompts not being cleared on paste
 - Completion is too damn slow
 - Also strip IPython-style prompts on paste
 - Yanked text gets removed from kill ring too easily
