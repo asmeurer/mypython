@@ -501,7 +501,9 @@ def prompt_repl(match):
     # TODO: Remove the lines with no prompt
     if match.group('ps1prompt') is not None:
         return '\r' + match.group('line')
-    return match.group('line')
+    elif match.group('ps2prompt') is not None:
+        return match.group('line')
+    return ''
 
 def split_prompts(text, indent=''):
     r"""
