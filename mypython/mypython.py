@@ -151,23 +151,30 @@ def dedent_return_document_handler(cli, buffer):
 
     return AcceptAction.RETURN_DOCUMENT.handler(cli, buffer)
 
+def validate_text(text):
+    """
+    Return None if text is valid, or raise SyntaxError.
+    """
+    if any(text == i + '?' for i in MAGICS):
+        return
+    if text.endswith('?') and not text.endswith('???'):
+        text = text.rstrip('?')
+    elif any(text.startswith(i) for i in MAGICS):
+        if ' ' not in text.splitlines()[0]:
+            text = ''
+        else:
+            magic, text = text.split(' ', 1)
+            text = text.lstrip()
+
+    compile(text, "<None>", 'exec')
+
 class PythonSyntaxValidator(Validator):
     def validate(self, document):
         text = dedent(document.text)
-        if any(text == i + '?' for i in MAGICS):
-            return
-        if text.endswith('?') and not text.endswith('???'):
-            text = text.rstrip('?')
-        elif any(text.startswith(i) for i in MAGICS):
-            if ' ' not in text.splitlines()[0]:
-                text = ''
-            else:
-                magic, text = text.split(' ', 1)
-                text = text.lstrip()
-        offset = len(text.split('\n')[0]) - len(text.split('\n')[0])
         try:
-            compile(text, "<None>", 'exec')
+            validate_text(text)
         except SyntaxError as e:
+            offset = len(text.split('\n')[0]) - len(text.split('\n')[0])
             index = document.translate_row_col_to_index(e.lineno - 1, (e.offset or 1) - 1 + offset)
             raise ValidationError(message="SyntaxError: %s" % e.args[0], cursor_position=index)
 
