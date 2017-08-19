@@ -535,11 +535,9 @@ def split_prompts(text, indent=''):
 
     text = textwrap.dedent(text).strip() + '\n'
     text = PROMPTED_TEXT_RE.sub(prompt_repl, text).lstrip()
-    text = textwrap.indent(text, indent,
-        # Don't indent the first line, it's already indented
-        lambda line, _x=[]: bool(_x or _x.append(1)))
 
     lines = text.split('\r')
+
     # Make sure multilines end in two newlines
     for i, line in enumerate(lines):
         try:
@@ -547,9 +545,17 @@ def split_prompts(text, indent=''):
         except SyntaxError:
             # If there is a syntax error, we can't use the CMD_QUEUE (it
             # breaks things).
-            return ['\n'.join(lines)]
+            lines = ['\n'.join(lines)]
+            break
         if '\n' in line.rstrip():
             lines[i] += '\n'
+
+    lines[0] = textwrap.indent(lines[0], indent,
+        # Don't indent the first line, it's already indented
+        lambda line, _x=[]: bool(_x or _x.append(1)))
+
+    for i in range(1, len(lines)):
+        lines[i] = textwrap.indent(lines[i], indent)
 
     return lines
 
@@ -580,6 +586,8 @@ def bracketed_paste(event):
             lines = [textwrap.indent(data, current_line_indent,
                 # Don't indent the first line, it's already indented
                 lambda line, _x=[]: bool(_x or _x.append(1)))]
+    else:
+        lines = [data]
 
     event.current_buffer.insert_text(lines[0])
 

@@ -1,4 +1,4 @@
-from ..keys import BLANK_LINES, LEADING_WHITESPACE, WORD
+from ..keys import BLANK_LINES, LEADING_WHITESPACE, WORD, split_prompts
 
 def test_blank_lines_re():
     test_text = """\
