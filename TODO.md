@@ -18,7 +18,6 @@
 - Tests for multiline history search
 - Deleting selected text messes up indentation (https://github.com/jonathanslenders/python-prompt-toolkit/issues/324)
 - pudb inside mypython doesn't work
-- Test >>> stripping
 - Cursor position with M-;
 - Load the cat asynchronously
 - Show output with multiline %pudb
@@ -27,7 +26,6 @@
 - Python 3.6
 - Mypython doesn't run in the current conda env
 - Tests for command queue
-- Tests for prompt stripping pasting
 - Completion is too damn slow
 - Yanked text gets removed from kill ring too easily
 - Garbage when pasting multiple lines
