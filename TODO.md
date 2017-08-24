@@ -10,7 +10,6 @@
 - Have to press TAB too many times to complete
 - Spellcheck on NameError
 - Jedi completion within multiline inputs
-- Open command in EDITOR shortcut
 - Better indication when no tab completions are found
 - History browser (like ptpython)
 - Different continuation prompt for soft- and hard-wrapping.
