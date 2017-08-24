@@ -180,8 +180,7 @@ try:
     _val = _smart_eval({rest!r}, globals(), locals(), filename=_filename)
 finally:
     # Exit PuDB cleanly, without entering mypython code
-    if {has_expr}:
-        _pudb._get_debugger().set_quit()
+    _pudb._get_debugger().set_quit()
     del _linecache.cache[_filename]
     del _pudb, _smart_eval, _bdb, _linecache, _filename
 
