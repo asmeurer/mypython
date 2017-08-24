@@ -10,6 +10,7 @@ The magic should return the source that gets run, and not execute any code
 itself.
 """
 
+import ast
 import textwrap
 
 def magic(command):
@@ -153,6 +154,9 @@ def pudb_magic(rest):
     """
     Debug the code with PuDB.
     """
+    p = ast.parse(rest)
+    has_expr = bool(p.body and isinstance(p.body[-1], ast.Expr))
+
     return """\
 from mypython.mypython import smart_eval as _smart_eval
 import pudb as _pudb
@@ -167,17 +171,22 @@ _pudb._get_debugger().breaks.setdefault(_filename, [1])
 # debugger.set_break() because it fails if the file isn't in the linecache.
 _bdb.Breakpoint(_filename, 1, temporary=True)
 _pudb._get_debugger().set_trace(paused=False)
+# TODO: Figure out how to make this work when has_expr=True
+if not {has_expr}:
+    _pudb._get_debugger().mainpyfile = _filename
+    _pudb._get_debugger()._wait_for_mainpyfile = True
 
 try:
     _val = _smart_eval({rest!r}, globals(), locals(), filename=_filename)
 finally:
     # Exit PuDB cleanly, without entering mypython code
-    _pudb._get_debugger().set_quit()
+    if {has_expr}:
+        _pudb._get_debugger().set_quit()
     del _linecache.cache[_filename]
     del _pudb, _smart_eval, _bdb, _linecache, _filename
 
 locals().pop('_val')
-""".format(rest=rest)
+""".format(rest=rest, has_expr=has_expr)
 
 def error_magic(rest):
     """
