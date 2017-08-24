@@ -165,7 +165,7 @@ _filename = '<mypython-pudb-%s>' % (max(In, default=0) + 1)
 _pudb._get_debugger().breaks.setdefault(_filename, [1])
 # Instantiating the Breakpoint class enables the breakpoint. We can't use
 # debugger.set_break() because it fails if the file isn't in the linecache.
-_bdb.Breakpoint(_filename, 1, False, None, None)
+_bdb.Breakpoint(_filename, 1, temporary=True)
 _pudb._get_debugger().set_trace(paused=False)
 
 try:
