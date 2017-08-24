@@ -19,7 +19,6 @@
 - pudb inside mypython doesn't work
 - Cursor position with M-;
 - Load the cat asynchronously
-- Show output with multiline %pudb
 - If pudb crashes mypython crashes
 - Magics at end of multiline?
 - Python 3.6
@@ -28,3 +27,5 @@
 - Completion is too damn slow
 - Yanked text gets removed from kill ring too easily
 - Garbage when pasting multiple lines
+- %pudb wants to call return
+- Get %pudb to quit without having to press 'n' on set_quit()
