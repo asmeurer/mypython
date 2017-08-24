@@ -153,31 +153,31 @@ def pudb_magic(rest):
     """
     Debug the code with PuDB.
     """
-    # See if rest is an expression. This won't work for multiline inputs that
-    # end in expressions.
-    try:
-        compile(rest, 'test', 'eval')
-        expr = True
-    except SyntaxError:
-        expr = False
-
-    if expr:
-        rest = '_val = ' + rest
-        end = 'locals().pop("_val")'
-    else:
-        end = ''
-
     return """\
+from mypython.mypython import smart_eval as _smart_eval
 import pudb as _pudb
-_pudb.set_trace()
+import bdb as _bdb
+import linecache as _linecache
 
-{rest}
+# XXX: Add the prompt number as a mypython builtin
+_filename = '<mypython-pudb-%s>' % (max(In, default=0) + 1)
 
-# Exit PuDB cleanly, without entering mypython code
-_pudb._get_debugger().set_quit()
-del _pudb
-{end}
-""".format(rest=rest, end=end)
+_pudb._get_debugger().breaks.setdefault(_filename, [1])
+# Instantiating the Breakpoint class enables the breakpoint. We can't use
+# debugger.set_break() because it fails if the file isn't in the linecache.
+_bdb.Breakpoint(_filename, 1, False, None, None)
+_pudb._get_debugger().set_trace(paused=False)
+
+try:
+    _val = _smart_eval({rest!r}, globals(), locals(), filename=_filename)
+finally:
+    # Exit PuDB cleanly, without entering mypython code
+    _pudb._get_debugger().set_quit()
+    del _linecache.cache[_filename]
+    del _pudb, _smart_eval, _bdb, _linecache, _filename
+
+locals().pop('_val')
+""".format(rest=rest)
 
 def error_magic(rest):
     """
