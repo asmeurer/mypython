@@ -54,11 +54,11 @@ These could be easier to extend. I required some copy-pasting for these.
   functions, which I use in my custom key binding functions for the arrows and
   M-p/M-P.
 
- Eventually I also implemented some custom history search functionality,
- wherein a history search in a multiline prompt does not consider or affect
- lines above the current one (effectively, I can "merge" prompts from history
- using history search), so I think I would need to have done this eventually
- anyway.
+  Eventually I also implemented some custom history search functionality,
+  wherein a history search in a multiline prompt does not consider or affect
+  lines above the current one (effectively, I can "merge" prompts from history
+  using history search), so I think I would need to have done this eventually
+  anyway.
 
 - I have subclassed the `HighlightMatchingBracketProcessor`. I modified the
   function `_get_positions_to_highlight` so that it only
