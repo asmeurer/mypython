@@ -120,6 +120,39 @@ def backward_word(event):
             return
     event.current_buffer.cursor_position = 0
 
+@r.add_binding(Keys.Escape, 'd')
+def kill_word(event):
+    buffer = event.current_buffer
+    text = buffer.text
+    cursor_position = buffer.cursor_position
+    pos = None
+    for m in WORD.finditer(text):
+        if m.end(0) > cursor_position:
+            pos = m.end(0) - cursor_position
+            break
+
+    if pos:
+        deleted = buffer.delete(count=pos)
+        event.cli.clipboard.set_text(deleted)
+
+@r.add_binding(Keys.Escape, Keys.Backspace)
+def backward_kill_word(event):
+    buffer = event.current_buffer
+    text = buffer.text
+    cursor_position = buffer.cursor_position
+
+    for m in reversed(list(WORD.finditer(text))):
+        if m.start(0) < cursor_position:
+            pos = cursor_position - m.start(0)
+            break
+    else:
+        pos = buffer.cursor_position
+
+    if pos:
+        deleted = buffer.delete_before_cursor(count=pos)
+        event.cli.clipboard.set_text(deleted)
+
+
 @r.add_binding(Keys.Escape, Keys.ControlF)
 def forward_sexp(event):
     buffer = event.current_buffer
@@ -153,38 +186,6 @@ def backward_sexp(event):
             buffer.cursor_position = new_pos
             return
     event.cli.output.bell()
-
-@r.add_binding(Keys.Escape, 'd')
-def kill_word(event):
-    buffer = event.current_buffer
-    text = buffer.text
-    cursor_position = buffer.cursor_position
-    pos = None
-    for m in WORD.finditer(text):
-        if m.end(0) > cursor_position:
-            pos = m.end(0) - cursor_position
-            break
-
-    if pos:
-        deleted = buffer.delete(count=pos)
-        event.cli.clipboard.set_text(deleted)
-
-@r.add_binding(Keys.Escape, Keys.Backspace)
-def backward_kill_word(event):
-    buffer = event.current_buffer
-    text = buffer.text
-    cursor_position = buffer.cursor_position
-
-    for m in reversed(list(WORD.finditer(text))):
-        if m.start(0) < cursor_position:
-            pos = cursor_position - m.start(0)
-            break
-    else:
-        pos = buffer.cursor_position
-
-    if pos:
-        deleted = buffer.delete_before_cursor(count=pos)
-        event.cli.clipboard.set_text(deleted)
 
 @r.add_binding(Keys.Left)
 def left_multiline(event):
