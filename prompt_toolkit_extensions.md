@@ -185,12 +185,10 @@ Things I consider easy to extend. I did not need to copy-paste any code for thes
 Some things that I don't see how to extend, or at least I haven't tried hard
 enough yet.
 
-- Making it so that soft- and hard-wrapped text produce different continuation
-  prompts
-  (https://github.com/jonathanslenders/python-prompt-toolkit/issues/493). I
-  think I could get this, or at least close to this (still not sure about not
-  having the newlines in the text) by creating a custom layout, but that looks
-  like a lot of code to copy, and I haven't attempted it yet.
+- [Making it so that soft- and hard-wrapped text produce different continuation prompts](https://github.com/jonathanslenders/python-prompt-toolkit/issues/493).
+  I think I could get this, or at least close to this (still not sure about
+  not having the newlines in the text) by creating a custom layout, but that
+  looks like a lot of code to copy, and I haven't attempted it yet.
 
 - Making completions work differently in terms of sync/async. This is
   discussed at
