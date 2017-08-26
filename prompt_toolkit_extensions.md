@@ -190,10 +190,8 @@ enough yet.
   not having the newlines in the text) by creating a custom layout, but that
   looks like a lot of code to copy, and I haven't attempted it yet.
 
-- Making completions work differently in terms of sync/async. This is
-  discussed at
-  https://github.com/jonathanslenders/python-prompt-toolkit/issues/497, but
-  the current completion framework is altogether too asynchronous and not
+- [Making completions work differently in terms of sync/async](https://github.com/jonathanslenders/python-prompt-toolkit/issues/497).
+  The current completion framework is altogether too asynchronous and not
   asynchronous enough. You can't force text to block for a bit on completion
   (and there's no apparent way to indicate that there are no completions, as
   opposed to completions are still computing), and you can't get completions
