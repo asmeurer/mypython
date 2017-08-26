@@ -93,7 +93,7 @@ own), and for inspiring many of the features I've implemented.
 
 # License
 
-[MIT](LICENSE.md).
+[MIT](LICENSE).
 
 Licenses for code taken and modified from ptpython, IPython, prompt-toolkit,
 SymPy, and the Python standard library are at the top of the respective files.
