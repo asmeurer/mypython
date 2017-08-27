@@ -262,6 +262,11 @@ def accept_after_history_backward(event):
 def insert_newline(event):
     event.current_buffer.newline()
 
+@r.add_binding(Keys.ControlO)
+def open_line(event):
+    event.current_buffer.newline(copy_margin=False)
+    event.current_buffer.cursor_left()
+
 # M-[ a g is set to S-Enter in iTerm2 settings
 Keys.ShiftEnter = Key("<Shift-Enter>")
 ANSI_SEQUENCES['\x1b[ag'] = Keys.ShiftEnter
