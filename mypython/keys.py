@@ -314,25 +314,51 @@ def just_one_space(event):
 
 @r.add_binding(Keys.ControlX, Keys.ControlO)
 def delete_blank_lines(event):
+    """
+    On blank line, delete all surrounding blank lines, leaving just one.
+    On isolated blank line, delete that one.
+    On nonblank line, delete any immediately following blank lines.
+    """
     buffer = event.cli.current_buffer
+    document = buffer.document
+    lines_up_to_current = document.lines[:document.cursor_position_row+1]
+    lines_after_current = document.lines[document.cursor_position_row+1:]
 
-    before_cursor = buffer.text[:buffer.cursor_position]
-    after_cursor = buffer.text[buffer.cursor_position:]
+    blank_lines_before = 0
+    for line in lines_up_to_current[::-1]:
+        if not line.strip():
+            blank_lines_before += 1
+        else:
+            break
 
-    before_cursor_lines = before_cursor.splitlines()
-    after_cursor_lines = after_cursor.splitlines()
+    blank_lines_after = 0
+    for line in lines_after_current:
+        if not line.strip():
+            blank_lines_after += 1
+        else:
+            break
 
-    before_cursor_strip_lines = before_cursor.rstrip().splitlines()
-    after_cursor_strip_lines = after_cursor.lstrip().splitlines()
-
-    empty_lines_before = len(before_cursor_lines) - len(before_cursor_strip_lines)
-    empty_lines_after = len(after_cursor_lines) - len(after_cursor_strip_lines)
-
-    print(empty_lines_before, empty_lines_after)
-    if empty_lines_before + empty_lines_after == 1:
-        buffer.text = '\n'.join(before_cursor_strip_lines) + '\n' + '\n'.join(after_cursor_strip_lines)
+    if not blank_lines_before:
+        stripped_before = lines_up_to_current
     else:
-        buffer.text = '\n'.join(before_cursor_strip_lines) + '\n\n' + '\n'.join(after_cursor_strip_lines)
+        stripped_before = lines_up_to_current[:-blank_lines_before]
+    stripped_after = lines_after_current[blank_lines_after:]
+
+    # XXX: Emacs always keeps a newline at the end of the file, but I don't
+    # think it matters here.
+
+    if (not blank_lines_before and blank_lines_after) or blank_lines_before + blank_lines_after == 1:
+        new_text = '\n'.join(stripped_before + stripped_after)
+    elif blank_lines_before + blank_lines_after == 0:
+        return
+    else:
+        buffer.cursor_up(max(blank_lines_before-1, 0))
+        new_text = '\n'.join(stripped_before + [''] + stripped_after)
+
+    # Even though we do auto_up, it can be out of bounds from trailing
+    # whitespace
+    buffer.cursor_position = min(buffer.cursor_position, len(new_text))
+    buffer.text = new_text
 
 # Selection stuff
 
