@@ -312,6 +312,28 @@ def just_one_space(event):
         buffer.cursor_position -= len(buffer.document.text_before_cursor) - len(rstripped) - 1
         buffer.text = rstripped + ' ' + lstripped
 
+@r.add_binding(Keys.ControlX, Keys.ControlO)
+def delete_blank_lines(event):
+    buffer = event.cli.current_buffer
+
+    before_cursor = buffer.text[:buffer.cursor_position]
+    after_cursor = buffer.text[buffer.cursor_position:]
+
+    before_cursor_lines = before_cursor.splitlines()
+    after_cursor_lines = after_cursor.splitlines()
+
+    before_cursor_strip_lines = before_cursor.rstrip().splitlines()
+    after_cursor_strip_lines = after_cursor.lstrip().splitlines()
+
+    empty_lines_before = len(before_cursor_lines) - len(before_cursor_strip_lines)
+    empty_lines_after = len(after_cursor_lines) - len(after_cursor_strip_lines)
+
+    print(empty_lines_before, empty_lines_after)
+    if empty_lines_before + empty_lines_after == 1:
+        buffer.text = '\n'.join(before_cursor_strip_lines) + '\n' + '\n'.join(after_cursor_strip_lines)
+    else:
+        buffer.text = '\n'.join(before_cursor_strip_lines) + '\n\n' + '\n'.join(after_cursor_strip_lines)
+
 # Selection stuff
 
 @r.add_binding(Keys.ShiftLeft)
