@@ -176,13 +176,18 @@ if not {has_expr}:
     _pudb._get_debugger().mainpyfile = _filename
     _pudb._get_debugger()._wait_for_mainpyfile = True
 
+# smart_eval puts the source in linecache, but pudb via linecache.getlines can't tell
+# the difference between an empty source and source that isn't there. So this
+# makes just "%pudb" with no arguments show empty source.
+_MODULE_SOURCE_CODE = {rest!r}
+
 try:
     _val = _smart_eval({rest!r}, globals(), locals(), filename=_filename)
 finally:
     # Exit PuDB cleanly, without entering mypython code
     _pudb._get_debugger().set_quit()
     del _linecache.cache[_filename]
-    del _pudb, _smart_eval, _bdb, _linecache, _filename
+    del _pudb, _smart_eval, _bdb, _linecache, _filename, _MODULE_SOURCE_CODE
 
 locals().pop('_val')
 """.format(rest=rest, has_expr=has_expr)
