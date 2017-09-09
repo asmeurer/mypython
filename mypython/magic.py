@@ -187,6 +187,8 @@ finally:
     # Exit PuDB cleanly, without entering mypython code
     _pudb._get_debugger().set_quit()
     del _linecache.cache[_filename]
+    _pudb._get_debugger().mainpyfile = ''
+    _pudb._get_debugger()._wait_for_mainpyfile = False
     del _pudb, _smart_eval, _bdb, _linecache, _filename, _MODULE_SOURCE_CODE
 
 locals().pop('_val')
