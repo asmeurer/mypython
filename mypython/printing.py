@@ -41,7 +41,11 @@ def can_print_sympy(o):
     from sympy import Basic
     from sympy.matrices import MatrixBase
     from sympy.physics.vector import Vector, Dyadic
-    from sympy.tensor.array import NDimArray
+    try:
+        from sympy.tensor.array import NDimArray
+    except ImportError:
+        # Support older versions of SymPy
+        NDimArray = Basic
 
     try:
         if isinstance(o, (list, tuple, set, frozenset)):
