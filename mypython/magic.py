@@ -176,9 +176,9 @@ if not {has_expr}:
     _pudb._get_debugger().mainpyfile = _filename
     _pudb._get_debugger()._wait_for_mainpyfile = True
 
-# smart_eval puts the source in linecache, but pudb via linecache.getlines can't tell
-# the difference between an empty source and source that isn't there. So this
-# makes just "%pudb" with no arguments show empty source.
+# smart_eval puts the source in linecache, but pudb via linecache.getlines
+# can't tell the difference between an empty source and source that isn't
+# there. So this makes just "%pudb" with no arguments show empty source.
 _MODULE_SOURCE_CODE = {rest!r}
 
 try:
