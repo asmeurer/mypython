@@ -29,5 +29,4 @@
 - Garbage when pasting multiple lines
 - "Return: None" at the end of %pudb
 - Get %pudb to quit without having to press 'n' on set_quit() on expression
-- "%pudb a = 1" followed by "%pudb a" breaks
 - Add prompt number builtin (see %pudb magic)

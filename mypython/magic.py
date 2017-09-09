@@ -154,9 +154,6 @@ def pudb_magic(rest):
     """
     Debug the code with PuDB.
     """
-    p = ast.parse(rest)
-    has_expr = bool(p.body and isinstance(p.body[-1], ast.Expr))
-
     return """\
 from mypython.mypython import smart_eval as _smart_eval
 import pudb as _pudb
@@ -172,9 +169,8 @@ _pudb._get_debugger().breaks.setdefault(_filename, [1])
 _bdb.Breakpoint(_filename, 1, temporary=True)
 _pudb._get_debugger().set_trace(paused=False)
 # TODO: Figure out how to make this work when has_expr=True
-if not {has_expr}:
-    _pudb._get_debugger().mainpyfile = _filename
-    _pudb._get_debugger()._wait_for_mainpyfile = True
+_pudb._get_debugger().mainpyfile = _filename
+_pudb._get_debugger()._wait_for_mainpyfile = True
 
 # smart_eval puts the source in linecache, but pudb via linecache.getlines
 # can't tell the difference between an empty source and source that isn't
@@ -192,7 +188,7 @@ finally:
     del _pudb, _smart_eval, _bdb, _linecache, _filename, _MODULE_SOURCE_CODE
 
 locals().pop('_val')
-""".format(rest=rest, has_expr=has_expr)
+""".format(rest=rest)
 
 def error_magic(rest):
     """
