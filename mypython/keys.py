@@ -634,7 +634,7 @@ def bracketed_paste(event):
     if not inside_string(event.current_buffer.text, row, col):
         indent = LEADING_WHITESPACE.match(document.current_line_before_cursor)
         current_line_indent = indent.group(1) if indent else ''
-        if PS1_PROMPTS_RE.search(data):
+        if PS1_PROMPTS_RE.match(data.strip()):
             lines = split_prompts(data, current_line_indent)
         else:
             lines = [textwrap.indent(data, current_line_indent,
