@@ -132,3 +132,17 @@ a = 1
 
 a
 ''']
+
+    # Test DARK SUNGLASSES, which has spaces between the emoji
+    mypython_prompts2 = """
+    \N{DARK SUNGLASSES} \N{DARK SUNGLASSES} \N{DARK SUNGLASSES} [1]: def test():
+    \N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}⎢    pass
+
+    \N{DARK SUNGLASSES} \N{DARK SUNGLASSES} \N{DARK SUNGLASSES} [2]: a = 1
+
+    \N{DARK SUNGLASSES} \N{DARK SUNGLASSES} \N{DARK SUNGLASSES} [3]: a
+    \N{SMILING FACE WITH SUNGLASSES}\N{SMILING FACE WITH SUNGLASSES}\N{SMILING FACE WITH SUNGLASSES}[3]: 1
+    """
+
+    assert split_prompts(mypython_prompts2) == [
+        'def test():\n    pass\n\n', 'a = 1\n', 'a\n']
