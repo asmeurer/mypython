@@ -32,3 +32,4 @@
 - Add prompt number builtin (see %pudb magic)
 - Cannot reassign In, etc.
 - ERROR FROM MYPYTHON can be fooled if the mypython dir is in the error message
+- Allow to copy-paste part of multiline with just the clapping
