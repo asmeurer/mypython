@@ -30,3 +30,4 @@
 - "Return: None" at the end of %pudb
 - Get %pudb to quit without having to press 'n' on set_quit() on expression
 - Add prompt number builtin (see %pudb magic)
+- ERROR FROM MYPYTHON can be fooled if the mypython dir is in the error message
