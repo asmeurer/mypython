@@ -1,7 +1,7 @@
 # Define globals first so that names from this module don't get included
 _default_globals = globals().copy()
 _default_globals['__name__'] = '__main__'
-_default_locals = _default_globals
+_default_locals = locals().copy()
 
 import os
 import sys
@@ -11,6 +11,7 @@ import random
 import ast
 import traceback
 import textwrap
+import builtins
 from io import StringIO
 from textwrap import dedent
 from pydoc import pager
@@ -289,7 +290,7 @@ def getsource(command, _globals, _locals, ret=False, include_info=True):
         else:
             __main__file = None
         if filename in ["<stdin>", __main__file] or filename.startswith("<mypython"):
-            return '\n'.join([i for _, i in sorted(_locals['In'].items())] + ['']).splitlines(keepends=True)
+            return '\n'.join([i for _, i in sorted(_globals['In'].items())] + ['']).splitlines(keepends=True)
         else:
             return linecache._orig_getlines(filename, module_globals)
 
@@ -374,8 +375,8 @@ sys.path.insert(0, '.')
 del sys
 """, _globals, _locals)
 
-    _locals['In'] = {}
-    _locals['Out'] = {}
+    _globals['In'] = {}
+    _globals['Out'] = {}
 
     if not quiet:
         print_tokens([(Token.Welcome, "Welcome to mypython.\n\n")])
@@ -446,14 +447,14 @@ def smart_eval(stmt, _globals, _locals, filename=None):
 
 def post_command(*, command, res, _globals, _locals, cli):
     prompt_number = cli.prompt_number
-    _locals['In'][prompt_number] = command
+    _globals['In'][prompt_number] = command
     if res is not NoResult:
         print_tokens(get_out_prompt_tokens(cli),
             style=style_from_pygments(OneAMStyle, {**prompt_style}))
 
-        _locals['Out'][prompt_number] = res
-        _locals['_%s' % prompt_number] = res
-        _locals['_'], _locals['__'], _locals['___'] = res, _locals.get('_'), _locals.get('__')
+        _globals['Out'][prompt_number] = res
+        _globals['_%s' % prompt_number] = res
+        _globals['_'], _globals['__'], _globals['___'] = res, _globals.get('_'), _globals.get('__')
 
         if not (DOCTEST_MODE and res is None):
             sys.displayhook(res)
