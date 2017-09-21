@@ -11,7 +11,6 @@ import random
 import ast
 import traceback
 import textwrap
-import builtins
 from io import StringIO
 from textwrap import dedent
 from pydoc import pager
