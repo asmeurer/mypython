@@ -11,16 +11,15 @@ from prompt_toolkit.output import DummyOutput
 from prompt_toolkit.document import Document
 from prompt_toolkit.validation import ValidationError
 
-from ..mypython import (get_cli, _default_globals, _default_locals,
-    get_eventloop, startup, normalize, magic, PythonSyntaxValidator,
-    execute_command, getsource)
+from ..mypython import (get_cli, _default_globals, get_eventloop,
+    startup, normalize, magic, PythonSyntaxValidator, execute_command,
+    getsource)
 from .. import mypython
 from ..keys import get_registry
 
 from pytest import raises, skip
 
 _test_globals = _default_globals.copy()
-_test_locals = _default_locals.copy()
 
 class _TestOutput(DummyOutput):
     def __init__(self):
@@ -49,7 +48,7 @@ def _cli_with_input(text, history=None, _globals=None, _locals=None,
 
     history = history or _history()
     _globals = _globals or _test_globals.copy()
-    _locals = _locals or _test_locals.copy()
+    _locals = _locals or _globals
     # TODO: Factor this out from main()
     registry = registry or get_registry()
 
@@ -91,7 +90,7 @@ def _test_output(_input, *, doctest_mode=False, remove_terminal_sequences=True,
     mypython.DOCTEST_MODE = doctest_mode
 
     _globals = _globals or  _test_globals.copy()
-    _locals = _locals or _test_locals.copy()
+    _locals = _locals or _globals
 
     custom_stdout = StringIO()
     custom_stderr = StringIO()
@@ -173,91 +172,15 @@ def test_startup():
 
     assert _globals.keys() == _locals.keys() == {'__builtins__', 'In', 'Out'}
 
-# Not called test_globals to avoid confusion with _test_globals
+# Not called test_globals to avoid confusion with test_globals
 def test_test_globals():
     assert _test_globals.keys() == {'__package__', '__loader__',
     '__name__', '__doc__', '__cached__', '__file__', '__builtins__',
     '__spec__'}
     assert _test_globals['__name__'] == _default_globals['__name__'] == '__main__'
 
-def test_builting_names():
-    _globals = _test_globals.copy()
-    _locals = _test_locals.copy()
-
-    startup(_globals, _locals)
-
-    out, err = _test_output("In\n", _globals=_globals, _locals=_locals)
-    assert out == "{1: 'In'}\n\n"
-    assert not err
-    out, err = _test_output("Out\n", _globals=_globals, _locals=_locals)
-    assert out == "{1: {...}}\n\n"
-    assert not err
-
-    for name in ["In", "Out", "_", "__", "___"]:
-        assert name in _globals
-        assert name not in _locals
-
-        out, err = _test_output("del {name}\n".format(name=name),
-            _globals=_globals, _locals=_locals)
-        assert out == "\n"
-        assert err == """\
-Traceback (most recent call last):
-  File "<mypython-1>", line 1, in <module>
-    del {name}
-NameError: name '{name}' is not defined
-""".format(name=name)
-
-        out, err = _test_output("{name} = 1\n".format(name=name),
-            _globals=_globals, _locals=_locals)
-        assert out == '\n'
-        assert err == ''
-
-        out, err = _test_output("{name}\n".format(name=name),
-            _globals=_globals, _locals=_locals)
-        assert out == '1\n\n'
-        assert err == ''
-
-        out, err = _test_output("del {name}\n".format(name=name),
-            _globals=_globals, _locals=_locals)
-        assert out == '\n'
-        assert err == ''
-
-        assert name in _globals
-        assert name not in _locals
-
-
-    out, err = _test_output("In\n", _globals=_globals, _locals=_locals)
-    assert out == "{1: 'In'}\n\n"
-    assert not err
-    out, err = _test_output("Out\n", _globals=_globals, _locals=_locals)
-    assert out == "{1: {...}}\n\n"
-    assert not err
-
-    _test_output("1\n", _globals=_globals, _locals=_locals)
-    _test_output("2\n", _globals=_globals, _locals=_locals)
-    _test_output("3\n", _globals=_globals, _locals=_locals)
-    out, err = _test_output("_\n", _globals=_globals, _locals=_locals)
-    assert out == "3\n\n"
-    assert not err
-
-    _test_output("1\n", _globals=_globals, _locals=_locals)
-    _test_output("2\n", _globals=_globals, _locals=_locals)
-    _test_output("3\n", _globals=_globals, _locals=_locals)
-    out, err = _test_output("__\n", _globals=_globals, _locals=_locals)
-    assert out == "2\n\n"
-    assert not err
-
-    _test_output("1\n", _globals=_globals, _locals=_locals)
-    _test_output("2\n", _globals=_globals, _locals=_locals)
-    _test_output("3\n", _globals=_globals, _locals=_locals)
-    out, err = _test_output("___\n", _globals=_globals, _locals=_locals)
-    assert out == "1\n\n"
-    assert not err
-
-
 def test_normalize(capsys):
-    _globals = _test_globals.copy()
-    _locals = _test_locals.copy()
+    _globals = _locals = _test_globals.copy()
 
     def _normalize(command):
         return normalize(command, _globals, _locals)
@@ -349,20 +272,17 @@ def test_syntax_validator():
 
 def test_getsource():
     _globals = _test_globals.copy()
-    _locals = _test_locals.copy()
-
     out, err = _test_output('def test():\nraise ValueError("error")\n\n',
-        _globals=_globals, _locals=_locals)
+        _globals=_globals)
 
-    assert getsource('test', _globals, _locals, ret=True, include_info=False) == """\
+    assert getsource('test', _globals, _globals, ret=True, include_info=False) == """\
 def test():
     raise ValueError("error")
 """
 
-    out, err = _test_output('class Test:\npass\n\n', _globals=_globals,
-        _locals=_locals, prompt_number=2)
-    assert getsource('Test', _globals, _locals, ret=True, include_info=False) == \
-        getsource('Test', _globals, _locals, ret=True, include_info=False) == """\
+    out, err = _test_output('class Test:\npass\n\n', _globals=_globals, prompt_number=2)
+    assert getsource('Test', _globals, _globals, ret=True, include_info=False) == \
+        getsource('Test', _globals, _globals, ret=True, include_info=False) == """\
 class Test:
     pass
 """
@@ -385,15 +305,13 @@ def test_main_loop():
     assert _test_output('a = 1\n', doctest_mode=True) == ('', '')
 
     _globals = _test_globals.copy()
-    _locals = _test_locals.copy()
-    assert _test_output('a = 1\n', _globals=_globals, _locals=_locals) == ('\n', '')
-    assert _test_output('a\n', _globals=_globals, _locals=_locals) == ('1\n\n', '')
+    assert _test_output('a = 1\n', _globals=_globals) == ('\n', '')
+    assert _test_output('a\n', _globals=_globals) == ('1\n\n', '')
 
     _globals = _test_globals.copy()
-    _locals = _test_locals.copy()
     # Also tests automatic indentation
-    assert _test_output('def test():\nreturn 1\n\n', _globals=_globals, _locals=_locals) == ('\n', '')
-    assert _test_output('test()\n', _globals=_globals, _locals=_locals) == ('1\n\n', '')
+    assert _test_output('def test():\nreturn 1\n\n', _globals=_globals) == ('\n', '')
+    assert _test_output('test()\n', _globals=_globals) == ('1\n\n', '')
 
     assert _test_output('a = 1;2\n') == ('2\n\n', '')
     assert _test_output('1;2\n') == ('2\n\n', '')
@@ -423,12 +341,10 @@ ValueError: error
 """
 
     _globals = _test_globals.copy()
-    _locals = _test_locals.copy()
     out, err = _test_output('def test():\nraise ValueError("error")\n\n',
-        _globals=_globals, _locals=_locals)
+        _globals=_globals)
     assert (out, err) == ('\n', '')
-    out, err = _test_output('test()\n', _globals=_globals, _locals=_locals,
-        prompt_number=2)
+    out, err = _test_output('test()\n', _globals=_globals, prompt_number=2)
     assert out == '\n'
     assert err == \
 r"""Traceback (most recent call last):
@@ -440,12 +356,10 @@ ValueError: error
 """
 
     _globals = _test_globals.copy()
-    _locals = _test_locals.copy()
     out, err = _test_output('def test():\nraise ValueError("error")\n\n',
-        _globals=_globals, _locals=_locals, doctest_mode=True)
+        _globals=_globals, doctest_mode=True)
     assert (out, err) == ('', '')
-    out, err = _test_output('test()\n', _globals=_globals, _locals=_locals,
-        doctest_mode=True, prompt_number=2)
+    out, err = _test_output('test()\n', _globals=_globals, doctest_mode=True, prompt_number=2)
     assert out == ''
     assert err == \
 r"""Traceback (most recent call last):
@@ -456,9 +370,7 @@ ValueError: error
 
     # Non-eval syntax + last line expr
     _globals = _test_globals.copy()
-    _locals = _test_locals.copy()
-    out, err = _test_output('import os;undefined\n', _globals=_globals,
-        _locals=_locals)
+    out, err = _test_output('import os;undefined\n', _globals=_globals)
     assert out == '\n'
     assert err == \
 """Traceback (most recent call last):
@@ -467,8 +379,7 @@ ValueError: error
 NameError: name 'undefined' is not defined
 """
     # \x1b\n == M-Enter
-    out, err = _test_output('import os\x1b\nundefined\n\n', _globals=_globals,
-        _locals=_locals)
+    out, err = _test_output('import os\x1b\nundefined\n\n', _globals=_globals)
     assert out == '\n'
     assert err == \
 """Traceback (most recent call last):
@@ -505,8 +416,7 @@ numpy.array(b, dtype=float)\x1b
 
 """
     _globals = _test_globals.copy()
-    _locals = _test_locals.copy()
-    out, err = _test_output(command, _globals=_globals, _locals=_locals)
+    out, err = _test_output(command, _globals=_globals)
     assert out == '\n'
     assert "RecursionError" in err
     # assert print_tokens_output == "Warning: RecursionError from mypython_excepthook"
@@ -515,8 +425,7 @@ def test_error_magic():
     # Make sure %error shows the full mypython traceback.
     # Here instead of test_magic.py because it tests the exception handling
     _globals = _test_globals.copy()
-    _locals = _test_locals.copy()
-    out, err = _test_output('%error\n', _globals=_globals, _locals=_locals)
+    out, err = _test_output('%error\n', _globals=_globals)
     assert out == '\n'
     assert re.match(
 r"""Traceback \(most recent call last\):
