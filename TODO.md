@@ -33,3 +33,4 @@
 - ERROR FROM MYPYTHON can be fooled if the mypython dir is in the error message
 - Allow to copy-paste part of multiline with just the clapping
 - Keep track of execution time of each prompt
+- Names aren't defined inside of list comprehensions
