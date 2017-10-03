@@ -35,3 +35,4 @@
 - Allow to copy-paste part of multiline with just the clapping
 - Keep track of execution time of each prompt
 - Names aren't defined inside of list comprehensions
+- M-u, M-c, M-l don't respect proper word boundaries
