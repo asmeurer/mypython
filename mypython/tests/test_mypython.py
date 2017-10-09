@@ -443,3 +443,14 @@ RuntimeError: Error magic
 
 # !!!!!! ERROR from mypython !!!!!!
 , err), repr(err)
+
+def test_local_scopes():
+    _globals = _test_globals.copy()
+    out, err = _test_output('[x for x in range(10)]\n', _globals=_globals)
+    assert out == '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]\n\n'
+    assert err == ''
+
+    _globals = _test_globals.copy()
+    out, err = _test_output('x = range(3); [i for i in x]\n', _globals=_globals)
+    assert out == '[0, 1, 2]\n\n'
+    assert err == ''
