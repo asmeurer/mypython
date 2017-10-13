@@ -7,6 +7,8 @@ import os
 import sys
 import inspect
 
+from pudb.shell import SetPropagatingDict
+
 # We cannot use __file__ because it isn't defined with execfile
 mypython_path = inspect.getframeinfo(inspect.currentframe()).filename
 mypython_dir = os.path.dirname(mypython_path)
@@ -22,5 +24,9 @@ def pudb_shell(_globals, _locals):
     except OSError:
         tty_name = 'unknown'
 
-    return run_shell(_globals, _locals, quiet=True,
+    # This makes it so that assignments in the shell act like globals
+    # assignments
+    ns = SetPropagatingDict([_locals, _globals], _locals)
+
+    return run_shell(ns, ns, quiet=True,
         history_file='~/.mypython/history/pudb_%s_history' % tty_name)
