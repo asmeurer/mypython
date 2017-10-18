@@ -36,3 +36,4 @@
 - M-u, M-c, M-l don't respect proper word boundaries
 - M-Enter doesn't do auto-indent
 - Selection is disabled after one C-c <
+- Step not working in %pudb
