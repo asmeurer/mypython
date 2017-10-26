@@ -38,3 +38,4 @@
 - Selection is disabled after one C-c <
 - Step not working in %pudb
 - Word movement has issues with something like 'a=N'
+- %pudb not working
