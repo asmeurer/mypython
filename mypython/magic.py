@@ -155,8 +155,13 @@ def pudb_magic(rest):
     """
     Debug the code with PuDB.
     """
-    return """\
+
+    p = ast.parse(rest)
+    has_expr = bool(p.body and isinstance(p.body[-1], ast.Expr))
+
+    res = """\
 from mypython.mypython import smart_eval as _smart_eval
+from mypython.magic import ast_expr_for_pudb as _ast_expr_for_pudb
 import pudb as _pudb
 import bdb as _bdb
 import linecache as _linecache
@@ -169,7 +174,6 @@ _pudb._get_debugger().breaks.setdefault(_filename, [1])
 # debugger.set_break() because it fails if the file isn't in the linecache.
 _bdb.Breakpoint(_filename, 1, temporary=True)
 _pudb._get_debugger().set_trace(paused=False)
-# TODO: Figure out how to make this work when has_expr=True
 _pudb._get_debugger().mainpyfile = _filename
 _pudb._get_debugger()._wait_for_mainpyfile = True
 
@@ -179,7 +183,7 @@ _pudb._get_debugger()._wait_for_mainpyfile = True
 _MODULE_SOURCE_CODE = {rest!r}
 
 try:
-    _val = _smart_eval({rest!r}, globals(), locals(), filename=_filename)
+    _smart_eval({rest!r}, globals(), locals(), filename=_filename, ast_transformer=_ast_expr_for_pudb)
 finally:
     # Exit PuDB cleanly, without entering mypython code
     _pudb._get_debugger().set_quit()
@@ -187,9 +191,14 @@ finally:
     _pudb._get_debugger().mainpyfile = ''
     _pudb._get_debugger()._wait_for_mainpyfile = False
     del _pudb, _smart_eval, _bdb, _linecache, _filename, _MODULE_SOURCE_CODE
-
-locals().pop('_val')
 """.format(rest=rest)
+
+    if has_expr:
+        res += """\
+locals().pop('_val')
+"""
+
+    return res
 
 def ast_expr_for_pudb(p, name='_val'):
     """
