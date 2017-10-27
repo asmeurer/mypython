@@ -4,6 +4,7 @@ Based on prompt_toolkit.tests.test_cli
 import sys
 import re
 from io import StringIO
+import linecache
 
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.input import PipeInput, Input
@@ -13,7 +14,7 @@ from prompt_toolkit.validation import ValidationError
 
 from ..mypython import (get_cli, _default_globals, get_eventloop,
     startup, normalize, magic, PythonSyntaxValidator, execute_command,
-    getsource)
+    getsource, smart_eval, NoResult)
 from .. import mypython
 from ..keys import get_registry
 
@@ -454,3 +455,24 @@ def test_local_scopes():
     out, err = _test_output('x = range(3); [i for i in x]\n', _globals=_globals)
     assert out == '[0, 1, 2]\n\n'
     assert err == ''
+
+def test_smart_eval():
+    filename = '<smart_eval-test>'
+
+    d = {}
+    res = smart_eval('a = 1', d, d, filename=filename)
+    assert d['a'] == 1
+    assert linecache.getlines('<smart_eval-test>') == ['a = 1']
+    assert res == NoResult
+
+    d = {}
+    res = smart_eval("", d, d, filename=filename)
+    assert res == NoResult
+
+    d = {}
+    res = smart_eval("1 + 1", d, d, filename=filename)
+    assert res == 2
+
+    d = {}
+    res = smart_eval("a = 1\na + 1", d, d, filename=filename)
+    assert res == 2
