@@ -5,6 +5,7 @@ import sys
 import re
 from io import StringIO
 import linecache
+import ast
 
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.input import PipeInput, Input
@@ -475,4 +476,18 @@ def test_smart_eval():
 
     d = {}
     res = smart_eval("a = 1\na + 1", d, d, filename=filename)
+    assert d['a'] == 1
     assert res == 2
+
+    def _increment_numbers(p):
+        class IncrementNumbers(ast.NodeTransformer):
+            def visit_Num(self, node):
+                return ast.copy_location(ast.Num(node.n + 1), node)
+
+        return IncrementNumbers().visit(p)
+
+    d = {}
+    res = smart_eval('a = 1\na + 1', d, d, filename=filename,
+        ast_processor=_increment_numbers)
+    assert d['a'] == 2
+    assert res == 4

@@ -406,7 +406,7 @@ class NoResult:
 
 mypython_dir = os.path.dirname(__file__)
 
-def smart_eval(stmt, _globals, _locals, filename=None):
+def smart_eval(stmt, _globals, _locals, filename=None, *, ast_processor=None):
     """
     Automatically exec/eval stmt.
 
@@ -422,6 +422,9 @@ def smart_eval(stmt, _globals, _locals, filename=None):
     Note that classes defined with this will have their module set to
     '__main__'.  To change this, set _globals['__name__'] to the desired
     module.
+
+    To transform the ast before compiling it, pass in an ast_transformer
+    function. It should take in an ast and return a new ast.
     """
     if filename:
         # Don't show context lines in doctest mode
@@ -432,6 +435,8 @@ def smart_eval(stmt, _globals, _locals, filename=None):
         filename = mypython_file()
 
     p = ast.parse(stmt)
+    if ast_processor:
+        p = ast_processor(p)
     expr = None
     res = NoResult
     if p.body and isinstance(p.body[-1], ast.Expr):
