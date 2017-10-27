@@ -488,6 +488,6 @@ def test_smart_eval():
 
     d = {}
     res = smart_eval('a = 1\na + 1', d, d, filename=filename,
-        ast_processor=_increment_numbers)
+        ast_transformer=_increment_numbers)
     assert d['a'] == 2
     assert res == 4

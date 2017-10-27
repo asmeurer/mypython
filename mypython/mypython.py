@@ -406,7 +406,7 @@ class NoResult:
 
 mypython_dir = os.path.dirname(__file__)
 
-def smart_eval(stmt, _globals, _locals, filename=None, *, ast_processor=None):
+def smart_eval(stmt, _globals, _locals, filename=None, *, ast_transformer=None):
     """
     Automatically exec/eval stmt.
 
@@ -435,8 +435,8 @@ def smart_eval(stmt, _globals, _locals, filename=None, *, ast_processor=None):
         filename = mypython_file()
 
     p = ast.parse(stmt)
-    if ast_processor:
-        p = ast_processor(p)
+    if ast_transformer:
+        p = ast_transformer(p)
     expr = None
     res = NoResult
     if p.body and isinstance(p.body[-1], ast.Expr):
