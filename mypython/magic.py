@@ -11,6 +11,8 @@ itself.
 """
 
 import textwrap
+import ast
+import copy
 
 def magic(command):
     """
@@ -188,6 +190,26 @@ finally:
 
 locals().pop('_val')
 """.format(rest=rest)
+
+def ast_expr_for_pudb(p, name='_val'):
+    """
+    Transforms ast p into a suitable ast for PuDB.
+
+    Converts any ending expr into an assignment, so that smart_eval()
+    evaluates the whole thing with a single exec().
+
+    The final expression, if any, will be assigned to `name`.
+    """
+    p = copy.deepcopy(p)
+    if p.body and isinstance(p.body[-1], ast.Expr):
+        expr = p.body.pop()
+
+        a = ast.copy_location(ast.Assign(targets=[ast.Name(id=name, ctx=ast.Store())],
+            value=expr.value), expr)
+        p.body.append(a)
+
+        ast.fix_missing_locations(p)
+    return p
 
 def error_magic(rest):
     """

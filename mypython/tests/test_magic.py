@@ -1,9 +1,10 @@
 import re
 import textwrap
 import time
+import ast
 
 from .test_mypython import _test_output, _test_globals
-from ..magic import sympy_start
+from ..magic import sympy_start, ast_expr_for_pudb
 
 def test_echo():
     # Test basic magic and magic syntax checking
@@ -105,3 +106,25 @@ def test_sympy():
     _globals = _test_globals.copy()
     assert _test_output('%sympy\n', _globals=_globals) == (textwrap.indent(sympy_start, '    ') + '\n\n', '')
     assert _test_output('%sympy 1\n', _globals=_globals) == ('\n', '%sympy takes no arguments\n')
+
+def test_ast_expr_for_pudb():
+    d = {}
+    p = ast.parse("""
+p = 1
+""")
+    p1 = ast_expr_for_pudb(p, name='_val')
+    assert p1 is not p
+    exec(compile(p1, '<test>', 'exec'), d)
+    assert d['p'] == 1
+    assert '_val' not in d
+
+    d = {}
+    p = ast.parse("""
+p = 1
+p + 1
+""")
+    p1 = ast_expr_for_pudb(p, name='_val')
+    assert p1 is not p
+    exec(compile(p1, '<test>', 'exec'), d)
+    assert d['p'] == 1
+    assert d['_val'] == 2
