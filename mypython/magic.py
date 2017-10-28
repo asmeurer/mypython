@@ -160,14 +160,14 @@ def pudb_magic(rest):
     has_expr = bool(p.body and isinstance(p.body[-1], ast.Expr))
 
     res = """\
-from mypython.mypython import smart_eval as _smart_eval
+from mypython.mypython import smart_eval as _smart_eval, In as _In
 from mypython.magic import ast_expr_for_pudb as _ast_expr_for_pudb
 import pudb as _pudb
 import bdb as _bdb
 import linecache as _linecache
 
 # XXX: Add the prompt number as a mypython builtin
-_filename = '<mypython-pudb-%s>' % (max(In, default=0) + 1)
+_filename = '<mypython-pudb-%s>' % (max(_In, default=0) + 1)
 
 _pudb._get_debugger().breaks.setdefault(_filename, [1])
 # Instantiating the Breakpoint class enables the breakpoint. We can't use
@@ -190,7 +190,7 @@ finally:
     del _linecache.cache[_filename]
     _pudb._get_debugger().mainpyfile = ''
     _pudb._get_debugger()._wait_for_mainpyfile = False
-    del _pudb, _smart_eval, _bdb, _linecache, _filename, _MODULE_SOURCE_CODE
+    del _pudb, _smart_eval, _bdb, _linecache, _filename, _MODULE_SOURCE_CODE, _In
 """.format(rest=rest)
 
     if has_expr:

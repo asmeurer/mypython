@@ -174,12 +174,92 @@ def test_startup():
 
     assert _globals.keys() == _locals.keys() == {'__builtins__', 'In', 'Out'}
 
-# Not called test_globals to avoid confusion with test_globals
+# Not called test_globals to avoid confusion with _test_globals
 def test_test_globals():
     assert _test_globals.keys() == {'__package__', '__loader__',
     '__name__', '__doc__', '__cached__', '__file__', '__builtins__',
     '__spec__'}
     assert _test_globals['__name__'] == _default_globals['__name__'] == '__main__'
+
+def test_builtin_names():
+    _globals = _test_globals.copy()
+
+    startup(_globals, _globals)
+
+    i = 1
+    out, err = _test_output("In\n", _globals=_globals, prompt_number=i)
+    assert out == "{1: 'In'}\n\n"
+    assert not err
+    i += 1
+    out, err = _test_output("Out\n", _globals=_globals, prompt_number=i)
+    assert out == "{1: {1: 'In', 2: 'Out'}, 2: {...}}\n\n"
+    assert not err
+
+    for name in ["In", "Out", "_", "__", "___"]:
+        assert name in _globals
+
+        i += 1
+        out, err = _test_output("del {name}\n".format(name=name),
+            _globals=_globals, prompt_number=i)
+        assert out == "\n"
+        assert err == ""
+
+        i += 1
+        out, err = _test_output("{name} = 1\n".format(name=name),
+            _globals=_globals, prompt_number=i)
+        assert out == '\n'
+        assert err == ''
+
+        i += 1
+        out, err = _test_output("{name}\n".format(name=name),
+            _globals=_globals, prompt_number=i)
+        assert out == '1\n\n'
+        assert err == ''
+
+        i += 1
+        out, err = _test_output("del {name}\n".format(name=name),
+            _globals=_globals, prompt_number=i)
+        assert out == '\n'
+        assert err == ''
+
+    i += 1
+    _test_output("1\n", _globals=_globals, prompt_number=i)
+    i += 1
+    _test_output("2\n", _globals=_globals, prompt_number=i)
+    i += 1
+    _test_output("3\n", _globals=_globals, prompt_number=i)
+    i += 1
+    out, err = _test_output("_\n", _globals=_globals, prompt_number=i)
+    assert out == "3\n\n"
+    assert not err
+
+    i += 1
+    _test_output("1\n", _globals=_globals, prompt_number=i)
+    i += 1
+    _test_output("2\n", _globals=_globals, prompt_number=i)
+    i += 1
+    _test_output("3\n", _globals=_globals, prompt_number=i)
+    i += 1
+    out, err = _test_output("__\n", _globals=_globals, prompt_number=i)
+    assert out == "2\n\n"
+    assert not err
+
+    i += 1
+    _test_output("1\n", _globals=_globals, prompt_number=i)
+    i += 1
+    _test_output("2\n", _globals=_globals, prompt_number=i)
+    i += 1
+    _test_output("3\n", _globals=_globals, prompt_number=i)
+    i += 1
+    out, err = _test_output("___\n", _globals=_globals, prompt_number=i)
+    assert out == "1\n\n"
+    assert not err
+
+    i += 1
+    out, err = _test_output("_%d\n" % (i-1), _globals=_globals, prompt_number=i)
+    assert out == "1\n\n"
+    assert not err
+
 
 def test_normalize(capsys):
     _globals = _locals = _test_globals.copy()

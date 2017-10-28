@@ -30,7 +30,6 @@
 - "Return: None" at the end of %pudb
 - Get %pudb to quit without having to press 'n' on set_quit() on expression
 - Add prompt number builtin (see %pudb magic)
-- Cannot reassign In, etc.
 - Allow to copy-paste part of multiline with just the clapping
 - Keep track of execution time of each prompt
 - M-u, M-c, M-l don't respect proper word boundaries

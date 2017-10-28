@@ -3,6 +3,9 @@ _default_globals = globals().copy()
 _default_globals['__name__'] = '__main__'
 _default_locals = _default_globals
 
+In = {}
+Out = {}
+
 import os
 import sys
 import inspect
@@ -289,7 +292,7 @@ def getsource(command, _globals, _locals, ret=False, include_info=True):
         else:
             __main__file = None
         if filename in ["<stdin>", __main__file] or filename.startswith("<mypython"):
-            return '\n'.join([i for _, i in sorted(_locals['In'].items())] + ['']).splitlines(keepends=True)
+            return '\n'.join([i for _, i in sorted(In.items())] + ['']).splitlines(keepends=True)
         else:
             return linecache._orig_getlines(filename, module_globals)
 
@@ -374,8 +377,8 @@ sys.path.insert(0, '.')
 del sys
 """, _globals, _locals)
 
-    _locals['In'] = {}
-    _locals['Out'] = {}
+    _locals['In'] = In
+    _locals['Out'] = Out
 
     if not quiet:
         print_tokens([(Token.Welcome, "Welcome to mypython.\n\n")])
@@ -451,12 +454,12 @@ def smart_eval(stmt, _globals, _locals, filename=None, *, ast_transformer=None):
 
 def post_command(*, command, res, _globals, _locals, cli):
     prompt_number = cli.prompt_number
-    _locals['In'][prompt_number] = command
+    In[prompt_number] = command
     if res is not NoResult:
         print_tokens(get_out_prompt_tokens(cli),
             style=style_from_pygments(OneAMStyle, {**prompt_style}))
 
-        _locals['Out'][prompt_number] = res
+        Out[prompt_number] = res
         _locals['_%s' % prompt_number] = res
         _locals['_'], _locals['__'], _locals['___'] = res, _locals.get('_'), _locals.get('__')
 
