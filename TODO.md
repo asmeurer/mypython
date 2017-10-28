@@ -36,4 +36,3 @@
 - M-u, M-c, M-l don't respect proper word boundaries
 - M-Enter doesn't do auto-indent
 - Selection is disabled after one C-c <
-- Word movement has issues with something like 'a=N'

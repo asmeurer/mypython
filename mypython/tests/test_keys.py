@@ -38,9 +38,9 @@ def test_leading_indentation_re():
     assert LEADING_WHITESPACE.search(t) is None or LEADING_WHITESPACE.search(t).end(1) == 0
 
 def test_word_re():
-    test_text = 'abc defGhiJKL_mno012_345'
+    test_text = 'abc defGhiJKL_mno012_345N123N'
     assert WORD.findall(test_text) == ['abc', 'def', 'Ghi', 'JKL', 'mno012',
-    '345']
+        '345', 'N123', 'N']
     assert WORD.findall("list(WORD.finditer('abc def'))[0].end(0)") == \
         ['list', 'WORD', 'finditer', 'abc', 'def', '0', 'end', '0']
 

@@ -96,7 +96,7 @@ def backward_paragraph(event):
             return
     event.current_buffer.cursor_position = 0
 
-WORD = re.compile(r'([a-z0-9]+|[A-Z0-9]{2,}|[a-zA-Z0-9][a-z0-9]+)')
+WORD = re.compile(r'([a-z0-9]+|[A-Z]{2,}|[a-zA-Z0-9][a-z0-9]*)')
 @r.add_binding(Keys.Escape, 'f') # Keys.Escape, Keys.Right
 def forward_word(event):
     text = event.current_buffer.text
