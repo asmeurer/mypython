@@ -260,7 +260,7 @@ def accept_after_history_backward(event):
 
 @r.add_binding(Keys.Escape, Keys.Enter)
 def insert_newline(event):
-    event.current_buffer.newline()
+    auto_newline(event.current_buffer)
 
 @r.add_binding(Keys.ControlO)
 def open_line(event):

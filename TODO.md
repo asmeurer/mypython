@@ -34,5 +34,4 @@
 - Allow to copy-paste part of multiline with just the clapping
 - Keep track of execution time of each prompt
 - M-u, M-c, M-l don't respect proper word boundaries
-- M-Enter doesn't do auto-indent
 - Selection is disabled after one C-c <
