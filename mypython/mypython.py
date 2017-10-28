@@ -3,8 +3,10 @@ _default_globals = globals().copy()
 _default_globals['__name__'] = '__main__'
 _default_locals = _default_globals
 
+# Defined here to avoid circular import issues
 In = {}
 Out = {}
+PROMPT_NUMBER = 0
 
 import os
 import sys
@@ -217,7 +219,7 @@ def get_in_prompt_tokens(cli):
 
         (Token.Emoji, cli.IN*3),
         (Token.InBracket, '['),
-        (Token.InNumber, str(cli.prompt_number)),
+        (Token.InNumber, str(PROMPT_NUMBER)),
         (Token.InBracket, ']'),
         (Token.InColon, ':'),
         (Token.Space, ' '),
@@ -241,7 +243,7 @@ def get_out_prompt_tokens(cli):
     return [
         (Token.Emoji, cli.OUT*3),
         (Token.OutBracket, '['),
-        (Token.OutNumber, str(cli.prompt_number)),
+        (Token.OutNumber, str(PROMPT_NUMBER)),
         (Token.OutBracket, ']'),
         (Token.OutColon, ':'),
         (Token.Space, ' '),
@@ -377,8 +379,11 @@ sys.path.insert(0, '.')
 del sys
 """, _globals, _locals)
 
-    _locals['In'] = In
-    _locals['Out'] = Out
+    global In, Out, PROMPT_NUMBER
+
+    _locals['In'] = In = {}
+    _locals['Out'] = Out = {}
+    _locals['PROMPT_NUMBER'] = PROMPT_NUMBER = 1
 
     if not quiet:
         print_tokens([(Token.Welcome, "Welcome to mypython.\n\n")])
@@ -453,21 +458,23 @@ def smart_eval(stmt, _globals, _locals, filename=None, *, ast_transformer=None):
     return res
 
 def post_command(*, command, res, _globals, _locals, cli):
-    prompt_number = cli.prompt_number
-    In[prompt_number] = command
+    global PROMPT_NUMBER
+
+    In[PROMPT_NUMBER] = command
     if res is not NoResult:
         print_tokens(get_out_prompt_tokens(cli),
             style=style_from_pygments(OneAMStyle, {**prompt_style}))
 
-        Out[prompt_number] = res
-        _locals['_%s' % prompt_number] = res
+        Out[PROMPT_NUMBER] = res
+        _locals['_%s' % PROMPT_NUMBER] = res
         _locals['_'], _locals['__'], _locals['___'] = res, _locals.get('_'), _locals.get('__')
 
         if not (DOCTEST_MODE and res is None):
             sys.displayhook(res)
 
     if command.strip():
-        cli.prompt_number += 1
+        PROMPT_NUMBER += 1
+        _locals['PROMPT_NUMBER'] = PROMPT_NUMBER
 
 def get_eventloop():
     # This is needed to make matplotlib plots work
@@ -480,6 +487,7 @@ def get_eventloop():
 
 def get_cli(*, history, _globals, _locals, registry, _input=None, output=None,
     eventloop=None, IN_OUT=None):
+
     def is_buffer_multiline():
         return document_is_multiline_python(buffer.document)
 
@@ -532,7 +540,6 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None,
     if not IN_OUT:
         IN_OUT = random.choice(emoji)
     cli.IN, cli.OUT = IN_OUT
-    cli.prompt_number = 1
     return cli
 
 def format_exception(etype, value, tb, limit=None, chain=True):
@@ -590,7 +597,7 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
                 if not DOCTEST_MODE:
                     print()
                 return
-            res = smart_eval(command, _globals, _locals, filename=mypython_file(cli.prompt_number))
+            res = smart_eval(command, _globals, _locals, filename=mypython_file(PROMPT_NUMBER))
             post_command(command=command, res=res, _globals=_globals,
                 _locals=_locals, cli=cli)
         except SystemExit:
@@ -606,6 +613,7 @@ CMD_QUEUE = deque()
 
 def run_shell(_globals=_default_globals, _locals=_default_locals, *,
     quiet=False, cmd=None, history_file=None, cat=False):
+    global PROMPT_NUMBER
 
     if cmd:
         CMD_QUEUE.append(cmd + '\n')
@@ -627,7 +635,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
     IN, OUT = random.choice(emoji)
 
     startup(_globals, _locals, quiet=quiet, cat=cat)
-    prompt_number = 1
+    PROMPT_NUMBER = 1
     while True:
         try:
             _history = history
@@ -643,7 +651,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
 
             cli = get_cli(history=_history, _locals=_locals, _globals=_globals,
                     registry=registry, _input=_input, IN_OUT=(IN, OUT))
-            cli.prompt_number = prompt_number
+
             # Replace stdout.
             patch_context = cli.patch_stdout_context(raw=True)
             with patch_context:
@@ -662,4 +670,3 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
             sys.excepthook(*sys.exc_info())
 
         execute_command(command, cli, _globals=_globals, _locals=_locals)
-        prompt_number = cli.prompt_number

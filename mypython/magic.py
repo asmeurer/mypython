@@ -166,8 +166,7 @@ import pudb as _pudb
 import bdb as _bdb
 import linecache as _linecache
 
-# XXX: Add the prompt number as a mypython builtin
-_filename = '<mypython-pudb-%s>' % (max(_In, default=0) + 1)
+_filename = '<mypython-pudb-%s>' % PROMPT_NUMBER
 
 _pudb._get_debugger().breaks.setdefault(_filename, [1])
 # Instantiating the Breakpoint class enables the breakpoint. We can't use

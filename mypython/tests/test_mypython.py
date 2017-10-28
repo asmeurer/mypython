@@ -172,7 +172,8 @@ def test_startup():
     finally:
         mypython.print_tokens = old_print_tokens
 
-    assert _globals.keys() == _locals.keys() == {'__builtins__', 'In', 'Out'}
+    assert _globals.keys() == _locals.keys() == {'__builtins__', 'In', 'Out', 'PROMPT_NUMBER'}
+    assert _globals['PROMPT_NUMBER'] == 1
 
 # Not called test_globals to avoid confusion with _test_globals
 def test_test_globals():
@@ -221,6 +222,31 @@ def test_builtin_names():
             _globals=_globals, prompt_number=i)
         assert out == '\n'
         assert err == ''
+
+    i += 1
+    out, err = _test_output("PROMPT_NUMBER\n", _globals=_globals, prompt_number=i)
+    assert out == str(i) + '\n\n'
+    assert err == ''
+
+    i += 1
+    out, err = _test_output("del PROMPT_NUMBER\n", _globals=_globals, prompt_number=i)
+    assert out == '\n'
+    assert err == ''
+
+    i += 1
+    out, err = _test_output("PROMPT_NUMBER\n", _globals=_globals, prompt_number=i)
+    assert out == str(i) + '\n\n'
+    assert err == ''
+
+    i += 1
+    out, err = _test_output("PROMPT_NUMBER = 0\n", _globals=_globals, prompt_number=i)
+    assert out == '\n'
+    assert err == ''
+
+    i += 1
+    out, err = _test_output("PROMPT_NUMBER\n", _globals=_globals, prompt_number=i)
+    assert out == str(i) + '\n\n'
+    assert err == ''
 
     i += 1
     _test_output("1\n", _globals=_globals, prompt_number=i)
