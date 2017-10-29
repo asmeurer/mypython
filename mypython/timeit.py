@@ -82,7 +82,11 @@ def timeit_histogram(times, expr):
         ax.ticklabel_format(style='plain', axis='both', useOffset=False)
         plt.xlabel("Time", fontsize=6)
         plt.ylabel("Runs", fontsize=6)
-        plt.title("%%timeit {expr}".format(expr=expr), fontsize=6)
+        if '\n' in expr:
+            plt.title("%%timeit\n{expr}".format(expr=expr), fontsize=6, ha='left', loc='left',
+            family='monospace')
+        else:
+            plt.title("%%timeit {expr}".format(expr=expr), fontsize=6, family='monospace')
         x1,x2,y1,y2 = plt.axis()
         plt.xlim([0, x2])
         locs, labels = plt.xticks()
