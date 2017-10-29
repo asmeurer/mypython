@@ -79,7 +79,7 @@ def mypython_displayhook(value):
     except ImportError:
         sympy = None
 
-    if not mypython.DOCTEST_MODE and  sympy and can_print_sympy(value):
+    if not mypython.DOCTEST_MODE and sympy and can_print_sympy(value):
         res = sympy.pretty(value, use_unicode=True)
     else:
         res = repr(value)
