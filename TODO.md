@@ -33,3 +33,4 @@
 - Keep track of execution time of each prompt
 - M-u, M-c, M-l don't respect proper word boundaries
 - Selection is disabled after one C-c <
+- C-x C-t does the wrong thing
