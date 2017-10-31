@@ -152,6 +152,47 @@ def backward_kill_word(event):
         deleted = buffer.delete_before_cursor(count=pos)
         event.cli.clipboard.set_text(deleted)
 
+@r.add_binding(Keys.Escape, 'l')
+def downcase_word(event):
+    buffer = event.current_buffer
+    text = buffer.text
+    cursor_position = event.current_buffer.cursor_position
+    for m in WORD.finditer(text):
+        pos = m.end(0)
+        if pos > cursor_position:
+            word = buffer.document.text_after_cursor[:pos]
+            buffer.insert_text(word.lower(), overwrite=True)
+            return
+
+@r.add_binding(Keys.Escape, 'u')
+def upcase_word(event):
+    buffer = event.current_buffer
+    text = buffer.text
+    cursor_position = event.current_buffer.cursor_position
+    for m in WORD.finditer(text):
+        pos = m.end(0)
+        if pos > cursor_position:
+            word = buffer.document.text_after_cursor[:pos]
+            buffer.insert_text(word.upper(), overwrite=True)
+            return
+
+@r.add_binding(Keys.Escape, 'c')
+def capitalize_word(event):
+    buffer = event.current_buffer
+    text = buffer.text
+    cursor_position = event.current_buffer.cursor_position
+    for m in WORD.finditer(text):
+        pos = m.end(0)
+        if pos > cursor_position:
+            word = buffer.document.text_after_cursor[:pos]
+            # Don't use word.capitalize() because the first character could be
+            # - or _
+            for i, c in enumerate(word):
+                if c.isalnum():
+                    word = word[:i] + c.capitalize() + word[i+1:].lower()
+                    break
+            buffer.insert_text(word, overwrite=True)
+            return
 
 @r.add_binding(Keys.Escape, Keys.ControlF)
 def forward_sexp(event):
