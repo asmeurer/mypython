@@ -1,5 +1,5 @@
 from prompt_toolkit.key_binding.bindings.named_commands import (accept_line,
-    self_insert, backward_delete_char)
+    self_insert, backward_delete_char, beginning_of_line)
 from prompt_toolkit.key_binding.bindings.basic import if_no_repeat
 from prompt_toolkit.key_binding.defaults import load_key_bindings
 from prompt_toolkit.key_binding.registry import Registry, MergedRegistry
@@ -364,6 +364,30 @@ def delete_blank_lines(event):
     # whitespace
     buffer.cursor_position = min(buffer.cursor_position, len(new_text))
     buffer.text = new_text
+
+@r.add_binding(Keys.ControlX, Keys.ControlT)
+def transpose_lines(event):
+    buffer = event.current_buffer
+    document = buffer.document
+    row = document.cursor_position_row
+    new_lines = document.lines[:]
+
+    if len(new_lines) == 1:
+        new_lines.append('')
+
+    if row == 0:
+        buffer.cursor_down()
+        row += 1
+
+    if row == len(new_lines) - 1:
+        new_lines.append('')
+
+    new_lines[row], new_lines[row-1] = new_lines[row-1], new_lines[row]
+
+    buffer.text = '\n'.join(new_lines)
+
+    buffer.cursor_down()
+    beginning_of_line(event)
 
 # Selection stuff
 

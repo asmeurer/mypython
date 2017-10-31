@@ -32,4 +32,3 @@
 - M-u, M-c, M-l don't respect proper word boundaries
 - Selection is disabled after one C-c <
 - Error from mypython when repr raises an exception
-- C-x C-t does the wrong thing
