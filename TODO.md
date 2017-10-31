@@ -31,3 +31,4 @@
 - Keep track of execution time of each prompt
 - Selection is disabled after one C-c <
 - Error from mypython when repr raises an exception
+- Show full traceback for errors from prompt-toolkit
