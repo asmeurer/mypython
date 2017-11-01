@@ -32,3 +32,4 @@
 - Selection is disabled after one C-c <
 - Error from mypython when repr raises an exception
 - Show full traceback for errors from prompt-toolkit
+- Make reverse search case insensitive
