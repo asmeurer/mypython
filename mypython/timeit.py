@@ -2,7 +2,7 @@ import sys
 import math
 from io import BytesIO
 
-from iterm2_tools.images import display_image_bytes
+from iterm2_tools.images import image_bytes
 
 def autorange(timer, callback=None):
     """Return the number of loops so that total time >= 10.
@@ -95,7 +95,11 @@ def timeit_histogram(times, expr):
         # fig = plt.gcf()
         # fig.set_size_inches(2, 1.5)
         plt.savefig(b, dpi=300, bbox_inches='tight')
-        return display_image_bytes(b.getvalue())
+        image = image_bytes(b.getvalue())
+        # Newer version of iterm2-tools return bytes
+        if isinstance(image, bytes):
+            image = image.decode('ascii')
+        return image
     finally:
         plt.close()
         plt.interactive(True)
