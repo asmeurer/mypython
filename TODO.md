@@ -34,3 +34,4 @@
 - Show full traceback for errors from prompt-toolkit
 - LaTeX math
 - Clear mypython variables when leaving PuDB shell
+- PuDB resets the prompt numbers
