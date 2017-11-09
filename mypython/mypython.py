@@ -526,6 +526,7 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None,
                     filter=~IsDone()
                 )],
             ),
+        ignore_case=True, # In isearch
         buffer=buffer,
         style=style_from_pygments(OneAMStyle, {**prompt_style, **style_extra}),
         key_bindings_registry=registry,
