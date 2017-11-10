@@ -37,3 +37,4 @@
 - PuDB resets the prompt numbers
 - Add key to hide prompts
 - Confusing when line is exactly the terminal width
+- Enter in the middle of a line in multiline tries to execute
