@@ -35,3 +35,4 @@
 - LaTeX math
 - Clear mypython variables when leaving PuDB shell
 - PuDB resets the prompt numbers
+- Add key to hide prompts
