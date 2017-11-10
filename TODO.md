@@ -36,3 +36,4 @@
 - Clear mypython variables when leaving PuDB shell
 - PuDB resets the prompt numbers
 - Add key to hide prompts
+- Confusing when line is exactly the terminal width
