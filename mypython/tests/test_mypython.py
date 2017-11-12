@@ -12,6 +12,7 @@ from prompt_toolkit.input import PipeInput, Input
 from prompt_toolkit.output import DummyOutput
 from prompt_toolkit.document import Document
 from prompt_toolkit.validation import ValidationError
+from prompt_toolkit.interface import CommandLineInterface
 
 from ..mypython import (get_cli, _default_globals, get_eventloop,
     startup, normalize, magic, PythonSyntaxValidator, execute_command,
@@ -37,7 +38,7 @@ class _TestOutput(DummyOutput):
         self.written_raw_data += data
 
 def _cli_with_input(text, history=None, _globals=None, _locals=None,
-    registry=None, eventloop=None, close=True):
+    registry=None, eventloop=None, close=True, builtins=None):
 
     if isinstance(text, Input):
         _input = text
@@ -58,7 +59,8 @@ def _cli_with_input(text, history=None, _globals=None, _locals=None,
 
     try:
         cli = get_cli(history=history, _globals=_globals, _locals=_locals,
-            registry=registry, _input=_input, output=_TestOutput(), eventloop=eventloop)
+            registry=registry, _input=_input, output=_TestOutput(),
+            eventloop=eventloop, builtins=builtins)
         result = cli.run()
         return result, cli
     finally:
@@ -79,7 +81,7 @@ def keyboard_interrupt_handler(s, f):
 TERMINAL_SEQUENCE = re.compile(r'(\x1b.*?\x07)|(\x1b\[.*?m)')
 
 def _test_output(_input, *, doctest_mode=False, remove_terminal_sequences=True,
-    _globals=None, _locals=None, prompt_number=None):
+    _globals=None, _locals=None, mybuiltins=None):
     """
     Test the output from a given input
 
@@ -88,9 +90,20 @@ def _test_output(_input, *, doctest_mode=False, remove_terminal_sequences=True,
 
     For now, the input must be a single command. Use \x1b\n (M-Enter) to keep
     multiple lines in the same input.
+
+    To test multiple inputs to a single session, use
+
+        _globals = _test_globals.copy()
+        mybuiltins = startup(_globals, _globals, quiet=True)
+
+    and pass _test_output(_globals=_globals, mybuiltins=mybuiltins) with each
+    call. Otherwise, each call will run in a new session.
+
     """
     mypython.DOCTEST_MODE = doctest_mode
 
+    if (_globals is None) ^ (mybuiltins is None):
+        raise ValueError("_globals and mybuiltins must both be passed together to _test_output()")
     _globals = _globals or  _test_globals.copy()
     _locals = _locals or _globals
 
@@ -102,12 +115,10 @@ def _test_output(_input, *, doctest_mode=False, remove_terminal_sequences=True,
         # TODO: Test things printed to this
         old_print_tokens = mypython.print_tokens = lambda *args, **kwargs: None
 
-        if not prompt_number:
-            startup(_globals, _locals, quiet=True)
+        mybuiltins = mybuiltins or startup(_globals, _locals, quiet=True)
 
-        result, cli = _cli_with_input(_input, _globals=_globals, _locals=_locals)
-        if prompt_number is not None:
-            cli.prompt_number = prompt_number
+        result, cli = _cli_with_input(_input, _globals=_globals,
+            _locals=_locals, builtins=mybuiltins)
 
         if isinstance(result, Document):  # Backwards-compatibility.
             command = result.text
@@ -127,11 +138,20 @@ def _test_output(_input, *, doctest_mode=False, remove_terminal_sequences=True,
     return ret
 
 def test_get_cli():
-    result, cli = _cli_with_input('1\n')
+    _globals = _test_globals.copy()
+    _locals = _globals
+
+    mybuiltins = startup(_globals, _locals, quiet=True)
+    result, cli = _cli_with_input('1\n', builtins=mybuiltins)
     assert result.text == '1'
 
 def test_autoindent():
-        # Test all the indent rules
+    _globals = _test_globals.copy()
+    _locals = _globals
+
+    mybuiltins = startup(_globals, _locals, quiet=True)
+
+    # Test all the indent rules
     result, cli = _cli_with_input("""\
     def test():
 while True:
@@ -142,7 +162,7 @@ break
 pass
 return
 
-""")
+""", builtins=mybuiltins)
     assert result.text == """\
 def test():
     while True:
@@ -157,7 +177,7 @@ def test():
 (
 \t123)
 
-""")
+""", builtins=mybuiltins)
     assert result.text == """\
 (
     123)"""
@@ -168,11 +188,12 @@ def test_startup():
         # TODO: Test things printed to this
         old_print_tokens = mypython.print_tokens = lambda *args, **kwargs: None
 
-        startup(_globals, _locals)
+        mybuiltins = startup(_globals, _locals)
     finally:
         mypython.print_tokens = old_print_tokens
 
     assert _globals.keys() == _locals.keys() == {'__builtins__', 'In', 'Out', 'PROMPT_NUMBER'}
+    assert mybuiltins.keys() == {'In', 'Out', 'PROMPT_NUMBER'}
     assert _globals['PROMPT_NUMBER'] == 1
 
 # Not called test_globals to avoid confusion with _test_globals
@@ -185,104 +206,195 @@ def test_test_globals():
 def test_builtin_names():
     _globals = _test_globals.copy()
 
-    startup(_globals, _globals)
+    mybuiltins = startup(_globals, _globals, quiet=True)
 
     i = 1
-    out, err = _test_output("In\n", _globals=_globals, prompt_number=i)
+    out, err = _test_output("In\n", _globals=_globals, mybuiltins=mybuiltins)
     assert out == "{1: 'In'}\n\n"
     assert not err
     i += 1
-    out, err = _test_output("Out\n", _globals=_globals, prompt_number=i)
+    out, err = _test_output("Out\n", _globals=_globals, mybuiltins=mybuiltins)
     assert out == "{1: {1: 'In', 2: 'Out'}, 2: {...}}\n\n"
     assert not err
 
-    for name in ["In", "Out", "_", "__", "___"]:
+    # If a name is deleted, it is restored, but if it is reassigned, the
+    # reassigned name is used.
+    for name in ["In", "Out", "_", "__", "___", "PROMPT_NUMBER"]:
         assert name in _globals
+        assert _globals[name] is mybuiltins[name]
 
         i += 1
         out, err = _test_output("del {name}\n".format(name=name),
-            _globals=_globals, prompt_number=i)
+            _globals=_globals, mybuiltins=mybuiltins)
         assert out == "\n"
         assert err == ""
 
         i += 1
-        out, err = _test_output("{name} = 1\n".format(name=name),
-            _globals=_globals, prompt_number=i)
-        assert out == '\n'
-        assert err == ''
-
-        i += 1
         out, err = _test_output("{name}\n".format(name=name),
-            _globals=_globals, prompt_number=i)
-        assert out == '1\n\n'
-        assert err == ''
+            _globals=_globals, mybuiltins=mybuiltins)
+        # The prompt number is incremented in the post_command, so it will be
+        # one more in the _globals after the command is executed.
+        res = mybuiltins[name] - 1 if name == 'PROMPT_NUMBER' else mybuiltins[name]
+        assert _globals[name] is mybuiltins[name]
+        assert out == repr(res) + "\n\n", name
+        assert err == ""
 
-        i += 1
-        out, err = _test_output("del {name}\n".format(name=name),
-            _globals=_globals, prompt_number=i)
-        assert out == '\n'
-        assert err == ''
+        # _ name and PROMPT_NUMBER are always updated (we don't attempt to
+        # detect if they were changed manually).
+        if '_' not in name:
+            i += 1
+            out, err = _test_output("{name} = 1\n".format(name=name),
+                _globals=_globals, mybuiltins=mybuiltins)
+            assert out == '\n'
+            assert err == ''
+
+            i += 1
+            out, err = _test_output("{name}\n".format(name=name),
+                _globals=_globals, mybuiltins=mybuiltins)
+            assert out == '1\n\n'
+            assert err == ''
+
+            i += 1
+            out, err = _test_output("del {name}\n".format(name=name),
+                _globals=_globals, mybuiltins=mybuiltins)
+            assert out == '\n'
+            assert err == ''
+
+            i += 1
+            out, err = _test_output("{name}\n".format(name=name),
+                _globals=_globals, mybuiltins=mybuiltins)
+            assert out == repr(_globals[name]) + "\n\n"
+            assert err == ""
+
+
+    # Make sure _CLI cannot be deleted or reassigned
+    assert _globals['_CLI'] is mybuiltins['_CLI']
 
     i += 1
-    out, err = _test_output("PROMPT_NUMBER\n", _globals=_globals, prompt_number=i)
+    out, err = _test_output("_CLI\n", _globals=_globals,
+        mybuiltins=mybuiltins)
+    assert out == repr(mybuiltins['_CLI']) + "\n\n"
+    assert err == ""
+    assert _globals['_CLI'] is mybuiltins['_CLI']
+    assert isinstance(_globals['_CLI'], CommandLineInterface)
+
+    i += 1
+    out, err = _test_output("del _CLI\n", _globals=_globals,
+        mybuiltins=mybuiltins)
+    assert out == "\n"
+    assert err == ""
+    assert _globals['_CLI'] is mybuiltins['_CLI']
+    assert isinstance(_globals['_CLI'], CommandLineInterface)
+
+    i += 1
+    out, err = _test_output("_CLI\n", _globals=_globals,
+        mybuiltins=mybuiltins)
+    assert out == repr(mybuiltins['_CLI']) + "\n\n"
+    assert err == ""
+    assert isinstance(_globals['_CLI'], CommandLineInterface)
+
+    i += 1
+    out, err = _test_output("_CLI = 1\n", _globals=_globals,
+        mybuiltins=mybuiltins)
+    assert out == "\n"
+    assert err == ""
+    assert _globals['_CLI'] is mybuiltins['_CLI']
+    assert isinstance(_globals['_CLI'], CommandLineInterface)
+
+    i += 1
+    out, err = _test_output("_CLI\n", _globals=_globals,
+        mybuiltins=mybuiltins)
+    assert out == repr(mybuiltins['_CLI']) + "\n\n"
+    assert err == ""
+    assert _globals['_CLI'] is mybuiltins['_CLI']
+    assert isinstance(_globals['_CLI'], CommandLineInterface)
+
+    # Test PROMPT_NUMBER
+    # Prompt number not incremented for error or empty commands
+    out, err = _test_output("\n", _globals=_globals, mybuiltins=mybuiltins)
+    assert out == "\n"
+    assert err == ""
+
+    out, err = _test_output("     \n", _globals=_globals, mybuiltins=mybuiltins)
+    assert out == "\n"
+    assert err == ""
+
+    out, err = _test_output("fdjksfldj\n", _globals=_globals, mybuiltins=mybuiltins)
+    assert out == "\n"
+    assert err == """\
+Traceback (most recent call last):
+  File "<mypython-%d>", line 1, in <module>
+    fdjksfldj
+NameError: name 'fdjksfldj' is not defined
+""" % (i + 1)
+
+    i += 1
+    out, err = _test_output("PROMPT_NUMBER\n", _globals=_globals,
+        mybuiltins=mybuiltins)
     assert out == str(i) + '\n\n'
     assert err == ''
 
     i += 1
-    out, err = _test_output("del PROMPT_NUMBER\n", _globals=_globals, prompt_number=i)
+    out, err = _test_output("del PROMPT_NUMBER\n", _globals=_globals,
+        mybuiltins=mybuiltins)
     assert out == '\n'
     assert err == ''
 
     i += 1
-    out, err = _test_output("PROMPT_NUMBER\n", _globals=_globals, prompt_number=i)
+    out, err = _test_output("PROMPT_NUMBER\n", _globals=_globals,
+        mybuiltins=mybuiltins)
     assert out == str(i) + '\n\n'
     assert err == ''
 
     i += 1
-    out, err = _test_output("PROMPT_NUMBER = 0\n", _globals=_globals, prompt_number=i)
+    out, err = _test_output("PROMPT_NUMBER = 0\n", _globals=_globals,
+        mybuiltins=mybuiltins)
     assert out == '\n'
     assert err == ''
 
     i += 1
-    out, err = _test_output("PROMPT_NUMBER\n", _globals=_globals, prompt_number=i)
+    out, err = _test_output("PROMPT_NUMBER\n", _globals=_globals,
+        mybuiltins=mybuiltins)
     assert out == str(i) + '\n\n'
     assert err == ''
 
+    # Test _
     i += 1
-    _test_output("1\n", _globals=_globals, prompt_number=i)
+    _test_output("1\n", _globals=_globals, mybuiltins=mybuiltins)
     i += 1
-    _test_output("2\n", _globals=_globals, prompt_number=i)
+    _test_output("2\n", _globals=_globals, mybuiltins=mybuiltins)
     i += 1
-    _test_output("3\n", _globals=_globals, prompt_number=i)
+    _test_output("3\n", _globals=_globals, mybuiltins=mybuiltins)
     i += 1
-    out, err = _test_output("_\n", _globals=_globals, prompt_number=i)
+    out, err = _test_output("_\n", _globals=_globals, mybuiltins=mybuiltins)
     assert out == "3\n\n"
     assert not err
 
     i += 1
-    _test_output("1\n", _globals=_globals, prompt_number=i)
+    _test_output("1\n", _globals=_globals, mybuiltins=mybuiltins)
     i += 1
-    _test_output("2\n", _globals=_globals, prompt_number=i)
+    _test_output("2\n", _globals=_globals, mybuiltins=mybuiltins)
     i += 1
-    _test_output("3\n", _globals=_globals, prompt_number=i)
+    _test_output("3\n", _globals=_globals, mybuiltins=mybuiltins)
     i += 1
-    out, err = _test_output("__\n", _globals=_globals, prompt_number=i)
+    out, err = _test_output("__\n", _globals=_globals, mybuiltins=mybuiltins)
     assert out == "2\n\n"
     assert not err
 
     i += 1
-    _test_output("1\n", _globals=_globals, prompt_number=i)
+    _test_output("1\n", _globals=_globals, mybuiltins=mybuiltins)
     i += 1
-    _test_output("2\n", _globals=_globals, prompt_number=i)
+    _test_output("2\n", _globals=_globals, mybuiltins=mybuiltins)
     i += 1
-    _test_output("3\n", _globals=_globals, prompt_number=i)
+    _test_output("3\n", _globals=_globals, mybuiltins=mybuiltins)
     i += 1
-    out, err = _test_output("___\n", _globals=_globals, prompt_number=i)
+    out, err = _test_output("___\n", _globals=_globals, mybuiltins=mybuiltins)
     assert out == "1\n\n"
     assert not err
 
     i += 1
-    out, err = _test_output("_%d\n" % (i-1), _globals=_globals, prompt_number=i)
+    out, err = _test_output("_%d\n" % (i-1), _globals=_globals,
+        mybuiltins=mybuiltins)
     assert out == "1\n\n"
     assert not err
 
@@ -380,15 +492,18 @@ def test_syntax_validator():
 
 def test_getsource():
     _globals = _test_globals.copy()
+    mybuiltins = startup(_globals, _globals, quiet=True)
+
     out, err = _test_output('def test():\nraise ValueError("error")\n\n',
-        _globals=_globals)
+        _globals=_globals, mybuiltins=mybuiltins)
 
     assert getsource('test', _globals, _globals, ret=True, include_info=False) == """\
 def test():
     raise ValueError("error")
 """
 
-    out, err = _test_output('class Test:\npass\n\n', _globals=_globals, prompt_number=2)
+    out, err = _test_output('class Test:\npass\n\n', _globals=_globals,
+        mybuiltins=mybuiltins)
     assert getsource('Test', _globals, _globals, ret=True, include_info=False) == \
         getsource('Test', _globals, _globals, ret=True, include_info=False) == """\
 class Test:
@@ -413,13 +528,15 @@ def test_main_loop():
     assert _test_output('a = 1\n', doctest_mode=True) == ('', '')
 
     _globals = _test_globals.copy()
-    assert _test_output('a = 1\n', _globals=_globals) == ('\n', '')
-    assert _test_output('a\n', _globals=_globals) == ('1\n\n', '')
+    mybuiltins = startup(_globals, _globals, quiet=True)
+    assert _test_output('a = 1\n', _globals=_globals, mybuiltins=mybuiltins) == ('\n', '')
+    assert _test_output('a\n', _globals=_globals, mybuiltins=mybuiltins) == ('1\n\n', '')
 
     _globals = _test_globals.copy()
+    mybuiltins = startup(_globals, _globals, quiet=True)
     # Also tests automatic indentation
-    assert _test_output('def test():\nreturn 1\n\n', _globals=_globals) == ('\n', '')
-    assert _test_output('test()\n', _globals=_globals) == ('1\n\n', '')
+    assert _test_output('def test():\nreturn 1\n\n', _globals=_globals, mybuiltins=mybuiltins) == ('\n', '')
+    assert _test_output('test()\n', _globals=_globals, mybuiltins=mybuiltins) == ('1\n\n', '')
 
     assert _test_output('a = 1;2\n') == ('2\n\n', '')
     assert _test_output('1;2\n') == ('2\n\n', '')
@@ -449,10 +566,12 @@ ValueError: error
 """
 
     _globals = _test_globals.copy()
+    mybuiltins = startup(_globals, _globals, quiet=True)
     out, err = _test_output('def test():\nraise ValueError("error")\n\n',
-        _globals=_globals)
+        _globals=_globals, mybuiltins=mybuiltins)
     assert (out, err) == ('\n', '')
-    out, err = _test_output('test()\n', _globals=_globals, prompt_number=2)
+    out, err = _test_output('test()\n', _globals=_globals,
+        mybuiltins=mybuiltins)
     assert out == '\n'
     assert err == \
 r"""Traceback (most recent call last):
@@ -464,10 +583,12 @@ ValueError: error
 """
 
     _globals = _test_globals.copy()
+    mybuiltins = startup(_globals, _globals, quiet=True)
     out, err = _test_output('def test():\nraise ValueError("error")\n\n',
-        _globals=_globals, doctest_mode=True)
+        _globals=_globals, doctest_mode=True, mybuiltins=mybuiltins)
     assert (out, err) == ('', '')
-    out, err = _test_output('test()\n', _globals=_globals, doctest_mode=True, prompt_number=2)
+    out, err = _test_output('test()\n', _globals=_globals, doctest_mode=True,
+        mybuiltins=mybuiltins)
     assert out == ''
     assert err == \
 r"""Traceback (most recent call last):
@@ -478,7 +599,9 @@ ValueError: error
 
     # Non-eval syntax + last line expr
     _globals = _test_globals.copy()
-    out, err = _test_output('import os;undefined\n', _globals=_globals)
+    mybuiltins = startup(_globals, _globals, quiet=True)
+    out, err = _test_output('import os;undefined\n', _globals=_globals,
+        mybuiltins=mybuiltins)
     assert out == '\n'
     assert err == \
 """Traceback (most recent call last):
@@ -487,7 +610,8 @@ ValueError: error
 NameError: name 'undefined' is not defined
 """
     # \x1b\n == M-Enter
-    out, err = _test_output('import os\x1b\nundefined\n\n', _globals=_globals)
+    out, err = _test_output('import os\x1b\nundefined\n\n', _globals=_globals,
+        mybuiltins=mybuiltins)
     assert out == '\n'
     assert err == \
 """Traceback (most recent call last):
@@ -523,8 +647,7 @@ b = numpy.array([sympy.Float(1.1, 30) + sympy.Float(1.1, 30)*sympy.I]*1000)\x1b
 numpy.array(b, dtype=float)\x1b
 
 """
-    _globals = _test_globals.copy()
-    out, err = _test_output(command, _globals=_globals)
+    out, err = _test_output(command)
     assert out == '\n'
     assert "RecursionError" in err
     # assert print_tokens_output == "Warning: RecursionError from mypython_excepthook"
@@ -532,8 +655,7 @@ numpy.array(b, dtype=float)\x1b
 def test_error_magic():
     # Make sure %error shows the full mypython traceback.
     # Here instead of test_magic.py because it tests the exception handling
-    _globals = _test_globals.copy()
-    out, err = _test_output('%error\n', _globals=_globals)
+    out, err = _test_output('%error\n')
     assert out == '\n'
     assert re.match(
 r"""Traceback \(most recent call last\):
@@ -553,13 +675,11 @@ RuntimeError: Error magic
 , err), repr(err)
 
 def test_local_scopes():
-    _globals = _test_globals.copy()
-    out, err = _test_output('[x for x in range(10)]\n', _globals=_globals)
+    out, err = _test_output('[x for x in range(10)]\n')
     assert out == '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]\n\n'
     assert err == ''
 
-    _globals = _test_globals.copy()
-    out, err = _test_output('x = range(3); [i for i in x]\n', _globals=_globals)
+    out, err = _test_output('x = range(3); [i for i in x]\n')
     assert out == '[0, 1, 2]\n\n'
     assert err == ''
 

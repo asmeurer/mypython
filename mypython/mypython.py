@@ -3,11 +3,6 @@ _default_globals = globals().copy()
 _default_globals['__name__'] = '__main__'
 _default_locals = _default_globals
 
-# Defined here to avoid circular import issues
-In = {}
-Out = {}
-PROMPT_NUMBER = 0
-
 import os
 import sys
 import inspect
@@ -219,7 +214,7 @@ def get_in_prompt_tokens(cli):
 
         (Token.Emoji, cli.IN*3),
         (Token.InBracket, '['),
-        (Token.InNumber, str(PROMPT_NUMBER)),
+        (Token.InNumber, str(cli.builtins['PROMPT_NUMBER'])),
         (Token.InBracket, ']'),
         (Token.InColon, ':'),
         (Token.Space, ' '),
@@ -243,7 +238,7 @@ def get_out_prompt_tokens(cli):
     return [
         (Token.Emoji, cli.OUT*3),
         (Token.OutBracket, '['),
-        (Token.OutNumber, str(PROMPT_NUMBER)),
+        (Token.OutNumber, str(cli.builtins['PROMPT_NUMBER'])),
         (Token.OutBracket, ']'),
         (Token.OutColon, ':'),
         (Token.Space, ' '),
@@ -294,7 +289,7 @@ def getsource(command, _globals, _locals, ret=False, include_info=True):
         else:
             __main__file = None
         if filename in ["<stdin>", __main__file] or filename.startswith("<mypython"):
-            return '\n'.join([i for _, i in sorted(In.items())] + ['']).splitlines(keepends=True)
+            return '\n'.join([i for _, i in sorted(_locals['_CLI'].builtins['In'].items())] + ['']).splitlines(keepends=True)
         else:
             return linecache._orig_getlines(filename, module_globals)
 
@@ -379,11 +374,13 @@ sys.path.insert(0, '.')
 del sys
 """, _globals, _locals)
 
-    global In, Out, PROMPT_NUMBER
+    mybuiltins = {}
 
-    _locals['In'] = In = {}
-    _locals['Out'] = Out = {}
-    _locals['PROMPT_NUMBER'] = PROMPT_NUMBER = 1
+    mybuiltins['In'] = {}
+    mybuiltins['Out'] = {}
+    mybuiltins['PROMPT_NUMBER'] = 1
+
+    _locals.update(mybuiltins)
 
     if not quiet:
         print_tokens([(Token.Welcome, "Welcome to mypython.\n\n")])
@@ -408,6 +405,8 @@ del sys
         pass
     else:
         matplotlib.interactive(True)
+
+    return mybuiltins
 
 class NoResult:
     pass
@@ -458,23 +457,32 @@ def smart_eval(stmt, _globals, _locals, filename=None, *, ast_transformer=None):
     return res
 
 def post_command(*, command, res, _globals, _locals, cli):
-    global PROMPT_NUMBER
-
-    In[PROMPT_NUMBER] = command
+    PROMPT_NUMBER = cli.builtins['PROMPT_NUMBER']
+    cli.builtins['In'][PROMPT_NUMBER] = command
     if res is not NoResult:
         print_tokens(get_out_prompt_tokens(cli),
             style=style_from_pygments(OneAMStyle, {**prompt_style}))
 
-        Out[PROMPT_NUMBER] = res
-        _locals['_%s' % PROMPT_NUMBER] = res
-        _locals['_'], _locals['__'], _locals['___'] = res, _locals.get('_'), _locals.get('__')
+        cli.builtins['Out'][PROMPT_NUMBER] = res
+        cli.builtins['_%s' % PROMPT_NUMBER] = res
+        cli.builtins['_'], cli.builtins['__'], cli.builtins['___'] = res, cli.builtins.get('_'), cli.builtins.get('__')
 
         if not (DOCTEST_MODE and res is None):
             sys.displayhook(res)
 
     if command.strip():
-        PROMPT_NUMBER += 1
-        _locals['PROMPT_NUMBER'] = PROMPT_NUMBER
+        cli.builtins['PROMPT_NUMBER'] += 1
+
+    # Allow the mutable builtin names to be redefined without mypython resetting them. If
+    # they are del-ed, they will be restored to the builtin versions.
+    # Immutable names exempt from this because we cannot detect if they are
+    # redefined.
+    # TODO: Handle this better?
+    for name in cli.builtins:
+        if name in ['_', '__', '___', 'PROMPT_NUMBER', '_CLI']:
+            _locals[name] = cli.builtins[name]
+        else:
+            _locals.setdefault(name, cli.builtins[name])
 
 def get_eventloop():
     # This is needed to make matplotlib plots work
@@ -486,7 +494,7 @@ def get_eventloop():
     return create_eventloop(inputhook)
 
 def get_cli(*, history, _globals, _locals, registry, _input=None, output=None,
-    eventloop=None, IN_OUT=None):
+    eventloop=None, IN_OUT=None, builtins=None):
 
     def is_buffer_multiline():
         return document_is_multiline_python(buffer.document)
@@ -494,6 +502,8 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None,
     multiline = Condition(is_buffer_multiline)
 
     output = output or create_output(true_color=True)
+
+    builtins = builtins or {}
 
     # This is based on prompt_toolkit.shortcuts.prompt() and
     # prompt_toolkit.shortcuts.create_prompt_application().
@@ -541,6 +551,13 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None,
     if not IN_OUT:
         IN_OUT = random.choice(emoji)
     cli.IN, cli.OUT = IN_OUT
+    cli.builtins = builtins
+    # If the result of normalize (such as a magic) needs to access a
+    # builtin name like In, it should do so through
+    # _CLI.builtins['In']. This ensures that _CLI is always defined as
+    # the current cli.
+    cli.builtins['_CLI'] = _locals['_CLI'] = cli
+
     return cli
 
 def format_exception(etype, value, tb, limit=None, chain=True):
@@ -598,7 +615,8 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
                 if not DOCTEST_MODE:
                     print()
                 return
-            res = smart_eval(command, _globals, _locals, filename=mypython_file(PROMPT_NUMBER))
+
+            res = smart_eval(command, _globals, _locals, filename=mypython_file(cli.builtins['PROMPT_NUMBER']))
             post_command(command=command, res=res, _globals=_globals,
                 _locals=_locals, cli=cli)
         except SystemExit:
@@ -614,7 +632,6 @@ CMD_QUEUE = deque()
 
 def run_shell(_globals=_default_globals, _locals=_default_locals, *,
     quiet=False, cmd=None, history_file=None, cat=False):
-    global PROMPT_NUMBER
 
     if cmd:
         CMD_QUEUE.append(cmd + '\n')
@@ -635,8 +652,8 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
 
     IN, OUT = random.choice(emoji)
 
-    startup(_globals, _locals, quiet=quiet, cat=cat)
-    PROMPT_NUMBER = 1
+    mybuiltins = startup(_globals, _locals, quiet=quiet, cat=cat)
+
     while True:
         try:
             _history = history
@@ -651,7 +668,8 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
                 _input = None
 
             cli = get_cli(history=_history, _locals=_locals, _globals=_globals,
-                    registry=registry, _input=_input, IN_OUT=(IN, OUT))
+                    registry=registry, _input=_input, IN_OUT=(IN, OUT),
+                    builtins=mybuiltins)
 
             # Replace stdout.
             patch_context = cli.patch_stdout_context(raw=True)

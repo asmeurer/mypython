@@ -34,7 +34,8 @@
 - Show full traceback for errors from prompt-toolkit
 - LaTeX math
 - Clear mypython variables when leaving PuDB shell
-- PuDB resets the prompt numbers
 - Add key to hide prompts
 - Confusing when line is exactly the terminal width
 - Enter in the middle of a line in multiline tries to execute
+- Some kind of session object
+- Make the doctest mode session local (part of the builtins)

@@ -33,13 +33,12 @@ from prompt_toolkit.completion import Completer, Completion
 
 from .dircompletion import DirCompleter
 from .magic import MAGICS
-from .mypython import In
 
-def get_jedi_script_from_document(document, locals, globals):
+def get_jedi_script_from_document(document, _locals, _globals):
     import jedi  # We keep this import in-line, to improve start-up time.
                  # Importing Jedi is 'slow'.
 
-    full_document = '\n'.join(i for _, i in sorted(In.items()))
+    full_document = '\n'.join(i for _, i in sorted(_locals['_CLI'].builtins['In'].items()))
     if not full_document.endswith('\n'):
         full_document += '\n'
 
@@ -49,7 +48,7 @@ def get_jedi_script_from_document(document, locals, globals):
             column=document.cursor_position_col,
             line=document.cursor_position_row + 2 + len(full_document.splitlines()),
             path='<mypython>',
-            namespaces=[locals, globals])
+            namespaces=[_locals, _globals])
     except Exception as e:
         # Workaround for many issues (see original code)
         return None

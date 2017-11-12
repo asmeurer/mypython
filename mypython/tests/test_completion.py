@@ -4,6 +4,8 @@ import re
 
 from prompt_toolkit.input import PipeInput
 
+from ..mypython import startup
+
 from .test_mypython import _cli_with_input
 
 UP_TO_TAB = re.compile('[^\t]*\t?')
@@ -37,11 +39,12 @@ def _test_completion(text):
     _globals = {}
     exec('', _globals)
     assert _globals
+    mybuiltins = startup(_globals, _globals, quiet=True)
 
     _input = PipeInput()
     t = threading.Thread(target=lambda: _input_with_tabs(text, _input))
     t.start()
-    result, cli = _cli_with_input(_input, _globals=_globals)
+    result, cli = _cli_with_input(_input, _globals=_globals, builtins=mybuiltins)
     return result.text
 
 def test_completions():
