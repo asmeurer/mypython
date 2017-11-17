@@ -30,6 +30,11 @@
 # DAMAGE.
 #
 
+
+from io import BytesIO
+
+from iterm2_tools import display_image_bytes
+
 from . import mypython
 
 def can_print_sympy(o):
@@ -88,3 +93,21 @@ def mypython_displayhook(value):
         # Print multiline stuff below the out prompt
         print()
     print(res)
+
+def latex_in_terminal(expr):
+    from sympy import preview
+
+    obj = BytesIO()
+    preamble = r'''
+\documentclass[6pt]{article}
+\usepackage{amsmath,amsfonts}
+\pagestyle{empty}
+\begin{document}
+'''
+    dvioptions = ["-T", "tight", "--truecolor", '-fg', 'Green', '-bg', 'Transparent', '-D', '150']
+    preview(expr, euler=False, output='png', viewer='BytesIO',
+        outputbuffer=obj, preamble=preamble, dvioptions=dvioptions,
+        # Setting the mode only works in my sympy branch
+        # mode='equation*',
+        )
+    print(display_image_bytes(obj.getvalue()))
