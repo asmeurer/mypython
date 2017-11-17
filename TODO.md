@@ -39,4 +39,3 @@
 - Enter in the middle of a line in multiline tries to execute
 - Some kind of session object
 - Make the doctest mode session local (part of the builtins)
-- Make C-x C-s do nothing
