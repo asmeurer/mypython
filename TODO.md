@@ -40,3 +40,4 @@
 - Some kind of session object
 - Make the doctest mode session local (part of the builtins)
 - Continuation lines not dedented correctly with copy-paste
+- TAB in the middle of a line should indent
