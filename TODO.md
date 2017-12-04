@@ -39,3 +39,4 @@
 - Enter in the middle of a line in multiline tries to execute
 - Some kind of session object
 - Make the doctest mode session local (part of the builtins)
+- Error with M-space and the end of the line
