@@ -40,3 +40,4 @@
 - Some kind of session object
 - Make the doctest mode session local (part of the builtins)
 - Error with M-space and the end of the line
+- M-l, etc. incorrect behavior in the middle of multiline
