@@ -105,6 +105,7 @@ def forward_word(event):
         if m.end(0) > cursor_position:
             event.current_buffer.cursor_position = m.end(0)
             return
+    event.current_buffer.cursor_position = len(text)
 
 @r.add_binding(Keys.Escape, 'b') # Keys.Escape, Keys.Left
 def backward_word(event):
@@ -152,6 +153,26 @@ def backward_kill_word(event):
         deleted = buffer.delete_before_cursor(count=pos)
         event.cli.clipboard.set_text(deleted)
 
+def insert_text_ovewrite(buffer, data, move_cursor=True):
+    """
+    Insert characters at cursor position.
+
+    :param fire_event: Fire `on_text_insert` event. This is mainly used to
+        trigger autocompletion while typing.
+    """
+    # Original text & cursor position.
+    otext = buffer.text
+    ocpos = buffer.cursor_position
+
+    # Don't overwrite the newline itself. Just before the line ending,
+    # it should act like insert mode.
+    overwritten_text = otext[ocpos:ocpos + len(data)]
+
+    buffer.text = otext[:ocpos] + data + otext[ocpos + len(overwritten_text):]
+
+    if move_cursor:
+        buffer.cursor_position += len(data)
+
 @r.add_binding(Keys.Escape, 'l')
 def downcase_word(event):
     buffer = event.current_buffer
@@ -160,9 +181,10 @@ def downcase_word(event):
     for m in WORD.finditer(text):
         pos = m.end(0)
         if pos > cursor_position:
-            word = buffer.document.text_after_cursor[:pos]
-            buffer.insert_text(word.lower(), overwrite=True)
+            word = buffer.document.text[cursor_position:pos]
+            insert_text_ovewrite(buffer, word.lower())
             return
+    event.current_buffer.cursor_position = len(text)
 
 @r.add_binding(Keys.Escape, 'u')
 def upcase_word(event):
@@ -172,9 +194,10 @@ def upcase_word(event):
     for m in WORD.finditer(text):
         pos = m.end(0)
         if pos > cursor_position:
-            word = buffer.document.text_after_cursor[:pos]
-            buffer.insert_text(word.upper(), overwrite=True)
+            word = buffer.document.text[cursor_position:pos]
+            insert_text_ovewrite(buffer, word.upper())
             return
+    event.current_buffer.cursor_position = len(text)
 
 @r.add_binding(Keys.Escape, 'c')
 def capitalize_word(event):
@@ -184,15 +207,16 @@ def capitalize_word(event):
     for m in WORD.finditer(text):
         pos = m.end(0)
         if pos > cursor_position:
-            word = buffer.document.text_after_cursor[:pos]
+            word = buffer.document.text[cursor_position:pos]
             # Don't use word.capitalize() because the first character could be
             # - or _
             for i, c in enumerate(word):
                 if c.isalnum():
                     word = word[:i] + c.capitalize() + word[i+1:].lower()
                     break
-            buffer.insert_text(word, overwrite=True)
+            insert_text_ovewrite(buffer, word)
             return
+    event.current_buffer.cursor_position = len(text)
 
 @r.add_binding(Keys.Escape, Keys.ControlF)
 def forward_sexp(event):
