@@ -768,3 +768,8 @@ def comment(event):
 @r.add_binding(Keys.ControlX, Keys.ControlE)
 def open_in_editor(event):
     event.current_buffer.open_in_editor(event.cli)
+
+@r.add_binding(Keys.ControlX, Keys.ControlS)
+@r.add_binding(Keys.ControlX, Keys.ControlC)
+def noop(event):
+    pass

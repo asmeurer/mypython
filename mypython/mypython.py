@@ -198,10 +198,16 @@ style_extra = {
     Token.MismatchingBracket.Other:  "bg:#ff0000", # red
 }
 
+NO_PROMPT_MODE = False
 DOCTEST_MODE = False
 DEBUG = False
 
 def get_in_prompt_tokens(cli):
+    if NO_PROMPT_MODE:
+        return [
+            (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
+            (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
+            ]
     if DOCTEST_MODE:
         return [
             (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),

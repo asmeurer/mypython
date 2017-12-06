@@ -39,5 +39,7 @@
 - Enter in the middle of a line in multiline tries to execute
 - Some kind of session object
 - Make the doctest mode session local (part of the builtins)
+- Continuation lines not dedented correctly with copy-paste
+- TAB in the middle of a line should indent
 - Error with M-space and the end of the line
 - M-l, etc. incorrect behavior in the middle of multiline
