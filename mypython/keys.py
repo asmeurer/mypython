@@ -105,6 +105,7 @@ def forward_word(event):
         if m.end(0) > cursor_position:
             event.current_buffer.cursor_position = m.end(0)
             return
+    event.current_buffer.cursor_position = len(text)
 
 @r.add_binding(Keys.Escape, 'b') # Keys.Escape, Keys.Left
 def backward_word(event):
