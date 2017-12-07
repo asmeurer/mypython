@@ -30,7 +30,6 @@
 - Allow to copy-paste part of multiline with just the clapping
 - Keep track of execution time of each prompt
 - Selection is disabled after one C-c <
-- Error from mypython when repr raises an exception
 - Show full traceback for errors from prompt-toolkit
 - LaTeX math
 - Clear mypython variables when leaving PuDB shell
