@@ -566,39 +566,43 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None,
 
     return cli
 
-def format_exception(etype, value, tb, limit=None, chain=True):
-    """
-    Like traceback.format_exception() except lines from mypython are not returned.
-    """
-    if DEBUG:
-        return traceback.format_exception(etype, value, tb, limit=limit, chain=chain)
+class MyTracebackException(traceback.TracebackException):
+    def __init__(self, exc_type, exc_value, exc_traceback, *,
+        remove_mypython=True, **kwargs):
 
-    lines = traceback.format_exception(etype, value, tb, limit=limit, chain=chain)
-    if lines[-2].startswith('  File "{}'.format(mypython_dir)):
-        return traceback.format_exception(etype, value, tb, limit=limit, chain=chain)
+        super().__init__(exc_type, exc_value, exc_traceback, **kwargs)
 
-    l = []
-    for i in lines:
-        if i.startswith('  File "{}'.format(mypython_dir)):
-            continue
-        l.append(i)
-    return l
+        new_stack = traceback.StackSummary()
+        mypython_error = None
+        for frame in self.stack[:]:
+            if frame.filename.startswith(mypython_dir):
+                if mypython_error is False:
+                    mypython_error = True
+            else:
+                new_stack.append(frame)
+                if not mypython_error:
+                    mypython_error = False
+        if mypython_error is None:
+            mypython_error = True
 
-def format_exc(limit=None, chain=True):
-    """
-    Like traceback.format_exc() except lines from mypython are not returned.
-    """
-    return "".join(format_exception(*sys.exc_info(), limit=limit, chain=chain))
+        if remove_mypython and not mypython_error:
+            self.stack = new_stack
+
+        self.mypython_error = mypython_error
+
 
 def mypython_excepthook(etype, value, tb):
     try:
-        tb_str = "".join(format_exception(etype, value, tb))
+        tbexception = MyTracebackException(type(value), value, tb, limit=None,
+            remove_mypython=not DEBUG)
+
+        tb_str = "".join(list(tbexception.format(chain=True)))
         print(highlight(tb_str, Python3TracebackLexer(),
             TerminalTrueColorFormatter(style=OneAMStyle)),
             file=sys.stderr, end='')
-        if not DEBUG and mypython_dir in tb_str.replace(str(value), ''):
+        if tbexception.mypython_error:
             print_tokens([(Token.Newline, '\n'), (Token.InternalError,
-                "!!!!!! ERROR from mypython !!!!!!")],
+                "!!!!!! ERROR from mypython !!!!!!"), (Token.Newline, '\n\n')],
                 style=style_from_dict({Token.InternalError: "#ansired"}),
                 file=sys.stderr)
 
