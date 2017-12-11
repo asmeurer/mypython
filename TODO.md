@@ -41,4 +41,3 @@
 - Continuation lines not dedented correctly with copy-paste
 - TAB in the middle of a line should indent
 - Error with M-space and the end of the line
-- Failed history search then delete still fails history search

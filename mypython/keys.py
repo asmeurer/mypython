@@ -369,6 +369,9 @@ def delete_char_or_unindent(event):
     else:
         backward_delete_char(event)
 
+    # Reset the history search text
+    buffer.history_search_text = None
+
 @r.add_binding(Keys.Escape, ' ')
 def just_one_space(event):
     buffer = event.cli.current_buffer
