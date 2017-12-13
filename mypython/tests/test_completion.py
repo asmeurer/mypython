@@ -9,7 +9,7 @@ from ..mypython import startup
 from .test_mypython import _cli_with_input
 
 UP_TO_TAB = re.compile('[^\t]*\t?')
-def _input_with_tabs(text, _input, sleep_time=0.7):
+def _input_with_tabs(text, _input, sleep_time=0.8):
     """
     Send the input with a pause after tabs, to allow the (async) completion
     happen.
