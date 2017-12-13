@@ -13,7 +13,7 @@ import traceback
 import textwrap
 from io import StringIO
 from textwrap import dedent
-from pydoc import pager
+from pydoc import pager, Helper
 from collections import deque
 
 from pygments.lexers import Python3Lexer, Python3TracebackLexer
@@ -256,15 +256,80 @@ def mypython_file(prompt_number=None):
         return "<mypython-{prompt_number}>".format(prompt_number=prompt_number)
     return "<mypython>"
 
+def normalized_filename(filename):
+    __main__file = sys.modules['__main__'].__file__
+    if filename == __main__file:
+        filename == 'Unknown'
+    if filename.startswith("<mypython-"):
+        filename = "mypython input #%s" % filename[10:-1]
+    return filename
+
+def red(text):
+    return "\033[31m%s\033[0m" % text
+
+def blue(text):
+    return "\033[1;34m%s\033[0m" % text
+
 def myhelp(item):
+    help_io = StringIO()
+    helper = Helper(output=help_io)
+
+    def _name(obj):
+        try:
+            name = obj.__qualname__
+        except AttributeError:
+            try:
+                name = obj.__name__
+            except AttributeError:
+                name = None
+        return name
+
+    try:
+        s = inspect.signature(item)
+    except (TypeError, ValueError):
+        pass
+    else:
+        name = _name(item)
+        if name:
+            help_io.write("{heading}: {name}{s}\n".format(heading=
+                red("Signature"), name=name, s=s))
+
+    try:
+        filename = normalized_filename(inspect.getfile(item))
+    except TypeError:
+        pass
+    else:
+        help_io.write("{heading}: {filename}\n".format(heading=red("File"), filename=filename))
+
+    item_type_name = _name(type(item))
+    if item_type_name:
+        heading = red("Metaclass") if inspect.isclass(item) else red("Type")
+        help_io.write("{heading}: {type_name}\n".format(heading=heading, type_name=item_type_name))
+
+    if inspect.isclass(item):
+        try:
+            mro = item.__mro__
+        except AttributeError:
+            pass
+        else:
+            help_io.write("{heading}: {mro}\n".format(heading=red("MRO"), mro=mro))
+
+    if help_io.tell():
+        help_io.write("\n")
+
     # Don't import numpy if it isn't imported already
     if 'numpy' in sys.modules:
         import numpy
-        sio = StringIO()
         if isinstance(item, numpy.ufunc):
-            numpy.info(item, output=sio)
-            return pager(sio.getvalue())
-    help(item)
+            help_io.write(blue("NumPy Ufunc help\n----------------\n\n"))
+            numpy.info(item, output=help_io)
+            help_io.write("\n")
+
+    help_io.write(blue("Pydoc help\n----------\n\n"))
+
+    helper.help(item)
+
+    return pager(help_io.getvalue())
 
 
 def getsource(command, _globals, _locals, ret=False, include_info=True):
@@ -319,11 +384,7 @@ def getsource(command, _globals, _locals, ret=False, include_info=True):
         print("Error: could not get source for '%s': %s" % (command, e), file=sys.stderr)
     else:
         if include_info:
-            __main__file = sys.modules['__main__'].__file__
-            if filename == __main__file:
-                filename == 'Unknown'
-            if filename.startswith("<mypython-"):
-                filename = "mypython input #%s" % filename[10:-1]
+            filename = normalized_filename(filename)
             info = dedent("""
             # File: {filename}
 
