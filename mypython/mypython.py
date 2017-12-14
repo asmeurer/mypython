@@ -268,7 +268,7 @@ def red(text):
     return "\033[31m%s\033[0m" % text
 
 def blue(text):
-    return "\033[1;34m%s\033[0m" % text
+    return "\033[34m%s\033[0m" % text
 
 def myhelp(item):
     help_io = StringIO()
