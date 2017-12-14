@@ -291,8 +291,10 @@ def myhelp(item):
     else:
         name = _name(item)
         if name:
-            help_io.write("{heading}: {name}{s}\n".format(heading=
-                red("Signature"), name=name, s=s))
+            # highlight adds a newline to the end of the string
+            # (https://bitbucket.org/birkenfeld/pygments-main/issues/1403/)
+            help_io.write("{heading}: {name}{s}".format(heading=
+                red("Signature"), name=name, s=highlight(str(s), Python3Lexer(), TerminalTrueColorFormatter(style=OneAMStyle))))
 
     try:
         filename = normalized_filename(inspect.getfile(item))
