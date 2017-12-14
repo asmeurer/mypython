@@ -41,5 +41,4 @@
 - Continuation lines not dedented correctly with copy-paste
 - TAB in the middle of a line should indent
 - Error with M-space and the end of the line
-- ? doesn't show class docstrings (like datetime.timedelta)
 - Error from mypython keyboard interrupting a %time call
