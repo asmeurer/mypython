@@ -640,11 +640,14 @@ class MyTracebackException(traceback.TracebackException):
             if frame.filename.startswith(mypython_dir):
                 if mypython_error is False:
                     mypython_error = True
+            elif frame.filename.startswith('<mypython'):
+                new_stack.append(frame)
             else:
                 new_stack.append(frame)
                 if not mypython_error:
                     mypython_error = False
-        if mypython_error is None:
+
+        if mypython_error is None and frame.filename.startswith(mypython_dir):
             mypython_error = True
 
         if remove_mypython and not mypython_error:

@@ -41,4 +41,3 @@
 - Continuation lines not dedented correctly with copy-paste
 - TAB in the middle of a line should indent
 - Error with M-space and the end of the line
-- Error from mypython keyboard interrupting a %time call
