@@ -41,3 +41,4 @@
 - Continuation lines not dedented correctly with copy-paste
 - TAB in the middle of a line should indent
 - Error with M-space and the end of the line
+- Relative imports should fail, not try to import from mypython
