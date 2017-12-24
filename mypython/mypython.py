@@ -706,7 +706,7 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
 CMD_QUEUE = deque()
 
 def run_shell(_globals=_default_globals, _locals=_default_locals, *,
-    quiet=False, cmd=None, history_file=None, cat=False):
+    quiet=False, cmd=None, history_file=None, cat=False, _exit=False):
 
     if cmd:
         if isinstance(cmd, str):
@@ -745,6 +745,8 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
                 if cmd:
                     # Don't store --cmd in the history
                     _history = cmd = None
+            elif _exit:
+                break
             else:
                 _input = None
 

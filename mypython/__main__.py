@@ -22,6 +22,8 @@ def main():
         help="""Print an image of a cat at startup. Requires catimg to be installed.""")
     parser.add_argument("--debug", "-D", action="store_true",
         help="""Enable debug mode. The same as -c '%%debug'.""")
+    parser.add_argument('--exit', action='store_true', help="""Exit after
+        running the --cmd commands.""")
 
     try:
         import argcomplete
@@ -37,7 +39,8 @@ def main():
     if args.doctest_mode:
         mypython.DOCTEST_MODE = True
 
-    return run_shell(quiet=args.quiet, cmd=args.cmd, cat=args.cat)
+    return run_shell(quiet=args.quiet, cmd=args.cmd, cat=args.cat,
+        _exit=args.exit)
 
 if __name__ == '__main__':
     main()
