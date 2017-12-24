@@ -43,3 +43,4 @@
 - Error with M-space and the end of the line
 - Relative imports should fail, not try to import from mypython
 - Issues pasting multiple prompts with emoji prompts
+- Make the command queue not use input
