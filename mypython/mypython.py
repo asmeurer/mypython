@@ -709,7 +709,13 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
     quiet=False, cmd=None, history_file=None, cat=False):
 
     if cmd:
-        CMD_QUEUE.append(cmd + '\n')
+        if isinstance(cmd, str):
+            cmd = [cmd]
+        else:
+            for c in cmd:
+                # \x1b\n = Meta-Enter
+                # \x1b[ag = Shift-Enter (iTerm2 settings)
+                CMD_QUEUE.append(c.replace('\n', '\x1b\n') + '\x1b[ag')
     if not history_file:
         try:
             tty_name = os.path.basename(os.ttyname(sys.stdout.fileno()))

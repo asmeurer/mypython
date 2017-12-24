@@ -12,7 +12,7 @@ from . import mypython
 
 def main():
     parser = argparse.ArgumentParser(__doc__)
-    parser.add_argument("--cmd", "-c", metavar="CMD", action="store",
+    parser.add_argument("--cmd", "-c", metavar="CMD", action="append",
         help="""Execute the given command at startup.""")
     parser.add_argument("--quiet", "-q", "-Q", action="store_true", help="""Don't
         print the startup messages.""")
