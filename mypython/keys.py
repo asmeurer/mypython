@@ -14,6 +14,7 @@ from prompt_toolkit.selection import SelectionState
 from prompt_toolkit.clipboard import ClipboardData
 from prompt_toolkit.input.vt100_parser import ANSI_SEQUENCES
 from prompt_toolkit.application.current import get_app
+from prompt_toolkit.application import run_in_terminal
 
 from .multiline import (auto_newline, tab_should_insert_whitespace,
     document_is_multiline_python)
@@ -649,7 +650,7 @@ def osx_paste():
 def copy_to_clipboard(event):
     if event.current_buffer.document.selection:
         from_, to = event.current_buffer.document.selection_range()
-        event.cli.run_in_terminal(lambda:osx_copy(event.current_buffer.document.text[from_:to + 1]))
+        run_in_terminal(lambda:osx_copy(event.current_buffer.document.text[from_:to + 1]))
 
 @r.add_binding(Keys.ControlX, Keys.ControlY)
 def paste_from_clipboard(event):
@@ -658,7 +659,7 @@ def paste_from_clipboard(event):
         nonlocal paste_text
         paste_text = osx_paste()
 
-    event.cli.run_in_terminal(get_paste)
+    run_in_terminal(get_paste)
 
     event.current_buffer.cut_selection()
     event.current_buffer.paste_clipboard_data(ClipboardData(paste_text))
