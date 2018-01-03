@@ -44,3 +44,4 @@
 - Relative imports should fail, not try to import from mypython
 - Issues pasting multiple prompts with emoji prompts
 - Make the command queue not use input
+- \ at end of line fails when there are unclosed parentheses
