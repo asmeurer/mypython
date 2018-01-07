@@ -199,9 +199,29 @@ def test_startup():
 # Not called test_globals to avoid confusion with _test_globals
 def test_test_globals():
     assert _test_globals.keys() == {'__package__', '__loader__',
-    '__name__', '__doc__', '__cached__', '__file__', '__builtins__',
+    '__name__', '__doc__', '__cached__', '__builtins__',
     '__spec__'}
     assert _test_globals['__name__'] == _default_globals['__name__'] == '__main__'
+    assert _test_globals['__spec__'] == _default_globals['__package__'] == None
+
+def test_local_import():
+    out, err = _test_output('from .tests import *\n')
+    assert out == '\n'
+    assert err == \
+"""Traceback (most recent call last):
+  File "<mypython-1>", line 1, in <module>
+    from .tests import *
+ImportError: attempted relative import with no known parent package
+"""
+
+    out, err = _test_output('from .test import *\n')
+    assert out == '\n'
+    assert err == \
+"""Traceback (most recent call last):
+  File "<mypython-1>", line 1, in <module>
+    from .test import *
+ImportError: attempted relative import with no known parent package
+"""
 
 def test_builtin_names():
     _globals = _test_globals.copy()

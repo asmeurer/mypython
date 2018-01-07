@@ -1,6 +1,9 @@
 # Define globals first so that names from this module don't get included
 _default_globals = globals().copy()
 _default_globals['__name__'] = '__main__'
+del _default_globals['__file__']
+_default_globals['__spec__'] = None
+_default_globals['__package__'] = None
 _default_locals = _default_globals
 
 import os
