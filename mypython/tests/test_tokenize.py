@@ -425,6 +425,8 @@ def test_is_multiline_python():
         "'''",
         "'''abc",
         "(1 + ",
+        "(1 + \\",
+        "('1 + \\",
         "{1: 2,",
         "[1, ",
         # Anything with a newline is multiline, unless it has an unfinished

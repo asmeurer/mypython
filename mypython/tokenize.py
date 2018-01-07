@@ -197,6 +197,8 @@ def is_multiline_python(text):
     except TokenError as e:
         # Uncompleted docstring or braces
         # Multiline unless there is an uncompleted non-docstring
+        if not first and toknum == ERRORTOKEN and token.string == '\\':
+            return True
         return not error
     except IndentationError:
         return False
