@@ -202,7 +202,9 @@ def test_test_globals():
     '__name__', '__doc__', '__cached__', '__builtins__',
     '__spec__'}
     assert _test_globals['__name__'] == _default_globals['__name__'] == '__main__'
-    assert _test_globals['__spec__'] == _default_globals['__package__'] == None
+    assert _test_globals['__spec__'] == _default_globals['__package__'] == _default_globals['__cached__'] == None
+    import builtins
+    assert _test_globals['__builtins__'] is builtins
 
 def test_local_import():
     out, err = _test_output('from .tests import *\n')
