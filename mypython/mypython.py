@@ -377,13 +377,13 @@ def getsource(command, _globals, _locals, ret=False, include_info=True):
         linecache._orig_getlines = linecache.getlines
         linecache.getlines = _patched_linecache_getlines
         try:
-            source = eval('inspect.getsource(%s)' % command, _globals,
+            sourcelines, lineno = eval('inspect.getsourcelines(%s)' % command, _globals,
                 {'inspect': inspect, **_locals})
             if include_info:
                 filename = eval('inspect.getfile(%s)' % command, _globals,
                     {'inspect': inspect, **_locals})
         except TypeError:
-            source = eval('inspect.getsource(type(%s))' % command, _globals,
+            sourcelines, lineno = eval('inspect.getsourcelines(type(%s))' % command, _globals,
                 {'inspect': inspect, **_locals})
             if include_info:
                 filename = eval('inspect.getfile(type(%s))' % command, _globals,
@@ -397,9 +397,10 @@ def getsource(command, _globals, _locals, ret=False, include_info=True):
             filename = normalized_filename(filename)
             info = dedent("""
             # File: {filename}
+            # Line: {lineno}
 
-            """.format(filename=filename))
-            source = info + source
+            """.format(filename=filename, lineno=lineno))
+            source = info + ''.join(sourcelines)
         if ret:
             return source
         pager(highlight(source, Python3Lexer(),
