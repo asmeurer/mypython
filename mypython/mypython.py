@@ -393,6 +393,7 @@ def getsource(command, _globals, _locals, ret=False, include_info=True):
             raise
         print("Error: could not get source for '%s': %s" % (command, e), file=sys.stderr)
     else:
+        source = ''.join(sourcelines)
         if include_info:
             filename = normalized_filename(filename)
             info = dedent("""
@@ -400,7 +401,7 @@ def getsource(command, _globals, _locals, ret=False, include_info=True):
             # Line: {lineno}
 
             """.format(filename=filename, lineno=lineno))
-            source = info + ''.join(sourcelines)
+            source = info + source
         if ret:
             return source
         pager(highlight(source, Python3Lexer(),
