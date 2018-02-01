@@ -106,6 +106,25 @@ else:
 del _mypython
 """
 
+def noprompt_magic(rest):
+    """
+    Enable/disable no-prompt mode
+    """
+    if rest:
+        return error("%noprompt takes no arguments")
+
+    return """\
+from mypython import mypython as _mypython
+_mypython.NO_PROMPT_MODE ^= True
+
+if _mypython.NO_PROMPT_MODE:
+    print("prompts disabled")
+else:
+    print("prompts enabled")
+del _mypython
+"""
+
+
 def debug_magic(rest):
     """
     Enable/disable debug mode
