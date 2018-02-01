@@ -44,3 +44,4 @@
 - Issues pasting multiple prompts with emoji prompts
 - Make the command queue not use input
 - Keyboard interrupt doesn't pause PuDB
+- Should not allow newline inside single quote stirng, even in multiline
