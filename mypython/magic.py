@@ -106,6 +106,25 @@ else:
 del _mypython
 """
 
+def noprompt_magic(rest):
+    """
+    Enable/disable no-prompt mode
+    """
+    if rest:
+        return error("%noprompt takes no arguments")
+
+    return """\
+from mypython import mypython as _mypython
+_mypython.NO_PROMPT_MODE ^= True
+
+if _mypython.NO_PROMPT_MODE:
+    print("prompts disabled")
+else:
+    print("prompts enabled")
+del _mypython
+"""
+
+
 def debug_magic(rest):
     """
     Enable/disable debug mode
@@ -172,6 +191,7 @@ _pudb._get_debugger().breaks.setdefault(_filename, [1])
 # Instantiating the Breakpoint class enables the breakpoint. We can't use
 # debugger.set_break() because it fails if the file isn't in the linecache.
 _bdb.Breakpoint(_filename, 1, temporary=True)
+_pudb.set_interrupt_handler()
 _pudb._get_debugger().set_trace(paused=False)
 _pudb._get_debugger().mainpyfile = _filename
 _pudb._get_debugger()._wait_for_mainpyfile = True

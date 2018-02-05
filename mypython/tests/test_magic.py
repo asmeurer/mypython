@@ -111,6 +111,24 @@ def test_debug():
     finally:
         mypython.DEBUG = False
 
+def test_noprompt():
+    from .. import mypython
+    assert mypython.NO_PROMPT_MODE == False
+
+    try:
+        _globals = _test_globals.copy()
+        mybuiltins = startup(_globals, _globals, quiet=True)
+        assert _test_output('%noprompt\n', _globals=_globals,
+            mybuiltins=mybuiltins) == ('prompts disabled\n\n', '')
+        assert mypython.NO_PROMPT_MODE
+        assert _test_output('%noprompt\n', _globals=_globals,
+            mybuiltins=mybuiltins) == ('prompts enabled\n\n', '')
+        assert not mypython.DEBUG
+        assert _test_output('%noprompt 1\n', _globals=_globals,
+            mybuiltins=mybuiltins) == ('\n', '%noprompt takes no arguments\n')
+    finally:
+        mypython.NO_PROMPT_MODE = False
+
 def test_sympy():
     _globals = _test_globals.copy()
     mybuiltins = startup(_globals, _globals, quiet=True)

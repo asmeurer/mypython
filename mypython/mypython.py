@@ -246,7 +246,7 @@ def get_continuation_tokens(cli, width):
     ]
 
 def get_out_prompt_tokens(cli):
-    if DOCTEST_MODE:
+    if DOCTEST_MODE or NO_PROMPT_MODE:
         return []
     return [
         (Token.Emoji, cli.OUT*3),
