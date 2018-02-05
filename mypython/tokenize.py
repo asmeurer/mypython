@@ -140,6 +140,8 @@ def matching_parens(s, allow_intermediary_mismatches=True):
 def inside_string(s, row, col):
     """
     Returns True if row, col is inside a string in s, False otherwise.
+
+    row starts at 1 and col starts at 0.
     """
     input_code = io.BytesIO(s.encode('utf-8'))
     try:
