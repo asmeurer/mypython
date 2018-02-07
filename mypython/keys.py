@@ -296,6 +296,8 @@ def multiline_enter(event):
     text = buffer.text
     # isspace doesn't respect vacuous truth
     if (not text_after_cursor or text_after_cursor.isspace()) and text_before_cursor.replace(' ', '').endswith('\n'):
+        # If we are at the end of the buffer, accept unless we are in a
+        # docstring
         row, col = document.translate_index_to_position(buffer.cursor_position)
         row += 1
         if multiline and inside_string(text, row, col):
@@ -304,6 +306,8 @@ def multiline_enter(event):
         else:
             accept_line(event)
     elif not multiline:
+        # Always accept a single valid line. Also occurs for unclosed single
+        # quoted strings (which will give a syntax error)
         accept_line(event)
     else:
         auto_newline(event.current_buffer)
