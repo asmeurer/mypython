@@ -43,3 +43,4 @@
 - Error with M-space and the end of the line
 - Issues pasting multiple prompts with emoji prompts
 - Make the command queue not use input
+- Should not allow newline inside single quote string, even in multiline
