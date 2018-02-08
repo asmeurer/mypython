@@ -210,7 +210,7 @@ def test_inside_string():
     assert inside_string(s, 1, 4)
     assert inside_string(s, 1, 5)
     assert inside_string(s, 1, 6)
-    # assert not inside_string(s, 1, 7)
+    assert not inside_string(s, 1, 7)
     assert not inside_string(s, 1, 8)
     assert not inside_string(s, 1, 9)
     assert inside_string(s, 1, 10)
@@ -225,8 +225,8 @@ def test_inside_string():
     assert inside_string(s, 2, 3)
     assert inside_string(s, 2, 4)
     assert inside_string(s, 2, 5)
-    # assert not inside_string(s, 2, 6)
-    # assert not inside_string(s, 2, 7)
+    assert not inside_string(s, 2, 6)
+    assert not inside_string(s, 2, 7)
 
 
     s = '1 + "a" + """abc\ndef"""'
@@ -237,7 +237,7 @@ def test_inside_string():
     assert inside_string(s, 1, 4)
     assert inside_string(s, 1, 5)
     assert inside_string(s, 1, 6)
-    # assert not inside_string(s, 1, 7)
+    assert not inside_string(s, 1, 7)
     assert not inside_string(s, 1, 8)
     assert not inside_string(s, 1, 9)
     assert inside_string(s, 1, 10)
@@ -252,8 +252,8 @@ def test_inside_string():
     assert inside_string(s, 2, 3)
     assert inside_string(s, 2, 4)
     assert inside_string(s, 2, 5)
-    # assert not inside_string(s, 2, 6)
-    # assert not inside_string(s, 2, 7)
+    assert not inside_string(s, 2, 6)
+    assert not inside_string(s, 2, 7)
 
     s = """\
 1, 2
@@ -271,7 +271,7 @@ f'''
     assert inside_string(s, 2, 0)
     assert inside_string(s, 2, 1)
     assert inside_string(s, 2, 2)
-    # assert inside_string(s, 2, 3)
+    assert inside_string(s, 2, 3)
     assert inside_string(s, 3, 0)
     assert inside_string(s, 3, 1)
     assert inside_string(s, 3, 2)
@@ -303,7 +303,7 @@ f"""
     assert inside_string(s, 2, 0)
     assert inside_string(s, 2, 1)
     assert inside_string(s, 2, 2)
-    # assert inside_string(s, 2, 3)
+    assert inside_string(s, 2, 3)
     assert inside_string(s, 3, 0)
     assert inside_string(s, 3, 1)
     assert inside_string(s, 3, 2)
@@ -357,7 +357,7 @@ f"""
     assert inside_string(s, 2, 0)
     assert inside_string(s, 2, 1)
     assert inside_string(s, 2, 2)
-    # assert inside_string(s, 2, 3)
+    assert inside_string(s, 2, 3)
 
     s = '1 + "\\\nabc'
     assert not inside_string(s, 1, 0)
@@ -370,7 +370,7 @@ f"""
     assert inside_string(s, 2, 0)
     assert inside_string(s, 2, 1)
     assert inside_string(s, 2, 2)
-    # assert inside_string(s, 2, 3)
+    assert inside_string(s, 2, 3)
 
 
     s = "1 + '\\\nabc'"
@@ -385,7 +385,7 @@ f"""
     assert inside_string(s, 2, 1)
     assert inside_string(s, 2, 2)
     assert inside_string(s, 2, 3)
-    # assert not inside_string(s, 2, 4)
+    assert not inside_string(s, 2, 4)
 
     s = '1 + "\\\nabc"'
     assert not inside_string(s, 1, 0)
@@ -399,17 +399,17 @@ f"""
     assert inside_string(s, 2, 1)
     assert inside_string(s, 2, 2)
     assert inside_string(s, 2, 3)
-    # assert not inside_string(s, 2, 4)
+    assert not inside_string(s, 2, 4)
 
     s = """def test():
     """
-    # assert not inside_string(s, 2, 4)
+    assert not inside_string(s, 2, 4)
 
     s = """\
 a = 1
      b = 2
 """
-    # assert not inside_string(s, 0, 1)
+    assert not inside_string(s, 0, 1)
 
 def test_is_multiline_python():
     multiline = [
