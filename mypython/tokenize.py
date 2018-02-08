@@ -164,6 +164,20 @@ def inside_string(s, row, col):
 
     return False
 
+import parso
+
+def inside_string(s, row, col):
+    """
+    Return True if row, col is inside a string in s
+    """
+    p = parso.parse(s)
+    if row > 1:
+        # For whatever reason parso puts \n at col 0 after the first line
+        col += 1
+
+    node = p.get_leaf_for_position((row, col))
+    return isinstance(node, parso.python.tree.String) or isinstance(node, parso.python.tree.PythonErrorLeaf) and node.value.lstrip()[0] in '"\''
+
 # From https://docs.python.org/3/library/itertools.html
 def pairwise(iterable):
     "s -> (s0,s1), (s1,s2), (s2, s3), ..."
