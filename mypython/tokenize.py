@@ -181,12 +181,12 @@ def parso_inside_string(s, row, col):
 
     return prev_tok in [STRING, ERRORTOKEN]
 
-try:
-    import parso
-    inside_string = parso_inside_string
-    del parso
-except ImportError:
-    pass
+# try:
+#     import parso
+#     inside_string = parso_inside_string
+#     del parso
+# except ImportError:
+#     pass
 
 # From https://docs.python.org/3/library/itertools.html
 def pairwise(iterable):
