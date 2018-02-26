@@ -164,6 +164,30 @@ def inside_string(s, row, col):
 
     return False
 
+def parso_inside_string(s, row, col):
+    from parso.utils import parse_version_string
+    from parso.python.tokenize import tokenize, INDENT, STRING, ERRORTOKEN
+
+    start = end = (0, 0)
+    toknum = prev_tok = -1
+    for token in tokenize(s, parse_version_string()):
+        start = end
+        prev_tok = toknum
+        toknum, tokval, end, prefix = token
+        if start <= (row, col) < end:
+            if prev_tok == INDENT:
+                continue
+            break
+
+    return prev_tok in [STRING, ERRORTOKEN]
+
+# try:
+#     import parso
+#     inside_string = parso_inside_string
+#     del parso
+# except ImportError:
+#     pass
+
 # From https://docs.python.org/3/library/itertools.html
 def pairwise(iterable):
     "s -> (s0,s1), (s1,s2), (s2, s3), ..."

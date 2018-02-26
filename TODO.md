@@ -44,3 +44,4 @@
 - Issues pasting multiple prompts with emoji prompts
 - Make the command queue not use input
 - Should not allow newline inside single quote string, even in multiline
+- Error if two spaces after %pudb
