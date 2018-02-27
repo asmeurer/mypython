@@ -18,15 +18,18 @@ def test_echo():
     assert out == '1\nNone\n\n'
     assert not err
 
+    out, err = _test_output('%echo  1\n')
+    assert out == '1\nNone\n\n'
+    assert not err
+
     # \x1b\n == M-Enter
     out, err = _test_output('%echo\x1b\n1\n\n')
     assert out == '1\nNone\n\n'
     assert not err
 
     out, err = _test_output('%echo \x1b\n1\n\n')
-    assert out == '\n1\nNone\n\n'
+    assert out == '1\nNone\n\n'
     assert not err
-
 
 def test_time():
     _globals = _test_globals.copy()

@@ -25,6 +25,7 @@ def magic(command):
     else:
         magic_command, rest = command.split(' ', 1)
 
+    rest = rest.lstrip()
     if magic_command not in MAGICS:
         return command
 
