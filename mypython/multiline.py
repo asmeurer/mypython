@@ -81,10 +81,8 @@ def auto_newline(buffer):
 class TabShouldInsertWhitespaceFilter(Filter):
     """
     When the 'tab' key is pressed with only whitespace character before the
-    cursor, do autocompletion. Otherwise, insert indentation.
-    Except for the first character at the first line. Then always do a
-    completion. It doesn't make sense to start the first line with
-    indentation.
+    cursor, insert indentation. Otherwise, do autocompletion.
+
     """
     def __call__(self, cli):
         b = cli.current_buffer
