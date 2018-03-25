@@ -60,7 +60,7 @@ def beginning(event):
 @r.add_binding(Keys.Escape, '>')
 def end(event):
     """
-    Move to the beginning
+    Move to the end
     """
     event.current_buffer.cursor_position = len(event.current_buffer.text)
 
