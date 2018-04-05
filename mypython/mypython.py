@@ -29,7 +29,6 @@ from pygments.formatters import TerminalTrueColorFormatter
 from pygments import highlight
 
 from prompt_toolkit.buffer import Buffer, AcceptAction
-from prompt_toolkit.input import PipeInput
 from prompt_toolkit.interface import Application, CommandLineInterface
 from prompt_toolkit.shortcuts import (create_prompt_layout, print_tokens,
     create_eventloop, create_output)
@@ -41,6 +40,7 @@ from prompt_toolkit.history import FileHistory
 from prompt_toolkit.validation import Validator, ValidationError
 from prompt_toolkit.filters import Condition, IsDone
 from prompt_toolkit.token import Token
+from prompt_toolkit.eventloop.posix import PosixEventLoop
 
 import iterm2_tools
 
@@ -715,17 +715,18 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
 
 CMD_QUEUE = deque()
 
+class NoRunEventLoop(PosixEventLoop):
+    def run(self, stdin, callbacks):
+        return
+
 def run_shell(_globals=_default_globals, _locals=_default_locals, *,
     quiet=False, cmd=None, history_file=None, cat=False, _exit=False):
 
     if cmd:
         if isinstance(cmd, str):
             cmd = [cmd]
-        else:
-            for c in cmd:
-                # \x1b\n = Meta-Enter
-                # \x1b[ag = Shift-Enter (iTerm2 settings)
-                CMD_QUEUE.append(c.replace('\n', '\x1b\n') + '\x1b[ag')
+        for c in cmd:
+            CMD_QUEUE.append(c)
     if not history_file:
         try:
             tty_name = os.path.basename(os.ttyname(sys.stdout.fileno()))
@@ -747,22 +748,17 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
 
     while True:
         try:
-            _history = history
+            _eventloop = NoRunEventLoop() if CMD_QUEUE else None
+            cli = get_cli(history=history, _locals=_locals, _globals=_globals,
+                    registry=registry, IN_OUT=(IN, OUT),
+                    builtins=mybuiltins, eventloop=_eventloop)
 
             if CMD_QUEUE:
-                _input = PipeInput()
-                _input.send_text(CMD_QUEUE.popleft())
-                if cmd:
-                    # Don't store --cmd in the history
-                    _history = cmd = None
+                command = CMD_QUEUE.popleft()
+                cli.current_buffer.insert_text(command)
+                cli.set_return_value(cli.current_buffer.document)
             elif _exit:
                 break
-            else:
-                _input = None
-
-            cli = get_cli(history=_history, _locals=_locals, _globals=_globals,
-                    registry=registry, _input=_input, IN_OUT=(IN, OUT),
-                    builtins=mybuiltins)
 
             # Replace stdout.
             patch_context = cli.patch_stdout_context(raw=True)
@@ -781,4 +777,5 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
         except:
             sys.excepthook(*sys.exc_info())
 
+        print(command)
         execute_command(command, cli, _globals=_globals, _locals=_locals)
