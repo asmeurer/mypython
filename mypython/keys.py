@@ -722,6 +722,8 @@ def bracketed_paste(event):
     # bracketed paste. See: https://github.com/ipython/ipython/issues/9737
     data = data.replace('\r\n', '\n')
     data = data.replace('\r', '\n')
+    # Replace tabs with four spaces (C-x C-y will still paste the text exactly)
+    data = data.replace('\t', '    ')
 
     # Strip prompts off pasted text
     document = buffer.document
