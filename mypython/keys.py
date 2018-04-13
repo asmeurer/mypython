@@ -621,7 +621,7 @@ def redo(event):
 
 # Need to escape all spaces here because of verbose (x) option below
 ps1_prompts = [r'>>>\ '] + [re.escape(i)*3 + r'\[\d+\]:\ ' for i, j in emoji] + [r'In\ \[\d+\]:\ ']
-ps2_prompts = [r'\.\.\.\ ', '\N{CLAPPING HANDS SIGN}+⎢'] + [r'\ +\.\.\.:\ ']
+ps2_prompts = [r'\.\.\.\ ', '\N{CLAPPING HANDS SIGN}+⎢'] + [r'\ *\.\.\.:\ ']
 PS1_PROMPTS_RE = re.compile('|'.join(ps1_prompts))
 PS2_PROMPTS_RE = re.compile('|'.join(ps2_prompts))
 PROMPTED_TEXT_RE = re.compile(r'''(?x) # Multiline and verbose
@@ -684,7 +684,7 @@ def split_prompts(text, indent=''):
     from .mypython import validate_text
 
     text = textwrap.dedent(text).strip() + '\n'
-    text = PROMPTED_TEXT_RE.sub(prompt_repl, text).lstrip()
+    text = textwrap.dedent(PROMPTED_TEXT_RE.sub(prompt_repl, text)).lstrip()
 
     lines = text.split('\r')
 
@@ -732,7 +732,7 @@ def bracketed_paste(event):
     if not inside_string(event.current_buffer.text, row, col):
         indent = LEADING_WHITESPACE.match(document.current_line_before_cursor)
         current_line_indent = indent.group(1) if indent else ''
-        if PS1_PROMPTS_RE.match(data.strip()):
+        if PS1_PROMPTS_RE.match(data.strip()) or PS2_PROMPTS_RE.match(data.strip()):
             lines = split_prompts(data, current_line_indent)
         else:
             lines = [textwrap.indent(data, current_line_indent,

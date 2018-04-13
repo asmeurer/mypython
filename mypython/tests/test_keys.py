@@ -146,3 +146,32 @@ a
 
     assert split_prompts(mypython_prompts2) == [
         'def test():\n    pass\n\n', 'a = 1\n', 'a\n']
+
+    # Test splitting only continuation (PS2) prompts
+
+    mypython_prompts = """\
+    \N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}⎢    for i in range(10):
+    \N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}⎢        print(i)
+"""
+
+    python_prompts = """\
+...     for i in range(10):
+...         print(i)
+"""
+
+    ipython_prompts = """\
+   ...:     for i in range(10):
+   ...:         print(i)
+"""
+
+    ipython_prompts2 = """\
+   ...:     for i in range(10):
+   ...:         print(i)
+   ...:
+"""
+
+    assert split_prompts(mypython_prompts) == \
+        split_prompts(python_prompts) == \
+        split_prompts(ipython_prompts) == \
+        split_prompts(ipython_prompts2) == \
+    ['for i in range(10):\n    print(i)\n\n']
