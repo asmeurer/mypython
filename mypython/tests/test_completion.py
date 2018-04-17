@@ -63,6 +63,8 @@ def test_completions():
     assert _test_completion("%ti\t\n") == "%time"
     # The extra space at the end is removed by the validator
     assert _test_completion("%sy\t\n") == "%sympy"
+    # Completion without %
+    assert _test_completion("sym\t\n") == "%sympy"
 
     # Test Python completion with magic
     assert _test_completion('%time copy\t\n')

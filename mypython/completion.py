@@ -72,14 +72,16 @@ class PythonCompleter(Completer):
         """
         Get Python completions.
         """
-        if document.text.startswith('%') and ' ' not in document.text_before_cursor:
+        if ' ' not in document.text_before_cursor:
             for magic in MAGICS:
-                if magic.startswith(document.text):
-                    yield Completion(magic + ' ',
-                        -len(document.text_before_cursor),
-                        display_meta='magic')
+                for m in [magic, magic[1:]]:
+                    if m.startswith(document.text):
+                        yield Completion(magic + ' ',
+                            -len(document.text_before_cursor),
+                            display_meta='magic')
 
-            return
+            if document.text.startswith('%'):
+                return
         if complete_event.completion_requested or self._complete_python_while_typing(document):
 
             # First do the dir completions (should be faster, and more
