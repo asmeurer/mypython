@@ -1,4 +1,4 @@
-from ..keys import BLANK_LINES, LEADING_WHITESPACE, WORD, split_prompts
+from ..keys import BLANK_LINES, LEADING_WHITESPACE, WORD, split_prompts, do_cycle_spacing
 
 def test_blank_lines_re():
     test_text = """\
@@ -175,3 +175,142 @@ a
         split_prompts(ipython_prompts) == \
         split_prompts(ipython_prompts2) == \
     ['for i in range(10):\n    print(i)\n\n']
+
+def test_do_cycle_spacing():
+    text, cursor_position = 'a b', 1
+
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('a b', 2)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('ab', 1)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('a b', 1)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('a b', 2)
+
+    text, cursor_position = 'a  b', 1
+
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('a b', 2)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('ab', 1)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('a  b', 1)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('a b', 2)
+
+
+    text = """\
+def test():
+    return 1\
+"""
+    cursor_position = 15
+
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('def test(): return 1', 12)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('def test():return 1', 11)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ("""\
+def test():
+    return 1""", 15)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('def test(): return 1', 12)
+
+    text, cursor_position = 'ab', 1
+
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('a b', 2)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('ab', 1)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('ab', 1)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('a b', 2)
+
+    text, cursor_position = 'ab', 0
+
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == (' ab', 1)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('ab', 0)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('ab', 0)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == (' ab', 1)
+
+    text, cursor_position = 'ab', 2
+
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('ab ', 3)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('ab', 2)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('ab', 2)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('ab ', 3)
+
+
+    # Don't reuse ab, it will use the state from the last test.
+    text, cursor_position = 'cd ', 3
+
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('cd ', 3)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('cd', 2)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('cd ', 3)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('cd ', 3)
+
+
+    text, cursor_position = ' ab', 0
+
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == (' ab', 1)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('ab', 0)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == (' ab', 0)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == (' ab', 1)
+
+    text, cursor_position = '', 0
+
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == (' ', 1)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('', 0)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('', 0)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == (' ', 1)
+
+
+    # Clear the state
+    do_cycle_spacing('clear', 0)
+
+    text, cursor_position = ' ', 0
+
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == (' ', 1)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('', 0)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == (' ', 0)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == (' ', 1)
+
+    # Clear the state
+    do_cycle_spacing('clear', 0)
+
+    text, cursor_position = ' ', 1
+
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == (' ', 1)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == ('', 0)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == (' ', 1)
+    text, cursor_position = do_cycle_spacing(text, cursor_position)
+    assert (text, cursor_position) == (' ', 1)

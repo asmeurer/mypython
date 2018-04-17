@@ -377,17 +377,65 @@ def delete_char_or_unindent(event):
     buffer.history_search_text = None
 
 @r.add_binding(Keys.Escape, ' ')
-def just_one_space(event):
+def cycle_spacing(event):
+    """
+    Based on emacs's cycle-spacing
+
+    On first call, remove all whitespace (if any) from around the cursor and
+    replace it with a single space.
+
+    On second call, remove all whitespace.
+
+    On third call, restore the original whitespace and cursor position.
+    """
     buffer = event.cli.current_buffer
-    rstripped = buffer.text[:buffer.cursor_position].rstrip()
-    lstripped = buffer.text[buffer.cursor_position:].lstrip()
-    if (len(buffer.text[:buffer.cursor_position]) - len(rstripped) == 1 and
-        len(lstripped) == len(buffer.text[buffer.cursor_position:])):
-        buffer.cursor_position -= 1
-        buffer.text = rstripped + lstripped
-    else:
-        buffer.cursor_position -= len(buffer.document.text_before_cursor) - len(rstripped) - 1
-        buffer.text = rstripped + ' ' + lstripped
+
+    # Avoid issues when text grows or shrinks below, keeping the cursor
+    # position out of sync
+    cursor_position = buffer.cursor_position
+    buffer.cursor_position = 0
+
+    buffer.text, buffer.cursor_position = do_cycle_spacing(buffer.text, cursor_position)
+
+def do_cycle_spacing(text, cursor_position, state=[]):
+    rstripped = text[:cursor_position].rstrip()
+    lstripped = text[cursor_position:].lstrip()
+
+    text_before_cursor = text[:cursor_position]
+
+    # The first element of state is the original text. The last element is the
+    # buffer text and cursor position as we last left them. If either of those
+    # have changed, reset. The state here is global, but that's fine, because
+    # we consider any change to be enough clear the state. The worst that
+    # happens here is that we resume when we shouldn't if things look exactly
+    # as they did where we left off.
+
+    # TODO: Use event.previous_key_sequence instead.
+    if state and state[-1] != (text, cursor_position):
+        state.clear()
+
+    if len(state) == 0:
+        # Replace all whitespace at the cursor (if any) with a single space.
+        state.append((text, cursor_position))
+        cursor_position -= len(text_before_cursor) - len(rstripped) -1
+        text = rstripped + ' ' + lstripped
+        state.append((text, cursor_position))
+    elif len(state) == 2:
+        # Exactly one space at the cursor. Remove it.
+        cursor_position -= 1
+        text = rstripped + lstripped
+        state.append((text, cursor_position))
+    elif len(state) == 3:
+        # Restore original text and cursor position
+        text, cursor_position = state[0]
+        state.clear()
+
+    if cursor_position < 0:
+        cursor_position = 0
+    if cursor_position > len(text):
+        cursor_position = len(text)
+
+    return text, cursor_position
 
 @r.add_binding(Keys.ControlX, Keys.ControlO)
 def delete_blank_lines(event):
