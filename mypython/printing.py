@@ -31,6 +31,7 @@
 #
 
 
+import sys
 from io import BytesIO
 
 from iterm2_tools import display_image_bytes
@@ -87,10 +88,7 @@ def mypython_displayhook(value):
     if value is mypython.NoResult:
         return
 
-    try:
-        import sympy
-    except ImportError:
-        sympy = None
+    sympy = sys.modules.get('sympy', None)
 
     if not mypython.DOCTEST_MODE and sympy and can_print_sympy(value):
         res = sympy.pretty(value, use_unicode=True)
