@@ -45,3 +45,4 @@
 - Should not allow newline inside single quote string, even in multiline
 - Error from mypython quitting PuDB
 - No newline before SymPy expressions
+- Allow tab completing magic without the %
