@@ -32,7 +32,7 @@ def _input_with_tabs(text, _input, sleep_time=0.8):
         time.sleep(sleep_time)
 
 
-def _test_completion(text, min_time=0.8, max_time=5, runs=5):
+def _test_completion(text, min_time=0.1, max_time=2, runs=3):
     # TODO: Figure out how to test this without executing the command
 
     # Make sure we have a globals dict with the builtins in it
@@ -42,8 +42,8 @@ def _test_completion(text, min_time=0.8, max_time=5, runs=5):
     mybuiltins = startup(_globals, _globals, quiet=True)
 
     for t in range(runs):
-        # Increase sleep time geometrically until success
-        sleep_time = min_time*((max_time/min_time)**(1/(runs - 1)))**t
+        # Increase sleep time linearly until success
+        sleep_time = min_time + (max_time - min_time)*t/(runs - 1)
         _input = PipeInput()
         t = threading.Thread(target=lambda: _input_with_tabs(text, _input, sleep_time=sleep_time))
         t.start()
