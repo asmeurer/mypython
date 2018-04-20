@@ -42,3 +42,4 @@
 - Make the command queue not use input
 - Should not allow newline inside single quote string, even in multiline
 - Error from mypython quitting PuDB
+- dir() completions on floats (like 1.TAB)
