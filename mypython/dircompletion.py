@@ -14,6 +14,8 @@
 
 # - Compile a regular expression
 
+# - Prevent things like 1. from completing int attributes
+
 # 1. This LICENSE AGREEMENT is between the Python Software Foundation ("PSF"), and
 #    the Individual or Organization ("Licensee") accessing and otherwise using Python
 #    3.6.0 software in source or binary form and its associated documentation.
@@ -121,7 +123,7 @@ class DirCompleter:
             self.use_main_ns = 0
             self.namespace = namespace
 
-    NAME = re.compile(r'[a-zA-Z0-9_\.]+')
+    NAME = re.compile(r'[a-zA-Z0-9_\.]*[a-zA-Z_]')
     def complete(self, text, state):
         """Return the next possible completion for 'text'.
 
