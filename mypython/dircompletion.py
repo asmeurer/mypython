@@ -204,7 +204,14 @@ class DirCompleter:
         try:
             thisobject = eval(expr, self.namespace)
         except Exception:
-            return []
+            # Try to get a case insensitive version
+            for i in self.namespace:
+                if i.lower() == expr.lower():
+                    expr = i
+                    thisobject = eval(i, self.namespace)
+                    break
+            else:
+                return []
 
         # get the content of the object, except __builtins__
         words = set(dir(thisobject))
