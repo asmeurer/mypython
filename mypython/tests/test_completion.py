@@ -5,6 +5,7 @@ import re
 from prompt_toolkit.input import PipeInput
 
 from ..mypython import startup
+from ..dircompletion import DirCompleter
 
 from .test_mypython import _cli_with_input
 
@@ -73,3 +74,23 @@ def test_completions():
 
     # Test Python completion with magic
     assert _test_completion('%time copy\t\n')
+
+def test_DirCompletion():
+    # Only test the modifications
+
+    completer = DirCompleter({'A': 1, 'b': [], 'B': (), 'abcd': 0, 'ABCD': 0})
+
+    # Case insensitive.
+    assert completer.attr_matches('a.')[0] == \
+        completer.attr_matches('A.')[0] == \
+        completer.attr_matches('A.bi')[0] == \
+        completer.attr_matches('A.Bi')[0] == \
+        'A.bit_length'
+
+    assert completer.attr_matches('b.')[0] == 'b.append'
+    assert completer.attr_matches('B.')[0] == 'B.count'
+
+    assert set(completer.global_matches('abc')) == set(completer.global_matches('ABC')) == {'abcd', 'ABCD'}
+
+    # Make sure 1. doesn't complete to 1.bit_length
+    assert completer.complete('1.', 0) == None
