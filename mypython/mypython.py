@@ -577,7 +577,7 @@ def get_prompt(*, history, _globals, _locals, key_bindings, _input=None, output=
 
     multiline = Condition(is_buffer_multiline)
 
-    output = output or create_output(true_color=True)
+    output = output or create_output()
 
     builtins = builtins or {}
 
