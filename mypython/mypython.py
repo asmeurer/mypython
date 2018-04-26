@@ -26,21 +26,22 @@ from collections import deque
 
 from pygments.lexers import Python3Lexer, Python3TracebackLexer
 from pygments.formatters import TerminalTrueColorFormatter
+from pygments.token import Token
 from pygments import highlight
 
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.input.vt100 import PipeInput
 from prompt_toolkit.application import Application
-from prompt_toolkit.shortcuts import (create_prompt_layout, print_tokens,
+from prompt_toolkit.shortcuts import (print_formatted_text,
     create_eventloop, create_output)
 from prompt_toolkit.document import Document
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.layout.processors import ConditionalProcessor
-from prompt_toolkit.styles import style_from_pygments, style_from_dict
+from prompt_toolkit.styles import style_from_pygments, style_from_pygments_dict
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.validation import Validator, ValidationError
 from prompt_toolkit.filters import Condition, IsDone
-from prompt_toolkit.token import Token
+from prompt_toolkit.formatted_text import PygmentsTokens
 
 import iterm2_tools
 
@@ -211,18 +212,18 @@ DEBUG = False
 
 def get_in_prompt_tokens(cli):
     if NO_PROMPT_MODE:
-        return [
+        return PygmentsTokens([
             (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
             (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
-            ]
+            ])
     if DOCTEST_MODE:
-        return [
+        return PygmentsTokens([
             (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
             (Token.DoctestIn, '>>>'),
             (Token.Space, ' '),
             (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
-            ]
-    return [
+            ])
+    return PygmentsTokens([
         (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
 
         (Token.Emoji, cli.IN*3),
@@ -232,30 +233,30 @@ def get_in_prompt_tokens(cli):
         (Token.InColon, ':'),
         (Token.Space, ' '),
         (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
-    ]
+    ])
 
 def get_continuation_tokens(cli, width):
     if DOCTEST_MODE:
-        return [
+        return PygmentsTokens([
             (Token.DoctestContinuation, '...'),
             (Token.Space, ' '),
-            ]
-    return [
+            ])
+    return PygmentsTokens([
         (Token.Clapping, '\N{CLAPPING HANDS SIGN}'*((width - 1)//2)),
         (Token.VerticalLine, '⎢'),
-    ]
+    ])
 
 def get_out_prompt_tokens(cli):
     if DOCTEST_MODE or NO_PROMPT_MODE:
-        return []
-    return [
+        return PygmentsTokens([])
+    return PygmentsTokens([
         (Token.Emoji, cli.OUT*3),
         (Token.OutBracket, '['),
         (Token.OutNumber, str(cli.builtins['PROMPT_NUMBER'])),
         (Token.OutBracket, ']'),
         (Token.OutColon, ':'),
         (Token.Space, ' '),
-    ]
+    ])
 
 def mypython_file(prompt_number=None):
     if DOCTEST_MODE:
@@ -461,7 +462,7 @@ del sys
     _locals.update(mybuiltins)
 
     if not quiet:
-        print_tokens([(Token.Welcome, "Welcome to mypython.\n\n")])
+        print_formatted_text(PygmentsTokens([(Token.Welcome, "Welcome to mypython.\n\n")]))
         if cat:
             try:
                 import catimg
@@ -470,7 +471,7 @@ del sys
             else:
                 image = catimg.get_random_image()
             if image:
-                print_tokens([(Token.Welcome, "Here is a cat:\n")])
+                print_formatted_text(PygmentsTokens([(Token.Welcome, "Here is a cat:\n")]))
                 iterm2_tools.display_image_file(image)
                 print()
 
@@ -538,7 +539,7 @@ def post_command(*, command, res, _globals, _locals, cli):
     PROMPT_NUMBER = cli.builtins['PROMPT_NUMBER']
     cli.builtins['In'][PROMPT_NUMBER] = command
     if res is not NoResult:
-        print_tokens(get_out_prompt_tokens(cli),
+        print_formatted_text(get_out_prompt_tokens(cli),
             style=style_from_pygments(OneAMStyle, {**prompt_style}))
 
         cli.builtins['Out'][PROMPT_NUMBER] = res
@@ -571,7 +572,7 @@ def get_eventloop():
 
     return create_eventloop(inputhook)
 
-def get_cli(*, history, _globals, _locals, registry, _input=None, output=None,
+def get_prompt(*, history, _globals, _locals, registry, _input=None, output=None,
     eventloop=None, IN_OUT=None, builtins=None):
 
     def is_buffer_multiline():
@@ -672,16 +673,16 @@ def mypython_excepthook(etype, value, tb):
             TerminalTrueColorFormatter(style=OneAMStyle)),
             file=sys.stderr, end='')
         if tbexception.mypython_error:
-            print_tokens([(Token.Newline, '\n'), (Token.InternalError,
-                "!!!!!! ERROR from mypython !!!!!!"), (Token.Newline, '\n\n')],
-                style=style_from_dict({Token.InternalError: "#ansired"}),
+            print_formatted_text(PygmentsTokens([(Token.Newline, '\n'), (Token.InternalError,
+                "!!!!!! ERROR from mypython !!!!!!"), (Token.Newline, '\n\n')]),
+                style=style_from_pygments_dict({Token.InternalError: "#ansired"}),
                 file=sys.stderr)
 
     except RecursionError:
         sys.__excepthook__(*sys.exc_info())
-        print_tokens([(Token.Newline, '\n'), (Token.InternalError,
-            "Warning: RecursionError from mypython_excepthook")],
-            style=style_from_dict({Token.InternalError: "#ansired"}),
+        print_formatted_text(PygmentsTokens([(Token.Newline, '\n'), (Token.InternalError,
+            "Warning: RecursionError from mypython_excepthook")]),
+            style=style_from_pygments_dict({Token.InternalError: "#ansired"}),
             file=sys.stderr)
 
 def execute_command(command, cli, *, _globals=None, _locals=None):
