@@ -33,7 +33,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from prompt_toolkit.layout.processors import (Transformation,
     HighlightMatchingBracketProcessor)
 from prompt_toolkit.layout.utils import explode_text_fragments
-from prompt_toolkit.token import Token
 from prompt_toolkit.application import get_app
 
 from .tokenize import matching_parens
@@ -84,26 +83,26 @@ class MyHighlightMatchingBracketProcessor(HighlightMatchingBracketProcessor):
             if row == lineno:
                 col = source_to_display(col)
                 fragments = explode_text_fragments(fragments)
-                token, text = fragments[col]
+                style, text = fragments[col]
 
                 if col == document.cursor_position_col:
-                    token += (':', ) + Token.MatchingBracket.Cursor
+                    style += ' class:matching-bracket.cursor '
                 else:
-                    token += (':', ) + Token.MatchingBracket.Other
+                    style += ' class:matching-bracket.other '
 
-                fragments[col] = (token, text)
+                fragments[col] = (style, text)
 
         for row, col in bad:
             if row == lineno:
                 col = source_to_display(col)
                 fragments = explode_text_fragments(fragments)
-                token, text = fragments[col]
+                style, text = fragments[col]
 
                 if col == document.cursor_position_col:
-                    token += (':', ) + Token.MismatchingBracket.Cursor
+                    style += ' class:matching-bracket.cursor '
                 else:
-                    token += (':', ) + Token.MismatchingBracket.Other
+                    style += ' class:matching-bracket.other '
 
-                fragments[col] = (token, text)
+                fragments[col] = (style, text)
 
         return Transformation(fragments)
