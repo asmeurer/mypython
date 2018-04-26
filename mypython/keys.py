@@ -3,11 +3,12 @@ from prompt_toolkit.key_binding.bindings.named_commands import (accept_line,
 from prompt_toolkit.key_binding.bindings.basic import if_no_repeat
 from prompt_toolkit.key_binding.defaults import load_key_bindings
 from prompt_toolkit.key_binding import KeyBindings, merge_key_bindings
-from prompt_toolkit.keys import Keys
+from prompt_toolkit.keys import Keys, ALL_KEYS
 from prompt_toolkit.filters import Condition, HasSelection
 from prompt_toolkit.selection import SelectionState
 from prompt_toolkit.clipboard import ClipboardData
 from prompt_toolkit.input.vt100_parser import ANSI_SEQUENCES
+from prompt_toolkit.application.current import get_app
 
 from .multiline import (auto_newline, TabShouldInsertWhitespaceFilter,
     document_is_multiline_python)
@@ -278,7 +279,7 @@ def exit(event):
     raise EOFError("Control-D")
 
 is_returnable = Condition(
-    lambda cli: cli.current_buffer.accept_action.is_returnable)
+    lambda: get_app().current_buffer.is_returnable)
 
 @r.add_binding(Keys.Enter, filter=is_returnable)
 def multiline_enter(event):
@@ -337,6 +338,7 @@ def open_line(event):
 
 # M-[ a g is set to S-Enter in iTerm2 settings
 Keys.ShiftEnter = "<Shift-Enter>"
+ALL_KEYS.append('<Shift-Enter>')
 ANSI_SEQUENCES['\x1b[ag'] = Keys.ShiftEnter
 
 r.add_binding(Keys.ShiftEnter)(accept_line)
@@ -656,6 +658,7 @@ def paste_from_clipboard(event):
 
 # M-[ a b is set to C-S-/ (C-?) in iTerm2 settings
 Keys.ControlQuestionmark = "<C-?>"
+ALL_KEYS.append("<C-?>")
 ANSI_SEQUENCES['\x1b[ab'] = Keys.ControlQuestionmark
 
 # This won't work until
