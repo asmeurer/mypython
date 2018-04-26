@@ -1,8 +1,13 @@
 from prompt_toolkit.key_binding.bindings.named_commands import (accept_line,
     self_insert, backward_delete_char, beginning_of_line)
 from prompt_toolkit.key_binding.bindings.basic import if_no_repeat
-from prompt_toolkit.key_binding.defaults import load_key_bindings
-from prompt_toolkit.key_binding import KeyBindings, merge_key_bindings
+from prompt_toolkit.key_binding.bindings.basic import load_basic_bindings
+from prompt_toolkit.key_binding.bindings.emacs import load_emacs_bindings, load_emacs_search_bindings
+from prompt_toolkit.key_binding.bindings.vi import load_vi_bindings, load_vi_search_bindings
+from prompt_toolkit.key_binding.bindings.mouse import load_mouse_bindings
+from prompt_toolkit.key_binding.bindings.cpr import load_cpr_bindings
+
+from prompt_toolkit.key_binding import KeyBindings, ConditionalKeyBindings, merge_key_bindings
 from prompt_toolkit.keys import Keys, ALL_KEYS
 from prompt_toolkit.filters import Condition, HasSelection
 from prompt_toolkit.selection import SelectionState
@@ -21,20 +26,18 @@ import sys
 import textwrap
 
 def get_key_bindings():
+    # Based on prompt_toolkit.key_binding.defaults.load_key_bindings()
     return merge_key_bindings([
-        load_key_bindings(
-            enable_abort_and_exit_bindings=True,
-            enable_search=True,
-            # Not using now but may in the future
-            enable_auto_suggest_bindings=True,
-            enable_extra_page_navigation=True,
-            # Custom one defined below, without execute
-            enable_open_in_editor=False,
-            enable_system_bindings=True,
-        ),
+        load_basic_bindings(),
+
+        load_emacs_bindings(),
+        load_emacs_search_bindings(),
+
+        load_mouse_bindings(),
+        load_cpr_bindings(),
+
         custom_key_bindings,
     ])
-
 
 r = custom_key_bindings = KeyBindings()
 
