@@ -32,7 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from prompt_toolkit.layout.processors import (Transformation,
     HighlightMatchingBracketProcessor)
-from prompt_toolkit.layout.utils import explode_text_fragements
+from prompt_toolkit.layout.utils import explode_text_fragments
 from prompt_toolkit.token import Token
 from prompt_toolkit.application import get_app
 
