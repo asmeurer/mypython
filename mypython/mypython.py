@@ -28,9 +28,9 @@ from pygments.lexers import Python3Lexer, Python3TracebackLexer
 from pygments.formatters import TerminalTrueColorFormatter
 from pygments import highlight
 
-from prompt_toolkit.buffer import Buffer, AcceptAction
-from prompt_toolkit.input import PipeInput
-from prompt_toolkit.interface import Application, CommandLineInterface
+from prompt_toolkit.buffer import Buffer
+from prompt_toolkit.input.vt100 import PipeInput
+from prompt_toolkit.application import Application
 from prompt_toolkit.shortcuts import (create_prompt_layout, print_tokens,
     create_eventloop, create_output)
 from prompt_toolkit.document import Document
@@ -590,7 +590,7 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None,
         is_multiline=multiline,
         validator=PythonSyntaxValidator(),
         history=history,
-        accept_action=AcceptAction(dedent_return_document_handler),
+        # accept_action=AcceptAction(dedent_return_document_handler),
         completer=PythonCompleter(lambda: _globals, lambda: _locals),
         # Needs to be False until
         # https://github.com/jonathanslenders/python-prompt-toolkit/issues/472
@@ -599,7 +599,7 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None,
         on_text_insert=on_text_insert,
         tempfile_suffix='.py',
         )
-    application = Application(
+    app = Application(
         create_prompt_layout(
             get_prompt_tokens=get_in_prompt_tokens,
             lexer=PygmentsLexer(MyPython3Lexer),
@@ -618,25 +618,21 @@ def get_cli(*, history, _globals, _locals, registry, _input=None, output=None,
         buffer=buffer,
         style=style_from_pygments(OneAMStyle, {**prompt_style, **style_extra}),
         key_bindings_registry=registry,
-    )
-    # This is based on run_application
-    cli = CommandLineInterface(
-        application=application,
         eventloop=eventloop or get_eventloop(),
         output=output,
         input=_input,
     )
     if not IN_OUT:
         IN_OUT = random.choice(emoji)
-    cli.IN, cli.OUT = IN_OUT
-    cli.builtins = builtins
+    app.IN, app.OUT = IN_OUT
+    app.builtins = builtins
     # If the result of normalize (such as a magic) needs to access a
     # builtin name like In, it should do so through
-    # _CLI.builtins['In']. This ensures that _CLI is always defined as
-    # the current cli.
-    cli.builtins['_CLI'] = _locals['_CLI'] = cli
+    # _APP.builtins['In']. This ensures that _APP is always defined as
+    # the current app.
+    app.builtins['_APP'] = _locals['_APP'] = app
 
-    return cli
+    return app
 
 class MyTracebackException(traceback.TracebackException):
     def __init__(self, exc_type, exc_value, exc_traceback, *,
