@@ -33,7 +33,7 @@ from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.input.vt100 import PipeInput
 from prompt_toolkit.output import create_output
 from prompt_toolkit.application import Application
-from prompt_toolkit.shortcuts import print_formatted_text
+from prompt_toolkit.shortcuts import print_formatted_text, Prompt
 from prompt_toolkit.document import Document
 from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.layout.processors import ConditionalProcessor
@@ -581,9 +581,7 @@ def get_prompt(*, history, _globals, _locals, key_bindings, _input=None, output=
 
     builtins = builtins or {}
 
-    # This is based on prompt_toolkit.shortcuts.prompt() and
-    # prompt_toolkit.shortcuts.create_prompt_application().
-    buffer = MyBuffer(
+    prompt = Prompt(
         enable_history_search=False,
         is_multiline=multiline,
         validator=PythonSyntaxValidator(),
