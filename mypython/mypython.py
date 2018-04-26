@@ -31,13 +31,13 @@ from pygments import highlight
 
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.input.vt100 import PipeInput
+from prompt_toolkit.output import create_output
 from prompt_toolkit.application import Application
-from prompt_toolkit.shortcuts import (print_formatted_text,
-    create_eventloop, create_output)
+from prompt_toolkit.shortcuts import print_formatted_text
 from prompt_toolkit.document import Document
-from prompt_toolkit.layout.lexers import PygmentsLexer
+from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.layout.processors import ConditionalProcessor
-from prompt_toolkit.styles import style_from_pygments, style_from_pygments_dict
+from prompt_toolkit.styles import style_from_pygments_cls, style_from_pygments_dict
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.validation import Validator, ValidationError
 from prompt_toolkit.filters import Condition, IsDone
@@ -48,7 +48,7 @@ import iterm2_tools
 from .multiline import document_is_multiline_python
 from .completion import PythonCompleter
 from .theme import OneAMStyle, MyPython3Lexer, emoji
-from .keys import get_registry, LEADING_WHITESPACE
+from .keys import get_key_bindings, LEADING_WHITESPACE
 from .processors import MyHighlightMatchingBracketProcessor
 from .magic import magic, MAGICS
 from .printing import mypython_displayhook
@@ -540,7 +540,7 @@ def post_command(*, command, res, _globals, _locals, cli):
     cli.builtins['In'][PROMPT_NUMBER] = command
     if res is not NoResult:
         print_formatted_text(get_out_prompt_tokens(cli),
-            style=style_from_pygments(OneAMStyle, {**prompt_style}))
+            style=style_from_pygments_cls(OneAMStyle, {**prompt_style}))
 
         cli.builtins['Out'][PROMPT_NUMBER] = res
         cli.builtins['_%s' % PROMPT_NUMBER] = res
@@ -563,17 +563,14 @@ def post_command(*, command, res, _globals, _locals, cli):
         else:
             _locals.setdefault(name, cli.builtins[name])
 
-def get_eventloop():
+def get_prompt(*, history, _globals, _locals, key_bindings, _input=None, output=None,
+    inputhook=None, IN_OUT=None, builtins=None):
+
     # This is needed to make matplotlib plots work
     if sys.platform == 'darwin':
         from .inputhook import inputhook
     else:
         inputhook = None
-
-    return create_eventloop(inputhook)
-
-def get_prompt(*, history, _globals, _locals, registry, _input=None, output=None,
-    eventloop=None, IN_OUT=None, builtins=None):
 
     def is_buffer_multiline():
         return document_is_multiline_python(buffer.document)
@@ -618,8 +615,8 @@ def get_prompt(*, history, _globals, _locals, registry, _input=None, output=None
         ignore_case=True, # In isearch
         buffer=buffer,
         style=style_from_pygments(OneAMStyle, {**prompt_style, **style_extra}),
-        key_bindings_registry=registry,
-        eventloop=eventloop or get_eventloop(),
+        key_bindings=key_bindings,
+        inputhook=inputhook,
         output=output,
         input=_input,
     )
@@ -736,7 +733,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
 
     history = FileHistory(history_file)
 
-    registry = get_registry()
+    key_bindings = get_key_bindings()
 
     IN, OUT = random.choice(emoji)
 
@@ -757,8 +754,8 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
             else:
                 _input = None
 
-            cli = get_cli(history=_history, _locals=_locals, _globals=_globals,
-                    registry=registry, _input=_input, IN_OUT=(IN, OUT),
+            prompt = get_prompt(history=_history, _locals=_locals, _globals=_globals,
+                    key_bindings=key_bindings, _input=_input, IN_OUT=(IN, OUT),
                     builtins=mybuiltins)
 
             # Replace stdout.
