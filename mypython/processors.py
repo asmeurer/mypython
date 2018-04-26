@@ -83,7 +83,7 @@ class MyHighlightMatchingBracketProcessor(HighlightMatchingBracketProcessor):
         for row, col in good:
             if row == lineno:
                 col = source_to_display(col)
-                fragments = explode_text_fragements(fragments)
+                fragments = explode_text_fragments(fragments)
                 token, text = fragments[col]
 
                 if col == document.cursor_position_col:
@@ -96,7 +96,7 @@ class MyHighlightMatchingBracketProcessor(HighlightMatchingBracketProcessor):
         for row, col in bad:
             if row == lineno:
                 col = source_to_display(col)
-                fragments = explode_text_fragements(fragments)
+                fragments = explode_text_fragments(fragments)
                 token, text = fragments[col]
 
                 if col == document.cursor_position_col:
