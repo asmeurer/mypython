@@ -33,7 +33,7 @@ from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.input.vt100 import PipeInput
 from prompt_toolkit.output import create_output
 from prompt_toolkit.application import Application
-from prompt_toolkit.shortcuts import print_formatted_text, Prompt
+from prompt_toolkit.shortcuts import print_formatted_text, Prompt, CompleteStyle
 from prompt_toolkit.document import Document
 from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.layout.processors import ConditionalProcessor
@@ -42,6 +42,7 @@ from prompt_toolkit.history import FileHistory
 from prompt_toolkit.validation import Validator, ValidationError
 from prompt_toolkit.filters import Condition, IsDone
 from prompt_toolkit.formatted_text import PygmentsTokens
+from prompt_toolkit.enums import DEFAULT_BUFFER
 
 import iterm2_tools
 
@@ -210,54 +211,6 @@ NO_PROMPT_MODE = False
 DOCTEST_MODE = False
 DEBUG = False
 
-def get_in_prompt_tokens(cli):
-    if NO_PROMPT_MODE:
-        return PygmentsTokens([
-            (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
-            (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
-            ])
-    if DOCTEST_MODE:
-        return PygmentsTokens([
-            (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
-            (Token.DoctestIn, '>>>'),
-            (Token.Space, ' '),
-            (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
-            ])
-    return PygmentsTokens([
-        (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
-
-        (Token.Emoji, cli.IN*3),
-        (Token.InBracket, '['),
-        (Token.InNumber, str(cli.builtins['PROMPT_NUMBER'])),
-        (Token.InBracket, ']'),
-        (Token.InColon, ':'),
-        (Token.Space, ' '),
-        (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
-    ])
-
-def get_continuation_tokens(cli, width):
-    if DOCTEST_MODE:
-        return PygmentsTokens([
-            (Token.DoctestContinuation, '...'),
-            (Token.Space, ' '),
-            ])
-    return PygmentsTokens([
-        (Token.Clapping, '\N{CLAPPING HANDS SIGN}'*((width - 1)//2)),
-        (Token.VerticalLine, '⎢'),
-    ])
-
-def get_out_prompt_tokens(cli):
-    if DOCTEST_MODE or NO_PROMPT_MODE:
-        return PygmentsTokens([])
-    return PygmentsTokens([
-        (Token.Emoji, cli.OUT*3),
-        (Token.OutBracket, '['),
-        (Token.OutNumber, str(cli.builtins['PROMPT_NUMBER'])),
-        (Token.OutBracket, ']'),
-        (Token.OutColon, ':'),
-        (Token.Space, ' '),
-    ])
-
 def mypython_file(prompt_number=None):
     if DOCTEST_MODE:
         return "<stdin>"
@@ -370,7 +323,7 @@ def getsource(command, _globals, _locals, ret=False, include_info=True):
         else:
             __main__file = None
         if filename in ["<stdin>", __main__file] or filename.startswith("<mypython"):
-            return '\n'.join([i for _, i in sorted(_locals['_CLI'].builtins['In'].items())] + ['']).splitlines(keepends=True)
+            return '\n'.join([i for _, i in sorted(_locals['_PROMPT'].In.items())] + ['']).splitlines(keepends=True)
         else:
             return linecache._orig_getlines(filename, module_globals)
 
@@ -446,46 +399,6 @@ finally:
     else:
         return command
 
-def startup(_globals, _locals, quiet=False, cat=False):
-    exec("""
-import sys
-sys.path.insert(0, '.')
-del sys
-""", _globals, _locals)
-
-    mybuiltins = {}
-
-    mybuiltins['In'] = {}
-    mybuiltins['Out'] = {}
-    mybuiltins['PROMPT_NUMBER'] = 1
-
-    _locals.update(mybuiltins)
-
-    if not quiet:
-        print_formatted_text(PygmentsTokens([(Token.Welcome, "Welcome to mypython.\n\n")]))
-        if cat:
-            try:
-                import catimg
-            except ImportError:
-                image = None
-            else:
-                image = catimg.get_random_image()
-            if image:
-                print_formatted_text(PygmentsTokens([(Token.Welcome, "Here is a cat:\n")]))
-                iterm2_tools.display_image_file(image)
-                print()
-
-    sys.displayhook = mypython_displayhook
-    sys.excepthook = mypython_excepthook
-
-    try:
-        import matplotlib
-    except ImportError:
-        pass
-    else:
-        matplotlib.interactive(True)
-
-    return mybuiltins
 
 class NoResult:
     pass
@@ -535,33 +448,231 @@ def smart_eval(stmt, _globals, _locals, filename=None, *, ast_transformer=None):
 
     return res
 
-def post_command(*, command, res, _globals, _locals, cli):
-    PROMPT_NUMBER = cli.builtins['PROMPT_NUMBER']
-    cli.builtins['In'][PROMPT_NUMBER] = command
+def post_command(*, command, res, _globals, _locals, prompt):
+    PROMPT_NUMBER = prompt.prompt_number
+    prompt.In[PROMPT_NUMBER] = command
+    builtins = prompt.builtins
+
     if res is not NoResult:
-        print_formatted_text(get_out_prompt_tokens(cli),
+        print_formatted_text(prompt.get_out_prompt(),
             style=style_from_pygments_cls(OneAMStyle, {**prompt_style}))
 
-        cli.builtins['Out'][PROMPT_NUMBER] = res
-        cli.builtins['_%s' % PROMPT_NUMBER] = res
-        cli.builtins['_'], cli.builtins['__'], cli.builtins['___'] = res, cli.builtins.get('_'), cli.builtins.get('__')
+        prompt.Out[PROMPT_NUMBER] = res
+        builtins['_%s' % PROMPT_NUMBER] = res
+        builtins['_'], builtins['__'], builtins['___'] = res, builtins.get('_'), builtins.get('__')
 
         if not (DOCTEST_MODE and res is None):
             sys.displayhook(res)
 
     if command.strip():
-        cli.builtins['PROMPT_NUMBER'] += 1
+        prompt.prompt_number += 1
 
     # Allow the mutable builtin names to be redefined without mypython resetting them. If
     # they are del-ed, they will be restored to the builtin versions.
     # Immutable names exempt from this because we cannot detect if they are
     # redefined.
     # TODO: Handle this better?
-    for name in cli.builtins:
-        if name in ['_', '__', '___', 'PROMPT_NUMBER', '_CLI']:
-            _locals[name] = cli.builtins[name]
+    for name in prompt.builtins:
+        if name in ['_', '__', '___', 'PROMPT_NUMBER', '_PROMPT']:
+            _locals[name] = prompt.builtins[name]
         else:
-            _locals.setdefault(name, cli.builtins[name])
+            _locals.setdefault(name, builtins[name])
+
+
+class MyPrompt(Prompt):
+    def __init__(self, *args, _globals, _locals, message=None,
+        key_bindings=None, history_file=None, IN_OUT=None, builtins=None,
+        quiet=False, cat=False, **kwargs):
+
+        if not history_file:
+            try:
+                tty_name = os.path.basename(os.ttyname(sys.stdout.fileno()))
+            except OSError:
+                tty_name = 'unknown'
+            history_file = '~/.mypython/history/%s_history' % tty_name
+
+        history_file = os.path.expanduser(history_file)
+
+        os.makedirs(os.path.dirname(history_file), exist_ok=True)
+
+        kwargs.setdefault('history', FileHistory(history_file))
+        kwargs.setdefault('key_bindings', key_bindings or get_key_bindings())
+        kwargs.setdefault('message', message or self.get_in_prompt)
+        kwargs.setdefault('lexer', PygmentsLexer(MyPython3Lexer))
+        kwargs.setdefault('multiline', True)
+        kwargs.setdefault('prompt_continuation', self.get_prompt_continuation)
+        kwargs.setdefault('complete_style', CompleteStyle.MULTI_COLUMN)
+
+        self._globals = _globals
+        self._locals = _locals
+
+        self.startup(_globals, _locals, quiet=quiet, cat=cat, builtins=builtins)
+        if not IN_OUT:
+            IN_OUT = random.choice(emoji)
+        self.IN, self.OUT = IN_OUT
+        self.builtins = builtins
+
+        self.__init__(*args, **kwargs)
+
+    def startup(self, _globals, _locals, quiet=False, cat=False, builtins=None):
+        exec("""
+import sys
+sys.path.insert(0, '.')
+del sys
+    """, _globals, _locals)
+
+        mybuiltins = builtins or {}
+
+        self.In = mybuiltins['In'] = {}
+        self.Out = mybuiltins['Out'] = {}
+        self.prompt_number = mybuiltins['PROMPT_NUMBER'] = 1
+
+        _locals.update(mybuiltins)
+
+        if not quiet:
+            print_formatted_text(PygmentsTokens([(Token.Welcome, "Welcome to mypython.\n\n")]))
+            if cat:
+                try:
+                    import catimg
+                except ImportError:
+                    image = None
+                else:
+                    image = catimg.get_random_image()
+                if image:
+                    print_formatted_text(PygmentsTokens([(Token.Welcome, "Here is a cat:\n")]))
+                    iterm2_tools.display_image_file(image)
+                    print()
+
+        sys.displayhook = mypython_displayhook
+        sys.excepthook = mypython_excepthook
+
+        try:
+            import matplotlib
+        except ImportError:
+            pass
+        else:
+            matplotlib.interactive(True)
+
+        return mybuiltins
+
+    def get_in_prompt(self):
+        if NO_PROMPT_MODE:
+            return PygmentsTokens([
+                (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
+                (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
+                ])
+        if DOCTEST_MODE:
+            return PygmentsTokens([
+                (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
+                (Token.DoctestIn, '>>>'),
+                (Token.Space, ' '),
+                (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
+                ])
+        return PygmentsTokens([
+            (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
+
+            (Token.Emoji, self.IN*3),
+            (Token.InBracket, '['),
+            (Token.InNumber, str(self.prompt_number)),
+            (Token.InBracket, ']'),
+            (Token.InColon, ':'),
+            (Token.Space, ' '),
+            (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
+        ])
+
+    def get_prompt_continuation(self, width):
+        if DOCTEST_MODE:
+            return PygmentsTokens([
+                (Token.DoctestContinuation, '...'),
+                (Token.Space, ' '),
+                ])
+        return PygmentsTokens([
+            (Token.Clapping, '\N{CLAPPING HANDS SIGN}'*((width - 1)//2)),
+            (Token.VerticalLine, '⎢'),
+        ])
+
+    def get_out_prompt(self):
+        if DOCTEST_MODE or NO_PROMPT_MODE:
+            return PygmentsTokens([])
+        return PygmentsTokens([
+            (Token.Emoji, self.OUT*3),
+            (Token.OutBracket, '['),
+            (Token.OutNumber, str(self.prompt_number)),
+            (Token.OutBracket, ']'),
+            (Token.OutColon, ':'),
+            (Token.Space, ' '),
+        ])
+
+    def _create_default_buffer(self):
+
+        def is_buffer_multiline():
+            return document_is_multiline_python(buffer.document)
+
+        multiline = Condition(is_buffer_multiline)
+        buffer = MyBuffer(
+            name=DEFAULT_BUFFER,
+            enable_history_search=False,
+            is_multiline=multiline,
+            validator=PythonSyntaxValidator(),
+            history=self.history,
+            # accept_action=AcceptAction(dedent_return_document_handler),
+            completer=PythonCompleter(lambda: self._globals, lambda: self._locals),
+            # Needs to be False until
+            # https://github.com/jonathanslenders/python-prompt-toolkit/issues/472
+            # is fixed.
+            complete_while_typing=False,
+            on_text_insert=on_text_insert,
+            tempfile_suffix='.py',
+        )
+        return buffer
+
+    def _create_input_processors(self):
+        input_processors = super()._create_input_processors()
+        input_processors.extend([
+            ConditionalProcessor(
+                # 20000 is ~most characters that fit on screen even with
+                # really small font
+                processor=MyHighlightMatchingBracketProcessor(max_cursor_distance=20000),
+                filter=~IsDone()
+            )])
+
+        return input_processors
+
+    def _create_application():
+        app = Application(
+            create_prompt_layout(
+                get_prompt_tokens=get_in_prompt_tokens,
+                lexer=PygmentsLexer(MyPython3Lexer),
+                multiline=True,
+                get_continuation_tokens=get_continuation_tokens,
+                display_completions_in_columns=True,
+                extra_input_processors=[
+                    ConditionalProcessor(
+                        # 20000 is ~most characters that fit on screen even with
+                        # really small font
+                        processor=MyHighlightMatchingBracketProcessor(max_cursor_distance=20000),
+                        filter=~IsDone()
+                    )],
+                ),
+            ignore_case=True, # In isearch
+            buffer=self.buffer,
+            style=style_from_pygments(OneAMStyle, {**prompt_style, **style_extra}),
+            key_bindings=key_bindings,
+            inputhook=inputhook,
+            output=output,
+            input=_input,
+        )
+        if not IN_OUT:
+            IN_OUT = random.choice(emoji)
+        app.IN, app.OUT = IN_OUT
+        app.builtins = builtins
+        # If the result of normalize (such as a magic) needs to access a
+        # builtin name like In, it should do so through
+        # _APP.builtins['In']. This ensures that _APP is always defined as
+        # the current app.
+        app.builtins['_APP'] = _locals['_APP'] = app
+
+        return app
 
 def get_prompt(*, history, _globals, _locals, key_bindings, _input=None, output=None,
     inputhook=None, IN_OUT=None, builtins=None):
@@ -572,29 +683,14 @@ def get_prompt(*, history, _globals, _locals, key_bindings, _input=None, output=
     else:
         inputhook = None
 
-    def is_buffer_multiline():
-        return document_is_multiline_python(buffer.document)
-
-    multiline = Condition(is_buffer_multiline)
-
     output = output or create_output()
 
     builtins = builtins or {}
 
-    prompt = Prompt(
-        enable_history_search=False,
-        is_multiline=multiline,
-        validator=PythonSyntaxValidator(),
-        history=history,
-        # accept_action=AcceptAction(dedent_return_document_handler),
-        completer=PythonCompleter(lambda: _globals, lambda: _locals),
-        # Needs to be False until
-        # https://github.com/jonathanslenders/python-prompt-toolkit/issues/472
-        # is fixed.
-        complete_while_typing=False,
-        on_text_insert=on_text_insert,
-        tempfile_suffix='.py',
-        )
+    prompt = MyPrompt(
+        history=history
+    )
+
     app = Application(
         create_prompt_layout(
             get_prompt_tokens=get_in_prompt_tokens,
@@ -680,7 +776,7 @@ def mypython_excepthook(etype, value, tb):
             style=style_from_pygments_dict({Token.InternalError: "#ansired"}),
             file=sys.stderr)
 
-def execute_command(command, cli, *, _globals=None, _locals=None):
+def execute_command(command, prompt, *, _globals=None, _locals=None):
     _globals = _globals or _default_globals
     _locals = _locals or _default_locals
 
@@ -693,9 +789,9 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
                     print()
                 return
 
-            res = smart_eval(command, _globals, _locals, filename=mypython_file(cli.builtins['PROMPT_NUMBER']))
+            res = smart_eval(command, _globals, _locals, filename=mypython_file(prompt.prompt_number))
             post_command(command=command, res=res, _globals=_globals,
-                _locals=_locals, cli=cli)
+                _locals=_locals, prompt=prompt)
         except SystemExit:
             raise
         except BaseException as e:
@@ -718,6 +814,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
                 # \x1b\n = Meta-Enter
                 # \x1b[ag = Shift-Enter (iTerm2 settings)
                 CMD_QUEUE.append(c.replace('\n', '\x1b\n') + '\x1b[ag')
+
     if not history_file:
         try:
             tty_name = os.path.basename(os.ttyname(sys.stdout.fileno()))
