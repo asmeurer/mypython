@@ -31,13 +31,11 @@ from pygments import highlight
 
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.input.vt100 import PipeInput
-from prompt_toolkit.output import create_output
-from prompt_toolkit.application import Application
 from prompt_toolkit.shortcuts import print_formatted_text, Prompt, CompleteStyle
-from prompt_toolkit.document import Document
 from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.layout.processors import ConditionalProcessor
-from prompt_toolkit.styles import style_from_pygments_cls, style_from_pygments_dict
+from prompt_toolkit.styles import (style_from_pygments_cls,
+    style_from_pygments_dict, merge_styles)
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.validation import Validator, ValidationError
 from prompt_toolkit.filters import Condition, IsDone
@@ -455,7 +453,8 @@ def post_command(*, command, res, _globals, _locals, prompt):
 
     if res is not NoResult:
         print_formatted_text(prompt.get_out_prompt(),
-            style=style_from_pygments_cls(OneAMStyle, {**prompt_style}))
+            style=merge_styles([style_from_pygments_cls(OneAMStyle),
+                style_from_pygments_dict({**prompt_style})]))
 
         prompt.Out[PROMPT_NUMBER] = res
         builtins['_%s' % PROMPT_NUMBER] = res
@@ -502,6 +501,16 @@ class MyPrompt(Prompt):
         kwargs.setdefault('multiline', True)
         kwargs.setdefault('prompt_continuation', self.get_prompt_continuation)
         kwargs.setdefault('complete_style', CompleteStyle.MULTI_COLUMN)
+        kwargs.setdefault('input_processors', [
+            ConditionalProcessor(
+                # 20000 is ~most characters that fit on screen even with
+                # really small font
+                processor=MyHighlightMatchingBracketProcessor(max_cursor_distance=20000),
+                filter=~IsDone()
+                )])
+        kwargs.setdefault('search_ignore_case', True)
+        kwargs.setdefault('style', merge_styles([style_from_pygments_cls(OneAMStyle),
+                style_from_pygments_dict({**prompt_style, **style_extra})]))
 
         self._globals = _globals
         self._locals = _locals
@@ -514,24 +523,24 @@ class MyPrompt(Prompt):
 
         self.__init__(*args, **kwargs)
 
-    def startup(self, _globals, _locals, quiet=False, cat=False, builtins=None):
+    def startup(self, builtins=None):
         exec("""
 import sys
 sys.path.insert(0, '.')
 del sys
-    """, _globals, _locals)
+    """, self._globals, self._locals)
 
-        mybuiltins = builtins or {}
+        builtins = builtins or {}
 
-        self.In = mybuiltins['In'] = {}
-        self.Out = mybuiltins['Out'] = {}
-        self.prompt_number = mybuiltins['PROMPT_NUMBER'] = 1
+        self.In = builtins['In'] = {}
+        self.Out = builtins['Out'] = {}
+        self.prompt_number = builtins['PROMPT_NUMBER'] = 1
 
-        _locals.update(mybuiltins)
+        self._locals.update(builtins)
 
-        if not quiet:
+        if not self.quiet:
             print_formatted_text(PygmentsTokens([(Token.Welcome, "Welcome to mypython.\n\n")]))
-            if cat:
+            if self.cat:
                 try:
                     import catimg
                 except ImportError:
@@ -553,7 +562,7 @@ del sys
         else:
             matplotlib.interactive(True)
 
-        return mybuiltins
+        self.builtins = builtins
 
     def get_in_prompt(self):
         if NO_PROMPT_MODE:
@@ -625,106 +634,6 @@ del sys
             tempfile_suffix='.py',
         )
         return buffer
-
-    def _create_input_processors(self):
-        input_processors = super()._create_input_processors()
-        input_processors.extend([
-            ConditionalProcessor(
-                # 20000 is ~most characters that fit on screen even with
-                # really small font
-                processor=MyHighlightMatchingBracketProcessor(max_cursor_distance=20000),
-                filter=~IsDone()
-            )])
-
-        return input_processors
-
-    def _create_application():
-        app = Application(
-            create_prompt_layout(
-                get_prompt_tokens=get_in_prompt_tokens,
-                lexer=PygmentsLexer(MyPython3Lexer),
-                multiline=True,
-                get_continuation_tokens=get_continuation_tokens,
-                display_completions_in_columns=True,
-                extra_input_processors=[
-                    ConditionalProcessor(
-                        # 20000 is ~most characters that fit on screen even with
-                        # really small font
-                        processor=MyHighlightMatchingBracketProcessor(max_cursor_distance=20000),
-                        filter=~IsDone()
-                    )],
-                ),
-            ignore_case=True, # In isearch
-            buffer=self.buffer,
-            style=style_from_pygments(OneAMStyle, {**prompt_style, **style_extra}),
-            key_bindings=key_bindings,
-            inputhook=inputhook,
-            output=output,
-            input=_input,
-        )
-        if not IN_OUT:
-            IN_OUT = random.choice(emoji)
-        app.IN, app.OUT = IN_OUT
-        app.builtins = builtins
-        # If the result of normalize (such as a magic) needs to access a
-        # builtin name like In, it should do so through
-        # _APP.builtins['In']. This ensures that _APP is always defined as
-        # the current app.
-        app.builtins['_APP'] = _locals['_APP'] = app
-
-        return app
-
-def get_prompt(*, history, _globals, _locals, key_bindings, _input=None, output=None,
-    inputhook=None, IN_OUT=None, builtins=None):
-
-    # This is needed to make matplotlib plots work
-    if sys.platform == 'darwin':
-        from .inputhook import inputhook
-    else:
-        inputhook = None
-
-    output = output or create_output()
-
-    builtins = builtins or {}
-
-    prompt = MyPrompt(
-        history=history
-    )
-
-    app = Application(
-        create_prompt_layout(
-            get_prompt_tokens=get_in_prompt_tokens,
-            lexer=PygmentsLexer(MyPython3Lexer),
-            multiline=True,
-            get_continuation_tokens=get_continuation_tokens,
-            display_completions_in_columns=True,
-            extra_input_processors=[
-                ConditionalProcessor(
-                    # 20000 is ~most characters that fit on screen even with
-                    # really small font
-                    processor=MyHighlightMatchingBracketProcessor(max_cursor_distance=20000),
-                    filter=~IsDone()
-                )],
-            ),
-        ignore_case=True, # In isearch
-        buffer=buffer,
-        style=style_from_pygments(OneAMStyle, {**prompt_style, **style_extra}),
-        key_bindings=key_bindings,
-        inputhook=inputhook,
-        output=output,
-        input=_input,
-    )
-    if not IN_OUT:
-        IN_OUT = random.choice(emoji)
-    app.IN, app.OUT = IN_OUT
-    app.builtins = builtins
-    # If the result of normalize (such as a magic) needs to access a
-    # builtin name like In, it should do so through
-    # _APP.builtins['In']. This ensures that _APP is always defined as
-    # the current app.
-    app.builtins['_APP'] = _locals['_APP'] = app
-
-    return app
 
 class MyTracebackException(traceback.TracebackException):
     def __init__(self, exc_type, exc_value, exc_traceback, *,
@@ -815,33 +724,20 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
                 # \x1b[ag = Shift-Enter (iTerm2 settings)
                 CMD_QUEUE.append(c.replace('\n', '\x1b\n') + '\x1b[ag')
 
-    if not history_file:
-        try:
-            tty_name = os.path.basename(os.ttyname(sys.stdout.fileno()))
-        except OSError:
-            tty_name = 'unknown'
-        history_file = '~/.mypython/history/%s_history' % tty_name
+    prompt = MyPrompt(_globals=_globals, _locals=_locals, quiet=quiet,
+        cat=cat, history_file=history_file)
 
-    history_file = os.path.expanduser(history_file)
-
-    os.makedirs(os.path.dirname(history_file), exist_ok=True)
-
-    history = FileHistory(history_file)
-
-    key_bindings = get_key_bindings()
-
-    IN, OUT = random.choice(emoji)
-
-    mybuiltins = startup(_globals, _locals, quiet=quiet, cat=cat)
+    prompt.startup()
 
     while True:
         try:
-            _history = history
+            # _history = history
 
             if CMD_QUEUE:
                 _input = PipeInput()
                 _input.send_text(CMD_QUEUE.popleft())
                 if cmd:
+                    # TODO
                     # Don't store --cmd in the history
                     _history = cmd = None
             elif _exit:
@@ -849,18 +745,10 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
             else:
                 _input = None
 
-            prompt = get_prompt(history=_history, _locals=_locals, _globals=_globals,
-                    key_bindings=key_bindings, _input=_input, IN_OUT=(IN, OUT),
-                    builtins=mybuiltins)
-
             # Replace stdout.
-            patch_context = cli.patch_stdout_context(raw=True)
-            with patch_context:
-                result = cli.run()
-            if isinstance(result, Document):  # Backwards-compatibility.
-                command = result.text
-            else:
-                command = result
+            # patch_context = cli.patch_stdout_context(raw=True)
+            # with patch_context:
+            command = prompt.prompt()
         except KeyboardInterrupt:
             # TODO: Keep it in the history
             print("KeyboardInterrupt", file=sys.stderr)
@@ -870,4 +758,4 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
         except:
             sys.excepthook(*sys.exc_info())
 
-        execute_command(command, cli, _globals=_globals, _locals=_locals)
+        execute_command(command, prompt, _globals=_globals, _locals=_locals)
