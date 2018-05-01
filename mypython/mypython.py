@@ -151,13 +151,6 @@ class MyBuffer(Buffer):
 def on_text_insert(buf):
     buf.multiline_history_search_index = None
 
-def dedent_return_document_handler(cli, buffer):
-    dedented_text = dedent(buffer.text).strip()
-    buffer.cursor_position -= len(buffer.text) - len(dedented_text)
-    buffer.text = dedented_text
-
-    return AcceptAction.RETURN_DOCUMENT.handler(cli, buffer)
-
 def validate_text(text):
     """
     Return None if text is valid, or raise SyntaxError.
@@ -615,6 +608,17 @@ del sys
         ])
 
     def _create_default_buffer(self):
+        def accept(buffer):
+            """ Accept the content of the default buffer. This is called when
+            the validation succeeds. """
+            dedented_text = dedent(buffer.text).strip()
+            buffer.cursor_position -= len(buffer.text) - len(dedented_text)
+            buffer.text = dedented_text
+
+            self.app.exit(result=buffer.document.text)
+
+            # Reset content before running again.
+            self.app.pre_run_callables.append(buffer.reset)
 
         def is_buffer_multiline():
             return document_is_multiline_python(buffer.document)
@@ -634,6 +638,7 @@ del sys
             complete_while_typing=False,
             on_text_insert=on_text_insert,
             tempfile_suffix='.py',
+            accept_handler=accept,
         )
         return buffer
 
