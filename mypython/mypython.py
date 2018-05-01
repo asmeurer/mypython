@@ -729,8 +729,6 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
     prompt = MyPrompt(_globals=_globals, _locals=_locals, quiet=quiet,
         cat=cat, history_file=history_file)
 
-    prompt.startup()
-
     while True:
         try:
             # _history = history
