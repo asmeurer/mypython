@@ -1,11 +1,10 @@
-from .mypython import (validate_text, PythonSyntaxValidator,
-    get_continuation_tokens, prompt_style, get_in_prompt_tokens,
-    get_out_prompt_tokens, NoResult, smart_eval, normalize, startup,
-    execute_command, run_shell, myhelp, getsource)
+from .mypython import (validate_text, PythonSyntaxValidator, prompt_style,
+    NoResult, smart_eval, normalize, execute_command, run_shell, myhelp,
+    getsource, MyPrompt)
 
-__all__ = ['validate_text', 'PythonSyntaxValidator', 'get_continuation_tokens', 'prompt_style',
-    'get_in_prompt_tokens', 'get_out_prompt_tokens', 'NoResult', 'smart_eval',
-    'normalize', 'startup', 'execute_command', 'run_shell', 'myhelp', 'getsource']
+__all__ = ['validate_text', 'PythonSyntaxValidator', 'prompt_style',
+    'NoResult', 'smart_eval', 'normalize', 'execute_command',
+    'run_shell', 'myhelp', 'getsource', 'MyPrompt']
 
 from .keys import get_key_bindings, custom_key_bindings, split_prompts
 
