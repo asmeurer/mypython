@@ -515,7 +515,7 @@ class MyPrompt(Prompt):
         self._globals = _globals
         self._locals = _locals
 
-        self.startup(_globals, _locals, quiet=quiet, cat=cat, builtins=builtins)
+        self.startup(builtins=builtins)
         if not IN_OUT:
             IN_OUT = random.choice(emoji)
         self.IN, self.OUT = IN_OUT
