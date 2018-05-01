@@ -447,7 +447,7 @@ def post_command(*, command, res, _globals, _locals, prompt):
     if res is not NoResult:
         print_formatted_text(prompt.get_out_prompt(),
             style=merge_styles([style_from_pygments_cls(OneAMStyle),
-                style_from_pygments_dict({**prompt_style})]))
+                style_from_pygments_dict({**prompt_style})]), end='')
 
         prompt.Out[PROMPT_NUMBER] = res
         builtins['_%s' % PROMPT_NUMBER] = res
@@ -533,7 +533,7 @@ del sys
         self._locals.update(builtins)
 
         if not self.quiet:
-            print_formatted_text(PygmentsTokens([(Token.Welcome, "Welcome to mypython.\n\n")]))
+            print_formatted_text(PygmentsTokens([(Token.Welcome, "Welcome to mypython.\n")]))
             if self.cat:
                 try:
                     import catimg
@@ -542,7 +542,7 @@ del sys
                 else:
                     image = catimg.get_random_image()
                 if image:
-                    print_formatted_text(PygmentsTokens([(Token.Welcome, "Here is a cat:\n")]))
+                    print_formatted_text(PygmentsTokens([(Token.Welcome, "Here is a cat:")]))
                     iterm2_tools.display_image_file(image)
                     print()
 
@@ -680,7 +680,7 @@ def mypython_excepthook(etype, value, tb):
             file=sys.stderr, end='')
         if tbexception.mypython_error:
             print_formatted_text(PygmentsTokens([(Token.Newline, '\n'), (Token.InternalError,
-                "!!!!!! ERROR from mypython !!!!!!"), (Token.Newline, '\n\n')]),
+                "!!!!!! ERROR from mypython !!!!!!"), (Token.Newline, '\n')]),
                 style=style_from_pygments_dict({Token.InternalError: "#ansired"}),
                 file=sys.stderr)
 
@@ -689,7 +689,7 @@ def mypython_excepthook(etype, value, tb):
         print_formatted_text(PygmentsTokens([(Token.Newline, '\n'), (Token.InternalError,
             "Warning: RecursionError from mypython_excepthook")]),
             style=style_from_pygments_dict({Token.InternalError: "#ansired"}),
-            file=sys.stderr)
+            file=sys.stderr, end='')
 
 def execute_command(command, prompt, *, _globals=None, _locals=None):
     _globals = _globals or _default_globals
