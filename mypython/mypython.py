@@ -523,7 +523,7 @@ class MyPrompt(Prompt):
         self.IN, self.OUT = IN_OUT
         self.builtins = builtins
 
-        self.__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def startup(self, builtins=None):
         exec("""
