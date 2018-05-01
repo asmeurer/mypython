@@ -580,7 +580,7 @@ del sys
                 (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
                 ])
         return PygmentsTokens([
-            (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
+            # (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
 
             (Token.Emoji, self.IN*3),
             (Token.InBracket, '['),
@@ -588,7 +588,7 @@ del sys
             (Token.InBracket, ']'),
             (Token.InColon, ':'),
             (Token.Space, ' '),
-            (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
+            # (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
         ])
 
     def get_prompt_continuation(self, width):
