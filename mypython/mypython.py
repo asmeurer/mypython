@@ -623,7 +623,7 @@ del sys
         buffer = MyBuffer(
             name=DEFAULT_BUFFER,
             enable_history_search=False,
-            is_multiline=multiline,
+            multiline=multiline,
             validator=PythonSyntaxValidator(),
             history=self.history,
             # accept_action=AcceptAction(dedent_return_document_handler),
