@@ -514,6 +514,8 @@ class MyPrompt(Prompt):
 
         self._globals = _globals
         self._locals = _locals
+        self.quiet = quiet
+        self.cat = cat
 
         self.startup(builtins=builtins)
         if not IN_OUT:
