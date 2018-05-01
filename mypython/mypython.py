@@ -514,7 +514,6 @@ class MyPrompt(Prompt):
         if not IN_OUT:
             IN_OUT = random.choice(emoji)
         self.IN, self.OUT = IN_OUT
-        self.builtins = builtins
 
         super().__init__(*args, **kwargs)
 
