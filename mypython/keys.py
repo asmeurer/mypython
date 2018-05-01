@@ -279,7 +279,7 @@ def right_multiline(event):
 
 @r.add_binding(Keys.ControlD)
 def exit(event):
-    raise EOFError("Control-D")
+    event.app.exit(exception=EOFError, style='class:exiting')
 
 is_returnable = Condition(
     lambda: get_app().current_buffer.is_returnable)
