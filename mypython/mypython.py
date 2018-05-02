@@ -504,6 +504,7 @@ class MyPrompt(Prompt):
         kwargs.setdefault('search_ignore_case', True)
         kwargs.setdefault('style', merge_styles([style_from_pygments_cls(OneAMStyle),
                 style_from_pygments_dict({**prompt_style, **style_extra})]))
+        kwargs.setdefault('include_default_pygments_style', False)
 
         self._globals = _globals
         self._locals = _locals
