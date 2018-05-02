@@ -66,7 +66,8 @@ def timeit_histogram(times, expr):
         plt.interactive(False)
         ax = plt.gca()
         fig2, ax2 = plt.subplots()
-        plt.figure(figsize=(2, 1.5), dpi=300)
+        fontsize = 8
+        plt.figure(figsize=(4, 3), dpi=300)
 
         # rug plots are too slow for large number of data points
         extra = dict(rug=True, rug_kws={"lw": .2}) if len(times) < 1024 else {}
@@ -80,18 +81,18 @@ def timeit_histogram(times, expr):
         ax.yaxis = ax2.yaxis
         b = BytesIO()
         ax.ticklabel_format(style='plain', axis='both', useOffset=False)
-        plt.xlabel("Time", fontsize=6)
-        plt.ylabel("Runs", fontsize=6)
+        plt.xlabel("Time", fontsize=fontsize)
+        plt.ylabel("Runs", fontsize=fontsize)
         if '\n' in expr:
-            plt.title("%%timeit\n{expr}".format(expr=expr), fontsize=6, ha='left', loc='left',
+            plt.title("%%timeit\n{expr}".format(expr=expr), fontsize=fontsize, ha='left', loc='left',
             family='monospace')
         else:
-            plt.title("%%timeit {expr}".format(expr=expr), fontsize=6, family='monospace')
+            plt.title("%%timeit {expr}".format(expr=expr), fontsize=fontsize, family='monospace')
         x1,x2,y1,y2 = plt.axis()
         plt.xlim([0, x2])
         locs, labels = plt.xticks()
-        plt.xticks(locs, [format_time(i) for i in locs], fontsize=6)
-        plt.yticks(fontsize=6)
+        plt.xticks(locs, [format_time(i) for i in locs], fontsize=fontsize)
+        plt.yticks(fontsize=fontsize)
         # fig = plt.gcf()
         # fig.set_size_inches(2, 1.5)
         plt.savefig(b, dpi=300, bbox_inches='tight')
