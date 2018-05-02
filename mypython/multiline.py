@@ -30,7 +30,8 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-from prompt_toolkit.filters import Filter
+from prompt_toolkit.application.current import get_app
+from prompt_toolkit.filters.base import Condition
 
 from .tokenize import is_multiline_python
 
@@ -78,14 +79,11 @@ def auto_newline(buffer):
             for x in range(4):
                 insert_text(' ')
 
-class TabShouldInsertWhitespaceFilter(Filter):
-    """
-    When the 'tab' key is pressed with only whitespace character before the
-    cursor, insert indentation. Otherwise, do autocompletion.
+@Condition
+def tab_should_insert_whitespace():
+    app = get_app()
 
-    """
-    def __call__(self, cli):
-        b = cli.current_buffer
-        before_cursor = b.document.current_line_before_cursor
+    b = app.current_buffer
+    before_cursor = b.document.current_line_before_cursor
 
-        return bool(not before_cursor or before_cursor.isspace())
+    return bool(not before_cursor or before_cursor.isspace())

@@ -15,10 +15,10 @@ from .theme import OneAMStyle
 __all__ += ['OneAMStyle']
 
 from .multiline import (document_is_multiline_python, auto_newline,
-    TabShouldInsertWhitespaceFilter)
+    tab_should_insert_whitespace)
 
 __all__ += ['document_is_multiline_python',
-    'auto_newline', 'TabShouldInsertWhitespaceFilter']
+    'auto_newline', 'tab_should_insert_whitespace']
 
 from .completion import get_jedi_script_from_document, PythonCompleter
 

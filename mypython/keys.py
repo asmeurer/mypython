@@ -15,7 +15,7 @@ from prompt_toolkit.clipboard import ClipboardData
 from prompt_toolkit.input.vt100_parser import ANSI_SEQUENCES
 from prompt_toolkit.application.current import get_app
 
-from .multiline import (auto_newline, TabShouldInsertWhitespaceFilter,
+from .multiline import (auto_newline, tab_should_insert_whitespace,
     document_is_multiline_python)
 from .tokenize import inside_string, matching_parens
 from .theme import emoji
@@ -346,7 +346,7 @@ ANSI_SEQUENCES['\x1b[ag'] = Keys.ShiftEnter
 
 r.add_binding(Keys.ShiftEnter)(accept_line)
 
-@r.add_binding(Keys.Tab, filter=TabShouldInsertWhitespaceFilter())
+@r.add_binding(Keys.Tab, filter=tab_should_insert_whitespace)
 def indent(event):
     """
     When tab should insert whitespace, do that instead of completion.
