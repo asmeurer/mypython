@@ -41,7 +41,7 @@ from prompt_toolkit.validation import Validator, ValidationError
 from prompt_toolkit.filters import Condition, IsDone
 from prompt_toolkit.formatted_text import PygmentsTokens
 from prompt_toolkit.enums import DEFAULT_BUFFER
-from prompt_toolkit.completion import DynamicCompleter
+from prompt_toolkit.completion import DynamicCompleter, ThreadedCompleter
 
 import iterm2_tools
 
