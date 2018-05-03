@@ -41,6 +41,7 @@ from prompt_toolkit.validation import Validator, ValidationError
 from prompt_toolkit.filters import Condition, IsDone
 from prompt_toolkit.formatted_text import PygmentsTokens
 from prompt_toolkit.enums import DEFAULT_BUFFER
+from prompt_toolkit.completion import DynamicCompleter
 
 import iterm2_tools
 
@@ -505,6 +506,7 @@ class MyPrompt(Prompt):
         kwargs.setdefault('style', merge_styles([style_from_pygments_cls(OneAMStyle),
                 style_from_pygments_dict({**prompt_style, **style_extra})]))
         kwargs.setdefault('include_default_pygments_style', False)
+        kwargs.setdefault('completer', PythonCompleter(lambda: self._globals, lambda: self._locals))
 
         self._globals = _globals
         self._locals = _locals
@@ -631,7 +633,10 @@ del sys
             validator=PythonSyntaxValidator(),
             history=self.history,
             # accept_action=AcceptAction(dedent_return_document_handler),
-            completer=PythonCompleter(lambda: self._globals, lambda: self._locals),
+            completer=DynamicCompleter(lambda:
+                ThreadedCompleter(self.completer)
+                if self.complete_in_thread and self.completer
+                else self.completer),
             # Needs to be False until
             # https://github.com/jonathanslenders/python-prompt-toolkit/issues/472
             # is fixed.
