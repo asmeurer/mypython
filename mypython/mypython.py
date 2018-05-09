@@ -635,7 +635,6 @@ del sys
             multiline=multiline,
             validator=PythonSyntaxValidator(),
             history=self.history,
-            # accept_action=AcceptAction(dedent_return_document_handler),
             completer=DynamicCompleter(lambda:
                 ThreadedCompleter(self.completer)
                 if self.complete_in_thread and self.completer
