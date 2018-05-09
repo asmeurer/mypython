@@ -41,6 +41,7 @@ from prompt_toolkit.filters import Condition, IsDone
 from prompt_toolkit.formatted_text import PygmentsTokens
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.completion import DynamicCompleter, ThreadedCompleter
+from prompt_toolkit.output.color_depth import ColorDepth
 
 import iterm2_tools
 
@@ -508,6 +509,7 @@ class Session(PromptSession):
         kwargs.setdefault('completer', PythonCompleter(lambda: self._globals,
             lambda: self._locals, self))
         kwargs.setdefault('complete_in_thread', True)
+        kwargs.setdefault('color_depth', ColorDepth.TRUE_COLOR)
 
         self._globals = _globals
         self._locals = _locals
