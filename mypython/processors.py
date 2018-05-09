@@ -86,9 +86,9 @@ class MyHighlightMatchingBracketProcessor(HighlightMatchingBracketProcessor):
                 style, text = fragments[col]
 
                 if col == document.cursor_position_col:
-                    style += ' class:matching-bracket.cursor '
+                    style += ' class:pygments.matchingbracket.cursor '
                 else:
-                    style += ' class:matching-bracket.other '
+                    style += ' class:pygments.matchingbracket.other '
 
                 fragments[col] = (style, text)
 
@@ -99,9 +99,9 @@ class MyHighlightMatchingBracketProcessor(HighlightMatchingBracketProcessor):
                 style, text = fragments[col]
 
                 if col == document.cursor_position_col:
-                    style += ' class:matching-bracket.cursor '
+                    style += ' class:pygments.mismatchingbracket.cursor '
                 else:
-                    style += ' class:matching-bracket.other '
+                    style += ' class:pygments.mismatchingbracket.other '
 
                 fragments[col] = (style, text)
 
