@@ -281,6 +281,10 @@ def right_multiline(event):
 def exit(event):
     event.app.exit(exception=EOFError, style='class:exiting')
 
+@r.add_binding(Keys.ControlC)
+def keyboard_interrupt(event):
+    event.app.exit(exception=KeyboardInterrupt, style='class:aborting')
+
 is_returnable = Condition(
     lambda: get_app().current_buffer.is_returnable)
 
