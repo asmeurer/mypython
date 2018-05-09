@@ -744,8 +744,6 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
             if CMD_QUEUE:
                 default = CMD_QUEUE.popleft()
                 if cmd:
-                    # TODO
-                    # Don't store --cmd in the history
                     _history = DummyHistory()
                     cmd = None
             elif _exit:
