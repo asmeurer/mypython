@@ -34,11 +34,11 @@ from prompt_toolkit.completion import Completer, Completion
 from .dircompletion import DirCompleter
 from .magic import MAGICS
 
-def get_jedi_script_from_document(document, _locals, _globals):
+def get_jedi_script_from_document(document, _locals, _globals, session):
     import jedi  # We keep this import in-line, to improve start-up time.
                  # Importing Jedi is 'slow'.
 
-    full_document = '\n'.join(i for _, i in sorted(_locals['_CLI'].builtins['In'].items()))
+    full_document = '\n'.join(i for _, i in sorted(session.builtins['In'].items()))
     if not full_document.endswith('\n'):
         full_document += '\n'
 
@@ -57,11 +57,12 @@ class PythonCompleter(Completer):
     """
     Completer for Python code.
     """
-    def __init__(self, get_globals, get_locals):
+    def __init__(self, get_globals, get_locals, session):
         super(PythonCompleter, self).__init__()
 
         self.get_globals = get_globals
         self.get_locals = get_locals
+        self.session = session
 
     def _complete_python_while_typing(self, document):
         char_before_cursor = document.char_before_cursor
@@ -104,7 +105,8 @@ class PythonCompleter(Completer):
                 else:
                     break
 
-            script = get_jedi_script_from_document(document, self.get_locals(), self.get_globals())
+            script = get_jedi_script_from_document(document,
+                self.get_locals(), self.get_globals(), self.session)
 
             if script:
                 try:

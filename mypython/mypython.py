@@ -506,7 +506,8 @@ class Session(PromptSession):
         kwargs.setdefault('style', merge_styles([style_from_pygments_cls(OneAMStyle),
                 style_from_pygments_dict({**prompt_style, **style_extra})]))
         kwargs.setdefault('include_default_pygments_style', False)
-        kwargs.setdefault('completer', PythonCompleter(lambda: self._globals, lambda: self._locals))
+        kwargs.setdefault('completer', PythonCompleter(lambda: self._globals,
+            lambda: self._locals, self))
 
         self._globals = _globals
         self._locals = _locals
@@ -532,6 +533,7 @@ del sys
         self.In = builtins['In'] = {}
         self.Out = builtins['Out'] = {}
         self.prompt_number = builtins['PROMPT_NUMBER'] = 1
+        # builtins['_PROMPT'] = self
 
         self._locals.update(builtins)
 
