@@ -732,11 +732,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
     if cmd:
         if isinstance(cmd, str):
             cmd = [cmd]
-        else:
-            for c in cmd:
-                # \x1b\n = Meta-Enter
-                # \x1b[ag = Shift-Enter (iTerm2 settings)
-                CMD_QUEUE.append(c.replace('\n', '\x1b\n') + '\x1b[ag')
+        CMD_QUEUE.extend(cmd)
 
     prompt = Session(_globals=_globals, _locals=_locals, quiet=quiet,
         cat=cat, history_file=history_file)
@@ -745,22 +741,20 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
         try:
             # _history = history
 
+            default = ''
             if CMD_QUEUE:
-                _input = PipeInput()
-                _input.send_text(CMD_QUEUE.popleft())
+                default = CMD_QUEUE.popleft()
                 if cmd:
                     # TODO
                     # Don't store --cmd in the history
                     _history = cmd = None
             elif _exit:
                 break
-            else:
-                _input = None
 
             # Replace stdout.
             # patch_context = cli.patch_stdout_context(raw=True)
             # with patch_context:
-            command = prompt.prompt()
+            command = prompt.prompt(default=default)
         except KeyboardInterrupt:
             # TODO: Keep it in the history
             print("KeyboardInterrupt", file=sys.stderr)
