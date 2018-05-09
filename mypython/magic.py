@@ -186,7 +186,7 @@ import pudb as _pudb
 import bdb as _bdb
 import linecache as _linecache
 
-_filename = '<mypython-pudb-%s>' % _CLI.builtins['PROMPT_NUMBER']
+_filename = '<mypython-pudb-%s>' % PROMPT_NUMBER
 
 _pudb._get_debugger().breaks.setdefault(_filename, [1])
 # Instantiating the Breakpoint class enables the breakpoint. We can't use
