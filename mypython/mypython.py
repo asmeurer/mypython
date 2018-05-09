@@ -31,7 +31,7 @@ from pygments import highlight
 
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.input.vt100 import PipeInput
-from prompt_toolkit.shortcuts import print_formatted_text, Prompt, CompleteStyle
+from prompt_toolkit.shortcuts import print_formatted_text, PromptSession, CompleteStyle
 from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.layout.processors import ConditionalProcessor
 from prompt_toolkit.styles import (style_from_pygments_cls,
@@ -472,7 +472,7 @@ def post_command(*, command, res, _globals, _locals, prompt):
             _locals.setdefault(name, builtins[name])
 
 
-class MyPrompt(Prompt):
+class Session(PromptSession):
     def __init__(self, *args, _globals, _locals, message=None,
         key_bindings=None, history_file=None, IN_OUT=None, builtins=None,
         quiet=False, cat=False, **kwargs):
@@ -736,7 +736,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
                 # \x1b[ag = Shift-Enter (iTerm2 settings)
                 CMD_QUEUE.append(c.replace('\n', '\x1b\n') + '\x1b[ag')
 
-    prompt = MyPrompt(_globals=_globals, _locals=_locals, quiet=quiet,
+    prompt = Session(_globals=_globals, _locals=_locals, quiet=quiet,
         cat=cat, history_file=history_file)
 
     while True:

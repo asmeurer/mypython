@@ -1,10 +1,10 @@
 from .mypython import (validate_text, PythonSyntaxValidator, prompt_style,
     NoResult, smart_eval, normalize, execute_command, run_shell, myhelp,
-    getsource, MyPrompt)
+    getsource, Session)
 
 __all__ = ['validate_text', 'PythonSyntaxValidator', 'prompt_style',
     'NoResult', 'smart_eval', 'normalize', 'execute_command',
-    'run_shell', 'myhelp', 'getsource', 'MyPrompt']
+    'run_shell', 'myhelp', 'getsource', 'Session']
 
 from .keys import get_key_bindings, custom_key_bindings, split_prompts
 
