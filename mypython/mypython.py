@@ -30,7 +30,6 @@ from pygments.token import Token
 from pygments import highlight
 
 from prompt_toolkit.buffer import Buffer
-from prompt_toolkit.document import Document
 from prompt_toolkit.shortcuts import print_formatted_text, PromptSession, CompleteStyle
 from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.layout.processors import ConditionalProcessor
@@ -522,43 +521,6 @@ class Session(PromptSession):
 
         super().__init__(*args, **kwargs)
 
-
-    def prompt(self, message=None, run=True, **kwargs):
-        """
-        Based on the PromptSession prompt except
-        """
-        # Backup original settings.
-        backup = dict((name, getattr(self, name)) for name in self._fields)
-
-        # Make sure keyword arguments that aren't in kwargs are set
-        kwargs['message'] = message
-
-        # Take settings from 'prompt'-arguments.
-        for name in self._fields:
-            value = kwargs.get(name)
-            if value is not None:
-                setattr(self, name, value)
-
-        def restore():
-            " Restore original settings. "
-            for name in self._fields:
-                setattr(self, name, backup[name])
-
-        def run_sync():
-            with self._auto_refresh_context():
-                try:
-                    self.default_buffer.reset(Document(self.default))
-                    return self.app.run(inputhook=self.inputhook)
-                finally:
-                    restore()
-
-
-        if run:
-            return run_sync()
-        else:
-            return self.default
-
-
     def startup(self, builtins=None):
         exec("""
 import sys
@@ -792,7 +754,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
             # Replace stdout.
             # patch_context = cli.patch_stdout_context(raw=True)
             # with patch_context:
-            command = prompt.prompt(default=default, run=not default, history=_history)
+            command = prompt.prompt(default=default, history=_history)
         except KeyboardInterrupt:
             # TODO: Keep it in the history
             print("KeyboardInterrupt", file=sys.stderr)
