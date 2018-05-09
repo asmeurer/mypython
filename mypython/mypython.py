@@ -508,6 +508,7 @@ class Session(PromptSession):
         kwargs.setdefault('include_default_pygments_style', False)
         kwargs.setdefault('completer', PythonCompleter(lambda: self._globals,
             lambda: self._locals, self))
+        kwargs.setdefault('complete_in_thread', True)
 
         self._globals = _globals
         self._locals = _locals
