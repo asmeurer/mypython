@@ -757,7 +757,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
             command = prompt.prompt(default=default, history=_history)
         except KeyboardInterrupt:
             # TODO: Keep it in the history
-            print("KeyboardInterrupt", file=sys.stderr)
+            print("KeyboardInterrupt\n", file=sys.stderr)
             continue
         except (EOFError, SystemExit):
             break
