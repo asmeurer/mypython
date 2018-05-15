@@ -21,6 +21,8 @@ def matching_parens(s, allow_intermediary_mismatches=True):
     """
     Find matching and mismatching parentheses and braces
 
+    s should be a string of (partial) Python code.
+
     Returns a tuple (matching, mismatching).
 
     matching is a list of tuples of matching TokenInfo objects for matching
@@ -29,11 +31,11 @@ def matching_parens(s, allow_intermediary_mismatches=True):
     mismatching is a list of TokenInfo objects for mismatching
     parentheses/braces.
 
-    allow_intermediary_mismatches can be True (the default), or False. If
-    it is True, an opening brace can still be considered matching if it is
-    closed with the wrong brace. If it is False, once an opening brace is
-    closed with the wrong brace it, and any unclosed braces before it, cannot
-    be matched.
+    allow_intermediary_mismatches can be True (the default), or False. If it
+    is True, an opening brace can still be considered matching if it is closed
+    with the wrong brace but later closed with the correct brace. If it is
+    False, once an opening brace is closed with the wrong brace it---and any
+    unclosed braces before it---cannot be matched.
 
     For example, consider '[ { ] }'. If allow_intermediary_mismatches is
     False, all the braces are considered mismatched.
