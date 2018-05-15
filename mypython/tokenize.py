@@ -198,6 +198,16 @@ def pairwise(iterable):
     return zip(a, b)
 
 def is_multiline_python(text):
+    """
+    Returns True of text should be considered multiline
+
+    text is considered multiline if typing Enter at the end of text should add
+    a newline. Returns False if the text is a single line that can be
+    executed. Also returns False in some situations when text has a syntax
+    error that cannot be resolved after an additional line, such as EOL in a
+    non-docstring literal or an indentation error.
+
+    """
     # Dedent the text, otherwise, the last token will be DEDENT
     text = text.lstrip()
 
