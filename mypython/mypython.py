@@ -358,8 +358,9 @@ def getsource(command, _globals, _locals, ret=False, include_info=True):
     # Even though we add code defined interactively to linecache.cache in
     # smart_eval(), we have to monkey patch linecache.getlines() because it
     # skips files with mtime == None (and even if it weren't None, it would
-    # try to os.stat() the file and skip it when that fails). This is a
-    # similar pattern as the doctest module.
+    # try to os.stat() the file and skip it when that fails). It also would
+    # not be able to find classes, as those use the __main__ filename as their
+    # filename. This is a similar pattern as the doctest module.
     def _patched_linecache_getlines(filename, module_globals=None):
         if '__main__' in sys.modules:
             # Classes defined interactively will have their module set to
