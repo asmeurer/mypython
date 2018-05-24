@@ -44,3 +44,4 @@
 - Error from mypython quitting PuDB
 - Print %time time after the output
 - Add line profiler magic
+- Prompt number not incremented when %pudb exits with traceback
