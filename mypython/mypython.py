@@ -707,7 +707,7 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
                 _locals=_locals, cli=cli)
         except SystemExit:
             raise
-        except BaseException as e:
+        except BaseException:
             sys.excepthook(*sys.exc_info())
             o.set_command_status(1)
         if not DOCTEST_MODE:

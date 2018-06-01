@@ -232,7 +232,7 @@ def is_multiline_python(text):
             if toknum in {ENDMARKER, DEDENT} and prev.type == ERRORTOKEN and prev.string == '\\':
                 return True
 
-    except TokenError as e:
+    except TokenError:
         # Uncompleted docstring or braces
         # Multiline unless there is an uncompleted non-docstring
         if not first and toknum == ERRORTOKEN and token.string == '\\':

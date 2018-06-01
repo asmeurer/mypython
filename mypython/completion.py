@@ -49,7 +49,7 @@ def get_jedi_script_from_document(document, _locals, _globals):
             line=document.cursor_position_row + 2 + len(full_document.splitlines()),
             path='<mypython>',
             namespaces=[_locals, _globals])
-    except Exception as e:
+    except Exception:
         # Workaround for many issues (see original code)
         return None
 
