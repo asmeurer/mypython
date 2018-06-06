@@ -46,3 +46,4 @@
 - Add line profiler magic
 - Prompt number not incremented when %pudb exits with traceback
 - ?? isn't smart enough to handle redefined functions
+- <mypython> filename printed in doctest mode for functions defined in mypython
