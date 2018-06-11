@@ -17,6 +17,12 @@ braces = {
     LBRACE: RBRACE,
     }
 
+def tokenize_string(s):
+    """
+    Generator of tokens from the string s
+    """
+    return tokenize(io.BytesIO(s.encode('utf-8')).readline)
+
 def matching_parens(s, allow_intermediary_mismatches=True):
     """
     Find matching and mismatching parentheses and braces
@@ -97,33 +103,31 @@ def matching_parens(s, allow_intermediary_mismatches=True):
         [TokenInfo(..., string='(', ...), TokenInfo(..., string=']', ...)]
 
     """
-    input_code = io.BytesIO(s.encode('utf-8'))
     stack = []
     matching = []
     mismatching = []
     try:
-        for token in tokenize(input_code.readline):
-            toknum, tokval, (srow, scol), (erow, ecol), line = token
-            exact_type = token.exact_type
+        for tok in tokenize_string(s):
+            exact_type = tok.exact_type
             if exact_type == ERRORTOKEN:
                 # There is an unclosed string. If we do not break here,
                 # tokenize will tokenize the stuff after the string delimiter.
                 break
             elif exact_type in braces:
-                stack.append(token)
+                stack.append(tok)
             elif exact_type in braces.values():
                 if not stack:
-                    mismatching.append(token)
+                    mismatching.append(tok)
                     continue
-                prevtoken = stack.pop()
-                if braces[prevtoken.exact_type] == exact_type:
-                    matching.append((prevtoken, token))
+                prevtok = stack.pop()
+                if braces[prevtok.exact_type] == exact_type:
+                    matching.append((prevtok, tok))
                 else:
                     if allow_intermediary_mismatches:
-                        stack.append(prevtoken)
+                        stack.append(prevtok)
                     else:
-                        mismatching.insert(0, prevtoken)
-                    mismatching.append(token)
+                        mismatching.insert(0, prevtok)
+                    mismatching.append(tok)
             else:
                 continue
     except TokenError:
@@ -145,15 +149,16 @@ def inside_string(s, row, col):
 
     row starts at 1 and col starts at 0.
     """
-    input_code = io.BytesIO(s.encode('utf-8'))
     try:
-        for token in tokenize(input_code.readline):
-            toknum, tokval, start, end, line = token
+        for toknum, tokval, start, end, line in tokenize_string(s):
             if toknum == ERRORTOKEN:
                 # There is an unclosed string. We haven't gotten to the
                 # position yet, so it must be inside this string
                 return True
             if start <= (row, col) <= end:
+                if not toknum == STRING:
+                    return False
+                # Handle
                 if (row, col) == end:
                     # Position after the end of the string
                     return False
@@ -211,15 +216,14 @@ def is_multiline_python(text):
     # Dedent the text, otherwise, the last token will be DEDENT
     text = text.lstrip()
 
-    input_code = io.BytesIO(text.encode('utf-8'))
     try:
         first = True
         error = False
-        for (prev, token) in pairwise(tokenize(input_code.readline)):
-            toknum, tokval, start, end, line = token
+        for (prev, tok) in pairwise(tokenize_string(text)):
+            toknum, tokval, start, end, line = tok
             if first:
                 # The first token is encoding, which will be prev
-                if token.exact_type == AT:
+                if tok.exact_type == AT:
                     # Decorator
                     return True
                 first = False
@@ -235,7 +239,7 @@ def is_multiline_python(text):
     except TokenError:
         # Uncompleted docstring or braces
         # Multiline unless there is an uncompleted non-docstring
-        if not first and toknum == ERRORTOKEN and token.string == '\\':
+        if not first and toknum == ERRORTOKEN and tokval == '\\':
             return True
         return not error
     except IndentationError:
