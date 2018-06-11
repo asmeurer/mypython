@@ -33,10 +33,10 @@ from .printing import can_print_sympy, mypython_displayhook
 
 __all__ += ['can_print_sympy', 'mypython_displayhook']
 
-from .tokenize import (braces, matching_parens, inside_string,
-    is_multiline_python)
+from .tokenize import (tokenize_string, braces, matching_parens,
+    inside_string, is_multiline_python)
 
-__all__ += ['braces', 'matching_parens', 'inside_string', 'is_multiline_python']
+__all__ += ['tokenize_string', 'braces', 'matching_parens', 'inside_string', 'is_multiline_python']
 
 from .timeit import (autorange, timeit_format, timeit_histogram, format_time)
 
