@@ -143,12 +143,46 @@ def matching_parens(s, allow_intermediary_mismatches=True):
     mismatching = stack + mismatching
     return matching, mismatching
 
-def inside_string(s, row, col):
+def inside_string(s, row, col, include_quotes=False):
     """
     Returns True if row, col is inside a string in s, False otherwise.
 
     row starts at 1 and col starts at 0.
+
+    If include_quotes=True, the quote characters and any prefix characters
+    (like r, b, f, or u) are counted as part of the string. The default is
+    False.
+
     """
+    def _offsets(string):
+        # The offsets for the quote characters. The inside part of the
+        # string will be tokval[start_margin: -end_margin]
+        start_offset = end_offset = 0
+        if not include_quotes:
+            # Handle things like r'...' and rb'...'. There can be at most
+            # two prefix characters. Since we are "deleting" characters,
+            # shift the column that we check to the left. A negative
+            # column would mean we are on a line below the opening of the
+            # string, in which case start[0] will be less than row anyway.
+            if string[:2].isalpha():
+                start_offset += 2
+            elif string[:1].isalpha():
+                start_offset += 1
+
+            # Figure out if the string is single- or triple-quoted.
+            # Since tokenize only tokenizes complete valid string literals
+            # as STRING, ""... must be a triple quoted string, unless it
+            # is the empty string
+            assert string[start_offset] in '"\'', tokval
+            if tokval[start_offset] == tokval[start_offset+1] and len(string[start_offset:]) > 2:
+                start_offset += 3
+                end_offset += 3
+            else:
+                start_offset += 1
+                end_offset += 1
+
+        return (start_offset, end_offset)
+
     try:
         for toknum, tokval, start, end, line in tokenize_string(s):
             if toknum == ERRORTOKEN:
@@ -158,14 +192,17 @@ def inside_string(s, row, col):
             if start <= (row, col) <= end:
                 if not toknum == STRING:
                     return False
-                # Handle
-                if (row, col) == end:
-                    # Position after the end of the string
-                    return False
-                return toknum == STRING
+
+                start_offset, end_offset = _offsets(tokval)
+                return (start[0], start[1] + start_offset) <= (row, col) < (end[0], end[1] - end_offset)
     except TokenError as e:
-        # Uncompleted docstring or braces.
-        return 'string' in e.args[0]
+        # Uncompleted docstring or braces. If it's the former, then (row, col)
+        # must be after the start of the unclosed string, or else we would
+        # have seen a prior token with start <= (row, col) <= end.
+        if 'string' in e.args[0] and (row, col) >= e.args[1]:
+            start_offset, _ = _offsets()
+            end_offset = 0
+        return False
     except IndentationError:
         return False
 
