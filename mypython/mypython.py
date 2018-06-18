@@ -623,9 +623,6 @@ del sys
 
             self.app.exit(result=buffer.document.text)
 
-            # Reset content before running again.
-            self.app.pre_run_callables.append(buffer.reset)
-
         def is_buffer_multiline():
             return document_is_multiline_python(buffer.document)
 
