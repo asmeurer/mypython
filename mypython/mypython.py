@@ -35,7 +35,7 @@ from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.layout.processors import ConditionalProcessor
 from prompt_toolkit.styles import (style_from_pygments_cls,
     style_from_pygments_dict, merge_styles)
-from prompt_toolkit.history import FileHistory, DynamicHistory, DummyHistory
+from prompt_toolkit.history import FileHistory
 from prompt_toolkit.validation import Validator, ValidationError
 from prompt_toolkit.filters import Condition, IsDone
 from prompt_toolkit.formatted_text import PygmentsTokens
@@ -635,7 +635,7 @@ del sys
             enable_history_search=False,
             multiline=multiline,
             validator=PythonSyntaxValidator(),
-            history=DynamicHistory(lambda: self.history),
+            history=self.history,
             completer=DynamicCompleter(lambda:
                 ThreadedCompleter(self.completer)
                 if self.complete_in_thread and self.completer
@@ -740,13 +740,10 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
 
     while True:
         try:
-            _history = None
-
             default = ''
             if CMD_QUEUE:
                 default = CMD_QUEUE.popleft()
                 if cmd:
-                    _history = DummyHistory()
                     cmd = None
             elif _exit:
                 break
@@ -754,7 +751,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
             # Replace stdout.
             # patch_context = cli.patch_stdout_context(raw=True)
             # with patch_context:
-            command = prompt.prompt(default=default, history=_history)
+            command = prompt.prompt(default=default, accept_default=default)
         except KeyboardInterrupt:
             # TODO: Keep it in the history
             print("KeyboardInterrupt\n", file=sys.stderr)
