@@ -590,7 +590,7 @@ del sys
             (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
         ])
 
-    def get_prompt_continuation(self, width):
+    def get_prompt_continuation(self, width, line_number, is_soft_wrap):
         if DOCTEST_MODE:
             return PygmentsTokens([
                 (Token.DoctestContinuation, '...'),
