@@ -225,7 +225,7 @@ def get_in_prompt_tokens(cli):
     return [
         (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
 
-        (Token.Emoji, cli.IN*3),
+        (Token.Emoji, cli.IN),
         (Token.InBracket, '['),
         (Token.InNumber, str(cli.builtins['PROMPT_NUMBER'])),
         (Token.InBracket, ']'),
@@ -249,7 +249,7 @@ def get_out_prompt_tokens(cli):
     if DOCTEST_MODE or NO_PROMPT_MODE:
         return []
     return [
-        (Token.Emoji, cli.OUT*3),
+        (Token.Emoji, cli.OUT),
         (Token.OutBracket, '['),
         (Token.OutNumber, str(cli.builtins['PROMPT_NUMBER'])),
         (Token.OutBracket, ']'),

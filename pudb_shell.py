@@ -18,7 +18,7 @@ if os.path.isdir(mypython_dir):
 
 from mypython import run_shell
 
-prompts = ("\N{BUG}"*2, "\N{LADY BEETLE}"*2)
+prompts = ("\N{BUG}"*6, "\N{LADY BEETLE}"*6)
 
 def pudb_shell(_globals, _locals):
     try:
