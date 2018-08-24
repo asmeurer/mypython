@@ -19,6 +19,8 @@ emoji = [(i*3, j*3) for i, j in [
     ('\N{FULL MOON WITH FACE}', '\N{NEW MOON WITH FACE}'),
 ]]
 
+emoji_pudb = ("\N{BUG}"*6, "\N{LADY BEETLE}"*6)
+
 class MyPython3Lexer(Python3Lexer):
     def get_tokens_unprocessed(self, text):
         magic = False

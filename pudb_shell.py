@@ -17,8 +17,7 @@ if os.path.isdir(mypython_dir):
     sys.path.insert(0, mypython_dir)
 
 from mypython import run_shell
-
-prompts = ("\N{BUG}"*6, "\N{LADY BEETLE}"*6)
+from mypython.theme import emoji_pudb
 
 def pudb_shell(_globals, _locals):
     try:
@@ -32,4 +31,4 @@ def pudb_shell(_globals, _locals):
 
     return run_shell(ns, ns, quiet=True,
         history_file='~/.mypython/history/pudb_%s_history' % tty_name,
-        in_out=prompts)
+        in_out=emoji_pudb)
