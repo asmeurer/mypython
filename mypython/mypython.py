@@ -718,8 +718,8 @@ def execute_command(command, cli, *, _globals=None, _locals=None):
 CMD_QUEUE = deque()
 
 def run_shell(_globals=_default_globals, _locals=_default_locals, *,
-    quiet=False, cmd=None, history_file=None, cat=False, _exit=False):
-
+    quiet=False, cmd=None, history_file=None, cat=False, _exit=False,
+    in_out=None):
     if cmd:
         if isinstance(cmd, str):
             cmd = [cmd]
@@ -743,7 +743,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
 
     registry = get_registry()
 
-    IN, OUT = random.choice(emoji)
+    IN, OUT = in_out or random.choice(emoji)
 
     mybuiltins = startup(_globals, _locals, quiet=quiet, cat=cat)
 
