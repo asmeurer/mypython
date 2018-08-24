@@ -52,4 +52,3 @@
 - pudb doesn't show source for function defined in mypython
 - %history magic (shows history in a pager)
 - tokenize based dedent
-- Use special prompts inside pudb

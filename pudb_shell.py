@@ -18,6 +18,8 @@ if os.path.isdir(mypython_dir):
 
 from mypython import run_shell
 
+prompts = ("\N{BUG}"*2, "\N{LADY BEETLE}"*2)
+
 def pudb_shell(_globals, _locals):
     try:
         tty_name = os.path.basename(os.ttyname(sys.stdout.fileno()))
@@ -29,4 +31,5 @@ def pudb_shell(_globals, _locals):
     ns = SetPropagatingDict([_locals, _globals], _locals)
 
     return run_shell(ns, ns, quiet=True,
-        history_file='~/.mypython/history/pudb_%s_history' % tty_name)
+        history_file='~/.mypython/history/pudb_%s_history' % tty_name,
+        in_out=prompts)
