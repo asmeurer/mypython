@@ -50,5 +50,4 @@
 - SyntaxError from the tokenizing functions on invalid # -*- coding: invalid -*-
 - Error from mypython quitting pudb from function defined in mypython
 - pudb doesn't show source for function defined in mypython
-- %history magic (shows history in a pager)
 - tokenize based dedent

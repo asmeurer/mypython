@@ -171,6 +171,16 @@ print(%r)
 
 isympy_magic = sympy_magic
 
+def history_magic(rest):
+    return """\
+import pydoc as _pydoc
+import pygments as _pygments
+from mypython.theme import OneAMStyle as _OneAMStyle, MyPython3Lexer as _MyPython3Lexer
+from mypython.mypython import blue as _blue
+_pydoc.pipepager('\\n'.join(_pygments.highlight(i, _MyPython3Lexer(), _pygments.formatters.TerminalTrueColorFormatter(style=_OneAMStyle))+_blue('-'*80) for i in _CLI.current_buffer.history.strings), 'less +G')
+del _pydoc, _pygments, _OneAMStyle, _MyPython3Lexer, _blue
+"""
+
 def pudb_magic(rest):
     """
     Debug the code with PuDB.
