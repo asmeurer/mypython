@@ -632,28 +632,34 @@ a = 1
         '1 + r"a"',
         '1 + rb"a"',
         "1 + rb'a'",
+
         '1 + r"""a"""',
         "1 + r'''a'''",
         '1 + rb"""a"""',
         "1 + rb'''a'''",
-        # '1 + r"a',
-        # "1 + r'a",
-        # '1 + rb"a',
-        # "1 + rb'a",
+
+        '1 + r"a',
+        "1 + r'a",
+        '1 + rb"a',
+        "1 + rb'a",
+
         '1 + r"""a',
         "1 + r'''a",
         '1 + rb"""a',
         "1 + rb'''a",
+
         '""',
         "''",
         'r""',
         "r''",
         'rb""',
         "rb''",
+
+        "x + y"
     ]
     for s in strings:
         for i, c in enumerate(s):
-            if c in '1 +':
+            if c in '1 +xy':
                 assert not inside_string(s, 1, i)
                 assert not isiq(s, 1, i)
             elif c in 'rb"\'':

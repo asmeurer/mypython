@@ -9,7 +9,8 @@ import io
 from itertools import tee
 from tokenize import tokenize, TokenError
 from token import (LPAR, RPAR, LSQB, RSQB, LBRACE, RBRACE, ERRORTOKEN, STRING,
-    COLON, AT, ENDMARKER, DEDENT)
+    COLON, AT, ENDMARKER, DEDENT, NAME)
+import ast
 
 braces = {
     LPAR: RPAR,
@@ -184,18 +185,41 @@ def inside_string(s, row, col, include_quotes=False):
         return (start_offset, end_offset)
 
     try:
+        name_mark = False
         for toknum, tokval, start, end, line in tokenize_string(s):
+            if toknum == NAME and include_quotes and start <= (row, col) < end:
+                # Something like r'... that is unclosed will tokenize as NAME,
+                # ERRORTOKEN. Mark here to check if the next token is
+                # ERRORTOKEN.
+                name_mark = tokval
+                continue
             if toknum == ERRORTOKEN and tokval[0] in '"\'':
+                if name_mark:
+                    # (row, col) is on the name before the unclosed error
+                    # string.
+                    # Check if the previous token + string is a valid string
+                    # prefix.
+
+                    # name_mark not False implies include_quotes == True
+                    try:
+                        ast.literal_eval(name_mark + '""')
+                    except SyntaxError:
+                        return False
+                    else:
+                        return True
                 # There is an unclosed string. We haven't gotten to the
                 # position yet, so it must be inside this string
                 start_offset = 0 if include_quotes else 1
                 return (start[0], start[1] + start_offset) <= (row, col)
+            elif name_mark:
+                return False
             if start <= (row, col) < end:
                 if not toknum == STRING:
                     return False
 
                 start_offset, end_offset = _offsets(tokval)
                 return (start[0], start[1] + start_offset) <= (row, col) < (end[0], end[1] - end_offset)
+
     except TokenError as e:
         # Uncompleted docstring or braces. If it's the former, then (row, col)
         # must be after the start of the unclosed string, or else we would
