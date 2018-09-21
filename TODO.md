@@ -48,5 +48,4 @@
 - ?? isn't smart enough to handle redefined functions
 - SyntaxError from the tokenizing functions on invalid # -*- coding: invalid -*-
 - Error from mypython quitting pudb from function defined in mypython
-- pudb doesn't show source for function defined in mypython
 - tokenize based dedent
