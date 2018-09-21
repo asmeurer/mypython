@@ -185,11 +185,12 @@ def inside_string(s, row, col, include_quotes=False):
 
     try:
         for toknum, tokval, start, end, line in tokenize_string(s):
-            if toknum == ERRORTOKEN:
+            if toknum == ERRORTOKEN and tokval[0] in '"\'':
                 # There is an unclosed string. We haven't gotten to the
                 # position yet, so it must be inside this string
-                return True
-            if start <= (row, col) <= end:
+                start_offset = 0 if include_quotes else 1
+                return (start[0], start[1] + start_offset) <= (row, col)
+            if start <= (row, col) < end:
                 if not toknum == STRING:
                     return False
 
