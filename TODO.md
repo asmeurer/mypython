@@ -47,5 +47,4 @@
 - Prompt number not incremented when %pudb exits with traceback
 - ?? isn't smart enough to handle redefined functions
 - SyntaxError from the tokenizing functions on invalid # -*- coding: invalid -*-
-- Error from mypython quitting pudb from function defined in mypython
 - tokenize based dedent
