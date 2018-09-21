@@ -200,8 +200,10 @@ def inside_string(s, row, col, include_quotes=False):
         # must be after the start of the unclosed string, or else we would
         # have seen a prior token with start <= (row, col) <= end.
         if 'string' in e.args[0] and (row, col) >= e.args[1]:
-            start_offset, _ = _offsets()
-            end_offset = 0
+            start = e.args[1]
+            tokval = s.splitlines()[start[0]-1][start[1]:]
+            start_offset, _ = _offsets(tokval)
+            return (start[0], start[1] + start_offset) <= (row, col)
         return False
     except IndentationError:
         return False
