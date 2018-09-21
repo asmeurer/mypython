@@ -258,8 +258,6 @@ def get_out_prompt_tokens(cli):
     ]
 
 def mypython_file(prompt_number=None):
-    if DOCTEST_MODE:
-        return "<stdin>"
     if prompt_number is not None:
         return "<mypython-{prompt_number}>".format(prompt_number=prompt_number)
     return "<mypython>"
@@ -653,7 +651,11 @@ class MyTracebackException(traceback.TracebackException):
                 if mypython_error is False:
                     mypython_error = True
             elif frame.filename.startswith('<mypython'):
-                new_stack.append(frame)
+                if DOCTEST_MODE:
+                    filename, lineno, name, line = frame
+                    new_stack.append(traceback.FrameSummary("<stdin>", lineno, name))
+                else:
+                    new_stack.append(frame)
             else:
                 new_stack.append(frame)
                 if not mypython_error:

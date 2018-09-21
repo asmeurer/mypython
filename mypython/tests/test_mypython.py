@@ -654,6 +654,38 @@ r"""Traceback (most recent call last):
 ValueError: error
 """
 
+def test_doctest_tracebacks():
+    # Test that doctest mode tracebacks use <stdin>, and also test that
+    # functions defined in doctest mode have a <mypython> filename.
+    _globals = _test_globals.copy()
+    mybuiltins = startup(_globals, _globals, quiet=True)
+    out, err = _test_output('def test():\nraise Exception\n\n', _globals=_globals,
+        mybuiltins=mybuiltins, doctest_mode=True)
+    assert out == ''
+    assert err == ''
+
+    out, err = _test_output('test()\n', _globals=_globals,
+        mybuiltins=mybuiltins, doctest_mode=True)
+    assert out == ''
+    assert err == \
+r"""Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "<stdin>", line 2, in test
+Exception
+"""
+
+    out, err = _test_output('test()\n', _globals=_globals,
+        mybuiltins=mybuiltins, doctest_mode=False)
+    assert out == '\n'
+    assert err == \
+r"""Traceback (most recent call last):
+  File "<mypython-2>", line 1, in <module>
+    test()
+  File "<mypython-1>", line 2, in test
+    raise Exception
+Exception
+"""
+
 def test_exceptionhook_catches_recursionerror():
     # Make sure this doesn't crash
     try:
