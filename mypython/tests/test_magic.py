@@ -168,3 +168,8 @@ p + 1
     exec(compile(p1, '<test>', 'exec'), d)
     assert d['p'] == 1
     assert d['_val'] == 2
+
+def test_history():
+    out, err = _test_output('%history\n')
+    assert out == '\n'
+    assert err == ''
