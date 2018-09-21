@@ -627,6 +627,44 @@ a = 1
     assert not inside_string(s, 0, 1)
     assert not isiq(s, 0, 1)
 
+    strings = [
+        "1 + r'a'",
+        '1 + r"a"',
+        '1 + rb"a"',
+        "1 + rb'a'",
+        '1 + r"""a"""',
+        "1 + r'''a'''",
+        '1 + rb"""a"""',
+        "1 + rb'''a'''",
+        # '1 + r"a',
+        # "1 + r'a",
+        # '1 + rb"a',
+        # "1 + rb'a",
+        '1 + r"""a',
+        "1 + r'''a",
+        '1 + rb"""a',
+        "1 + rb'''a",
+        '""',
+        "''",
+        'r""',
+        "r''",
+        'rb""',
+        "rb''",
+    ]
+    for s in strings:
+        for i, c in enumerate(s):
+            if c in '1 +':
+                assert not inside_string(s, 1, i)
+                assert not isiq(s, 1, i)
+            elif c in 'rb"\'':
+                assert not inside_string(s, 1, i)
+                assert isiq(s, 1, i)
+            elif c in 'a':
+                assert inside_string(s, 1, i)
+                assert isiq(s, 1, i)
+            else:
+                raise ValueError("Unexpected character in string %s" % c)
+
 def test_is_multiline_python():
     multiline = [
         "def test():",
