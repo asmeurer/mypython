@@ -47,3 +47,4 @@
 - ?? isn't smart enough to handle redefined functions
 - SyntaxError from the tokenizing functions on invalid # -*- coding: invalid -*-
 - tokenize based dedent
+- Extra indentation when pasting a function from a doctest
