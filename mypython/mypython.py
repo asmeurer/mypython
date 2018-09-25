@@ -529,6 +529,11 @@ class Session(PromptSession):
         kwargs.setdefault('complete_in_thread', True)
         kwargs.setdefault('color_depth', ColorDepth.TRUE_COLOR)
 
+        # This is needed to make matplotlib plots work
+        if sys.platform == 'darwin':
+            from .inputhook import inputhook
+            kwargs.setdefault('inputhook', inputhook)
+
         self._globals = _globals
         self._locals = _locals
         self.quiet = quiet
