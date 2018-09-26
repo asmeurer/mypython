@@ -594,9 +594,9 @@ RuntimeError: Error magic
 # !!!!!! ERROR from mypython !!!!!!
 , err), repr(err)
 
-def test_exception_hiding():
+def test_exception_hiding(check_output):
     # Also handled by test_error_magic() above
-    out, err = _test_output('raise ValueError\n')
+    out, err = check_output('raise ValueError\n')
     assert out == '\n'
     # TODO: make sure "ERROR from mypython" is not printed (it wouldn't be
     # included here because it's printed with print_tokens())
@@ -607,7 +607,7 @@ Traceback (most recent call last):
 ValueError
 """
 
-    out, err = _test_output('%time raise ValueError\n')
+    out, err = check_output('%time raise ValueError\n')
     assert out == '\n'
     # TODO: make sure "ERROR from mypython" is not printed (it wouldn't be
     # included here because it's printed with print_tokens())
@@ -618,16 +618,10 @@ r"""Traceback \(most recent call last\):
   File "<mypython>", line 1, in <module>
 ValueError""", err), repr(err)
 
-    _globals = _test_globals.copy()
-
-    mybuiltins = startup(_globals, _globals, quiet=True)
-
-    out, err = _test_output('class Test:\ndef __repr__(self):\nraise ValueError\n\n',
-        _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output('class Test:\ndef __repr__(self):\nraise ValueError\n\n')
     assert out == '\n'
     assert err == ''
-    out, err = _test_output('Test()\n', _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output('Test()\n')
     assert out == '\n'
     # TODO: make sure "ERROR from mypython" is not printed (it wouldn't be
     # included here because it's printed with print_tokens())
