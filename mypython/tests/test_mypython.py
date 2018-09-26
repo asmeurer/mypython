@@ -65,16 +65,20 @@ TERMINAL_SEQUENCE = re.compile(r'(\x1b.*?\x07)|(\x1b\[.*?m)')
 def check_output(pytestconfig):
     return _get_check_output()
 
-def _get_check_output():
-    """
-    Fixture to generate a check_output() function with a persistent session.
-    """
+def _build_test_session():
     _globals = _test_globals.copy()
     _locals = _globals
     _input = create_pipe_input()
     _output = _TestOutput()
     session = Session(_globals=_globals, _locals=_locals, history=_history(),
         input=_input, output=_output, quiet=True)
+    return session
+
+def _get_check_output():
+    """
+    Fixture to generate a check_output() function with a persistent session.
+    """
+    session = _build_test_session()
 
     def _test_output(text, *, doctest_mode=False, remove_terminal_sequences=True):
         """
@@ -100,7 +104,7 @@ def _get_check_output():
 
             command = _run_session_with_text(session, text)
 
-            execute_command(command, session, _locals=_locals, _globals=_globals)
+            execute_command(command, session, _locals=session._locals, _globals=session._globals)
         finally:
             sys.stdout = old_stdout
             sys.stderr = old_stderr
