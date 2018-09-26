@@ -117,6 +117,11 @@ def _get_check_output():
         return ret
     return _test_output
 
+def test_run_session_with_text():
+    session = _build_test_session()
+    assert _run_session_with_text(session, '1 + 1\n') == '1 + 1'
+    assert _run_session_with_text(session, ' 1\n') == '1'
+
 def test_autoindent():
     _globals = _test_globals.copy()
     _locals = _globals
