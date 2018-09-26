@@ -74,7 +74,7 @@ def _get_check_output():
     _input = create_pipe_input()
     _output = _TestOutput()
     session = Session(_globals=_globals, _locals=_locals, history=_history(),
-    input=_input, output=_output)
+        input=_input, output=_output, quiet=True)
 
     def _test_output(text, *, doctest_mode=False, remove_terminal_sequences=True):
         """
