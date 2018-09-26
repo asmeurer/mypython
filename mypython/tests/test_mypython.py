@@ -157,18 +157,14 @@ def test():
     123)"""
 
 def test_startup():
-    _globals = _locals = {}
-    try:
-        # TODO: Test things printed to this
-        old_print_tokens = mypython.print_tokens = lambda *args, **kwargs: None
+    session = _build_test_session()
+    session._globals = session._locals = {}
+    session.startup()
+    # TODO: Test things printed with quiet=False
 
-        mybuiltins = startup(_globals, _locals)
-    finally:
-        mypython.print_tokens = old_print_tokens
-
-    assert _globals.keys() == _locals.keys() == {'__builtins__', 'In', 'Out', 'PROMPT_NUMBER'}
-    assert mybuiltins.keys() == {'In', 'Out', 'PROMPT_NUMBER'}
-    assert _globals['PROMPT_NUMBER'] == 1
+    assert session._globals.keys() == session._locals.keys() == {'__builtins__', 'In', 'Out', 'PROMPT_NUMBER'}
+    assert session.builtins.keys() == {'In', 'Out', 'PROMPT_NUMBER'}
+    assert session._globals['PROMPT_NUMBER'] == 1
 
 # Not called test_globals to avoid confusion with _test_globals
 def test_test_globals():
