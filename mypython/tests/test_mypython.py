@@ -196,38 +196,35 @@ ImportError: attempted relative import with no known parent package
 """
 
 def test_builtin_names():
-    _globals = _test_globals.copy()
-
-    mybuiltins = startup(_globals, _globals, quiet=True)
+    session = _build_test_session()
+    check_output = _get_check_output(session)
 
     i = 1
-    out, err = _test_output("In\n", _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output("In\n")
     assert out == "{1: 'In'}\n\n"
     assert not err
     i += 1
-    out, err = _test_output("Out\n", _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output("Out\n")
     assert out == "{1: {1: 'In', 2: 'Out'}, 2: {...}}\n\n"
     assert not err
 
     # If a name is deleted, it is restored, but if it is reassigned, the
     # reassigned name is used.
     for name in ["In", "Out", "_", "__", "___", "PROMPT_NUMBER"]:
-        assert name in _globals
-        assert _globals[name] is mybuiltins[name]
+        assert name in session._globals
+        assert session._globals[name] is session.builtins[name]
 
         i += 1
-        out, err = _test_output("del {name}\n".format(name=name),
-            _globals=_globals, mybuiltins=mybuiltins)
+        out, err = check_output("del {name}\n".format(name=name))
         assert out == "\n"
         assert err == ""
 
         i += 1
-        out, err = _test_output("{name}\n".format(name=name),
-            _globals=_globals, mybuiltins=mybuiltins)
+        out, err = check_output("{name}\n".format(name=name))
         # The prompt number is incremented in the post_command, so it will be
         # one more in the _globals after the command is executed.
-        res = mybuiltins[name] - 1 if name == 'PROMPT_NUMBER' else mybuiltins[name]
-        assert _globals[name] is mybuiltins[name]
+        res = session.builtins[name] - 1 if name == 'PROMPT_NUMBER' else session.builtins[name]
+        assert session._globals[name] is session.builtins[name]
         assert out == repr(res) + "\n\n", name
         assert err == ""
 
@@ -235,83 +232,36 @@ def test_builtin_names():
         # detect if they were changed manually).
         if '_' not in name:
             i += 1
-            out, err = _test_output("{name} = 1\n".format(name=name),
-                _globals=_globals, mybuiltins=mybuiltins)
+            out, err = check_output("{name} = 1\n".format(name=name))
             assert out == '\n'
             assert err == ''
 
             i += 1
-            out, err = _test_output("{name}\n".format(name=name),
-                _globals=_globals, mybuiltins=mybuiltins)
+            out, err = check_output("{name}\n".format(name=name))
             assert out == '1\n\n'
             assert err == ''
 
             i += 1
-            out, err = _test_output("del {name}\n".format(name=name),
-                _globals=_globals, mybuiltins=mybuiltins)
+            out, err = check_output("del {name}\n".format(name=name))
             assert out == '\n'
             assert err == ''
 
             i += 1
-            out, err = _test_output("{name}\n".format(name=name),
-                _globals=_globals, mybuiltins=mybuiltins)
-            assert out == repr(_globals[name]) + "\n\n"
+            out, err = check_output("{name}\n".format(name=name))
+            assert out == repr(session._globals[name]) + "\n\n"
             assert err == ""
-
-
-    # Make sure _CLI cannot be deleted or reassigned
-    assert _globals['_CLI'] is mybuiltins['_CLI']
-
-    i += 1
-    out, err = _test_output("_CLI\n", _globals=_globals,
-        mybuiltins=mybuiltins)
-    assert out == repr(mybuiltins['_CLI']) + "\n\n"
-    assert err == ""
-    assert _globals['_CLI'] is mybuiltins['_CLI']
-    assert isinstance(_globals['_CLI'], CommandLineInterface)
-
-    i += 1
-    out, err = _test_output("del _CLI\n", _globals=_globals,
-        mybuiltins=mybuiltins)
-    assert out == "\n"
-    assert err == ""
-    assert _globals['_CLI'] is mybuiltins['_CLI']
-    assert isinstance(_globals['_CLI'], CommandLineInterface)
-
-    i += 1
-    out, err = _test_output("_CLI\n", _globals=_globals,
-        mybuiltins=mybuiltins)
-    assert out == repr(mybuiltins['_CLI']) + "\n\n"
-    assert err == ""
-    assert isinstance(_globals['_CLI'], CommandLineInterface)
-
-    i += 1
-    out, err = _test_output("_CLI = 1\n", _globals=_globals,
-        mybuiltins=mybuiltins)
-    assert out == "\n"
-    assert err == ""
-    assert _globals['_CLI'] is mybuiltins['_CLI']
-    assert isinstance(_globals['_CLI'], CommandLineInterface)
-
-    i += 1
-    out, err = _test_output("_CLI\n", _globals=_globals,
-        mybuiltins=mybuiltins)
-    assert out == repr(mybuiltins['_CLI']) + "\n\n"
-    assert err == ""
-    assert _globals['_CLI'] is mybuiltins['_CLI']
-    assert isinstance(_globals['_CLI'], CommandLineInterface)
 
     # Test PROMPT_NUMBER
     # Prompt number not incremented for error or empty commands
-    out, err = _test_output("\n", _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output("\n")
     assert out == "\n"
     assert err == ""
 
-    out, err = _test_output("     \n", _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output("     \n")
     assert out == "\n"
     assert err == ""
 
-    out, err = _test_output("fdjksfldj\n", _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output("fdjksfldj\n")
     assert out == "\n"
     assert err == """\
 Traceback (most recent call last):
@@ -321,72 +271,66 @@ NameError: name 'fdjksfldj' is not defined
 """ % (i + 1)
 
     i += 1
-    out, err = _test_output("PROMPT_NUMBER\n", _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output("PROMPT_NUMBER\n")
     assert out == str(i) + '\n\n'
     assert err == ''
 
     i += 1
-    out, err = _test_output("del PROMPT_NUMBER\n", _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output("del PROMPT_NUMBER\n")
     assert out == '\n'
     assert err == ''
 
     i += 1
-    out, err = _test_output("PROMPT_NUMBER\n", _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output("PROMPT_NUMBER\n")
     assert out == str(i) + '\n\n'
     assert err == ''
 
     i += 1
-    out, err = _test_output("PROMPT_NUMBER = 0\n", _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output("PROMPT_NUMBER = 0\n")
     assert out == '\n'
     assert err == ''
 
     i += 1
-    out, err = _test_output("PROMPT_NUMBER\n", _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output("PROMPT_NUMBER\n")
     assert out == str(i) + '\n\n'
     assert err == ''
 
     # Test _
     i += 1
-    _test_output("1\n", _globals=_globals, mybuiltins=mybuiltins)
+    check_output("1\n")
     i += 1
-    _test_output("2\n", _globals=_globals, mybuiltins=mybuiltins)
+    check_output("2\n")
     i += 1
-    _test_output("3\n", _globals=_globals, mybuiltins=mybuiltins)
+    check_output("3\n")
     i += 1
-    out, err = _test_output("_\n", _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output("_\n")
     assert out == "3\n\n"
     assert not err
 
     i += 1
-    _test_output("1\n", _globals=_globals, mybuiltins=mybuiltins)
+    check_output("1\n")
     i += 1
-    _test_output("2\n", _globals=_globals, mybuiltins=mybuiltins)
+    check_output("2\n")
     i += 1
-    _test_output("3\n", _globals=_globals, mybuiltins=mybuiltins)
+    check_output("3\n")
     i += 1
-    out, err = _test_output("__\n", _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output("__\n")
     assert out == "2\n\n"
     assert not err
 
     i += 1
-    _test_output("1\n", _globals=_globals, mybuiltins=mybuiltins)
+    check_output("1\n")
     i += 1
-    _test_output("2\n", _globals=_globals, mybuiltins=mybuiltins)
+    check_output("2\n")
     i += 1
-    _test_output("3\n", _globals=_globals, mybuiltins=mybuiltins)
+    check_output("3\n")
     i += 1
-    out, err = _test_output("___\n", _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output("___\n")
     assert out == "1\n\n"
     assert not err
 
     i += 1
-    out, err = _test_output("_%d\n" % (i-1), _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output("_%d\n" % (i-1))
     assert out == "1\n\n"
     assert not err
 
