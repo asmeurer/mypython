@@ -65,6 +65,9 @@ TERMINAL_SEQUENCE = re.compile(r'(\x1b.*?\x07)|(\x1b\[.*?m)')
 def check_output(pytestconfig):
     return _get_check_output()
 
+# Avoid accidental use without using the fixture
+del check_output
+
 def _build_test_session():
     _globals = _test_globals.copy()
     _locals = _globals
