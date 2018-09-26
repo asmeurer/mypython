@@ -182,8 +182,8 @@ def test_test_globals():
     import builtins
     assert _test_globals['__builtins__'] is builtins
 
-def test_local_import():
-    out, err = _test_output('from .tests import *\n')
+def test_local_import(check_output):
+    out, err = check_output('from .tests import *\n')
     assert out == '\n'
     assert err == \
 """Traceback (most recent call last):
@@ -192,7 +192,7 @@ def test_local_import():
 ImportError: attempted relative import with no known parent package
 """
 
-    out, err = _test_output('from .test import *\n')
+    out, err = check_output('from .test import *\n')
     assert out == '\n'
     assert err == \
 """Traceback (most recent call last):
