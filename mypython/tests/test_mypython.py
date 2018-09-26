@@ -8,19 +8,16 @@ import linecache
 import ast
 
 from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.input import PipeInput, Input
+from prompt_toolkit.input.defaults import create_pipe_input
 from prompt_toolkit.output import DummyOutput
 from prompt_toolkit.document import Document
 from prompt_toolkit.validation import ValidationError
-from prompt_toolkit.interface import CommandLineInterface
 
-from ..mypython import (get_cli, _default_globals, get_eventloop,
-    startup, normalize, magic, PythonSyntaxValidator, execute_command,
-    getsource, smart_eval, NoResult)
+from ..mypython import (_default_globals, Session, normalize, magic,
+    PythonSyntaxValidator, execute_command, getsource, smart_eval, NoResult)
 from .. import mypython
-from ..keys import get_registry
 
-from pytest import raises, skip
+from pytest import raises, skip, fixture
 
 _test_globals = _default_globals.copy()
 
@@ -32,47 +29,31 @@ class _TestOutput(DummyOutput):
     def write(self, data):
         self.written_data += data
 
-    # Since we use patch_stdout_context(raw=True) (but only for cli.run()),
+    # Since we use patch_stdout_context(raw=True),
     # things like iTerm2 sequences will go here.
     def write_raw(self, data):
         self.written_raw_data += data
 
-def _cli_with_input(text, history=None, _globals=None, _locals=None,
-    registry=None, eventloop=None, close=True, builtins=None):
-
-    if isinstance(text, Input):
-        _input = text
-    else:
-        assert text.endswith('\n')
-        if '\n' in text[:-1]:
-            assert text.endswith('\n\n')
-        _input = PipeInput()
-        _input.send_text(text)
-
-    history = history or _history()
-    _globals = _globals or _test_globals.copy()
-    _locals = _locals or _globals
-    # TODO: Factor this out from main()
-    registry = registry or get_registry()
-
-    eventloop = eventloop or get_eventloop()
+def _run_session_with_text(session, text, close=False):
+    assert text.endswith('\n')
+    if '\n' in text[:-1]:
+        assert text.endswith('\n\n')
+    session.input.send_text(text)
 
     try:
-        cli = get_cli(history=history, _globals=_globals, _locals=_locals,
-            registry=registry, _input=_input, output=_TestOutput(),
-            eventloop=eventloop, builtins=builtins)
-        result = cli.run()
-        return result, cli
+        with session._auto_refresh_context():
+            session.default_buffer.reset(Document(session.default))
+            result = session.app.run()
+        return result
     finally:
         if close:
-            eventloop.close()
-            _input.close()
+            session.input.close()
 
 def _history():
     h = InMemoryHistory()
-    h.append('history1')
-    h.append('history2')
-    h.append('history3')
+    h.append_string('history1')
+    h.append_string('history2')
+    h.append_string('history3')
     return h
 
 def keyboard_interrupt_handler(s, f):
@@ -80,62 +61,57 @@ def keyboard_interrupt_handler(s, f):
 
 TERMINAL_SEQUENCE = re.compile(r'(\x1b.*?\x07)|(\x1b\[.*?m)')
 
-def _test_output(_input, *, doctest_mode=False, remove_terminal_sequences=True,
-    _globals=None, _locals=None, mybuiltins=None):
+@fixture
+def check_output(pytestconfig):
+    return _get_check_output()
+
+def _get_check_output():
     """
-    Test the output from a given input
-
-    IMPORTANT: Only things printed directly to stdout/stderr are tested.
-    Things printed via prompt_toolkit (e.g., print_tokens) are not caught.
-
-    For now, the input must be a single command. Use \x1b\n (M-Enter) to keep
-    multiple lines in the same input.
-
-    To test multiple inputs to a single session, use
-
-        _globals = _test_globals.copy()
-        mybuiltins = startup(_globals, _globals, quiet=True)
-
-    and pass _test_output(_globals=_globals, mybuiltins=mybuiltins) with each
-    call. Otherwise, each call will run in a new session.
-
+    Fixture to generate a check_output() function with a persistent session.
     """
-    mypython.DOCTEST_MODE = doctest_mode
+    _globals = _test_globals.copy()
+    _locals = _globals
+    _input = create_pipe_input()
+    _output = _TestOutput()
+    session = Session(_globals=_globals, _locals=_locals, history=_history(),
+    input=_input, output=_output)
 
-    if (_globals is None) ^ (mybuiltins is None):
-        raise ValueError("_globals and mybuiltins must both be passed together to _test_output()")
-    _globals = _globals or  _test_globals.copy()
-    _locals = _locals or _globals
+    def _test_output(text, *, doctest_mode=False, remove_terminal_sequences=True):
+        """
+        Test the output from a given input
 
-    custom_stdout = StringIO()
-    custom_stderr = StringIO()
-    try:
-        old_stdout, sys.stdout = sys.stdout, custom_stdout
-        old_stderr, sys.stderr = sys.stderr, custom_stderr
-        # TODO: Test things printed to this
-        old_print_tokens = mypython.print_tokens = lambda *args, **kwargs: None
+        IMPORTANT: Only things printed directly to stdout/stderr are tested.
+        Things printed via prompt_toolkit (e.g., print_tokens) are not caught.
 
-        mybuiltins = mybuiltins or startup(_globals, _locals, quiet=True)
+        For now, the input must be a single command. Use \x1b\n (M-Enter) to keep
+        multiple lines in the same input.
 
-        result, cli = _cli_with_input(_input, _globals=_globals,
-            _locals=_locals, builtins=mybuiltins)
+        """
+        mypython.DOCTEST_MODE = doctest_mode
 
-        if isinstance(result, Document):  # Backwards-compatibility.
-            command = result.text
-        else:
-            command = result
+        custom_stdout = StringIO()
+        custom_stderr = StringIO()
+        try:
+            old_stdout, sys.stdout = sys.stdout, custom_stdout
+            old_stderr, sys.stderr = sys.stderr, custom_stderr
+            # TODO: Test things printed to this
+            old_print_formatted_text = mypython.print_formatted_text
+            mypython.print_formatted_text = lambda *args, **kwargs: None
 
-        execute_command(command, cli, _locals=_locals, _globals=_globals)
-    finally:
-        sys.stdout = old_stdout
-        sys.stderr = old_stderr
-        mypython.print_tokens = old_print_tokens
+            command = _run_session_with_text(session, text)
 
-    ret = (custom_stdout.getvalue(), custom_stderr.getvalue())
-    if remove_terminal_sequences:
-        ret = (TERMINAL_SEQUENCE.sub('', ret[0]), TERMINAL_SEQUENCE.sub('', ret[1]))
+            execute_command(command, session, _locals=_locals, _globals=_globals)
+        finally:
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
+            mypython.print_formatted_text = old_print_formatted_text
 
-    return ret
+        ret = (custom_stdout.getvalue(), custom_stderr.getvalue())
+        if remove_terminal_sequences:
+            ret = (TERMINAL_SEQUENCE.sub('', ret[0]), TERMINAL_SEQUENCE.sub('', ret[1]))
+
+        return ret
+    return _test_output
 
 def test_get_cli():
     _globals = _test_globals.copy()
