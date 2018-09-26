@@ -427,19 +427,18 @@ def test_syntax_validator():
     doesntvalidate('%timeit  a b?')
 
 def test_getsource():
-    _globals = _test_globals.copy()
-    mybuiltins = startup(_globals, _globals, quiet=True)
+    session = _build_test_session()
+    check_output = _get_check_output(session)
+    _globals = session._globals
 
-    out, err = _test_output('def test():\nraise ValueError("error")\n\n',
-        _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output('def test():\nraise ValueError("error")\n\n')
 
     assert getsource('test', _globals, _globals, ret=True, include_info=False) == """\
 def test():
     raise ValueError("error")
 """
 
-    out, err = _test_output('class Test:\npass\n\n', _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output('class Test:\npass\n\n')
     assert getsource('Test', _globals, _globals, ret=True, include_info=False) == \
         getsource('Test', _globals, _globals, ret=True, include_info=False) == """\
 class Test:
