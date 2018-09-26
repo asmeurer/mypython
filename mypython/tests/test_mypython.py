@@ -74,11 +74,11 @@ def _build_test_session():
         input=_input, output=_output, quiet=True)
     return session
 
-def _get_check_output():
+def _get_check_output(session=None):
     """
     Fixture to generate a check_output() function with a persistent session.
     """
-    session = _build_test_session()
+    session = session or _build_test_session()
 
     def _test_output(text, *, doctest_mode=False, remove_terminal_sequences=True):
         """
