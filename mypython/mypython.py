@@ -477,6 +477,7 @@ def post_command(*, command, res, _globals, _locals, prompt):
 
     if command.strip():
         prompt.prompt_number += 1
+        builtins['PROMPT_NUMBER'] += 1
 
     # Allow the mutable builtin names to be redefined without mypython resetting them. If
     # they are del-ed, they will be restored to the builtin versions.
