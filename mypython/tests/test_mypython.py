@@ -540,10 +540,10 @@ NameError: name 'undefined' is not defined
 NameError: name 'undefined' is not defined
 """
 
-def test_traceback_exception():
+def test_traceback_exception(check_output):
     # Functions from the traceback module shouldn't include any mypython lines
-    # \x1b\n = M-Enter. _test_output only works with a single command
-    out, err = _test_output('import traceback\x1b\ntry:\nraise ValueError("error")\nexcept:\ntraceback.print_exc()\n\n')
+    # \x1b\n = M-Enter. check_output only works with a single command
+    out, err = check_output('import traceback\x1b\ntry:\nraise ValueError("error")\nexcept:\ntraceback.print_exc()\n\n')
     assert out == '\n'
     assert err == \
 r"""Traceback (most recent call last):
