@@ -336,6 +336,7 @@ def accept_after_history_backward(event):
         multiline_enter(event)
 
 @r.add_binding(Keys.Escape, Keys.Enter)
+@r.add_binding(Keys.Escape, Keys.ControlJ)
 def insert_newline(event):
     auto_newline(event.current_buffer)
 
