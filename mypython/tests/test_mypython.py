@@ -632,12 +632,12 @@ Traceback (most recent call last):
 ValueError
 """
 
-def test_local_scopes():
-    out, err = _test_output('[x for x in range(10)]\n')
+def test_local_scopes(check_output):
+    out, err = check_output('[x for x in range(10)]\n')
     assert out == '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]\n\n'
     assert err == ''
 
-    out, err = _test_output('x = range(3); [i for i in x]\n')
+    out, err = check_output('x = range(3); [i for i in x]\n')
     assert out == '[0, 1, 2]\n\n'
     assert err == ''
 
