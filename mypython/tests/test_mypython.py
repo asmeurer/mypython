@@ -552,7 +552,7 @@ r"""Traceback (most recent call last):
 ValueError: error
 """
 
-def test_exceptionhook_catches_recursionerror():
+def test_excepthook_catches_recursionerror(check_output):
     # Make sure this doesn't crash
     try:
         import numpy, sympy
@@ -567,7 +567,7 @@ b = numpy.array([sympy.Float(1.1, 30) + sympy.Float(1.1, 30)*sympy.I]*1000)\x1b
 numpy.array(b, dtype=float)\x1b
 
 """
-    out, err = _test_output(command)
+    out, err = check_output(command)
     assert out == '\n'
     assert "RecursionError" in err
     # assert print_tokens_output == "Warning: RecursionError from mypython_excepthook"
@@ -575,7 +575,7 @@ numpy.array(b, dtype=float)\x1b
 def test_error_magic():
     # Make sure %error shows the full mypython traceback.
     # Here instead of test_magic.py because it tests the exception handling
-    out, err = _test_output('%error\n')
+    out, err = check_output('%error\n')
     assert out == '\n'
     assert re.match(
 r"""Traceback \(most recent call last\):
