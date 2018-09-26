@@ -123,13 +123,10 @@ def test_run_session_with_text():
     assert _run_session_with_text(session, ' 1\n') == '1'
 
 def test_autoindent():
-    _globals = _test_globals.copy()
-    _locals = _globals
-
-    mybuiltins = startup(_globals, _locals, quiet=True)
+    session = _build_test_session()
 
     # Test all the indent rules
-    result, cli = _cli_with_input("""\
+    result = _run_session_with_text(session, """\
     def test():
 while True:
 if 1:
@@ -139,8 +136,8 @@ break
 pass
 return
 
-""", builtins=mybuiltins)
-    assert result.text == """\
+""")
+    assert result == """\
 def test():
     while True:
         if 1:
@@ -150,12 +147,12 @@ def test():
         pass
     return"""
 
-    result, cli = _cli_with_input("""\
+    result = _run_session_with_text(session, """\
 (
 \t123)
 
-""", builtins=mybuiltins)
-    assert result.text == """\
+""")
+    assert result == """\
 (
     123)"""
 
