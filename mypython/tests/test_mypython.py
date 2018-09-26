@@ -572,7 +572,7 @@ numpy.array(b, dtype=float)\x1b
     assert "RecursionError" in err
     # assert print_tokens_output == "Warning: RecursionError from mypython_excepthook"
 
-def test_error_magic():
+def test_error_magic(check_output):
     # Make sure %error shows the full mypython traceback.
     # Here instead of test_magic.py because it tests the exception handling
     out, err = check_output('%error\n')
