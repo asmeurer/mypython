@@ -508,54 +508,50 @@ class Test:
     pass
 """
 
-def test_main_loop():
-    assert _test_output('\n', remove_terminal_sequences=False) == ('\x1b]133;C\x07\n\x1b]133;D;0\x07', '')
-    assert _test_output('1 + 1\n', remove_terminal_sequences=False) == ('\x1b]133;C\x072\n\n\x1b]133;D;0\x07', '')
+def test_main_loop(check_output):
+    assert check_output('\n') == ('\n', '')
+    assert check_output('1 + 1\n') == ('2\n\n', '')
+    assert check_output('None\n') == ('None\n\n', '')
+    assert check_output('a = 1\n') == ('\n', '')
 
-    assert _test_output('\n', remove_terminal_sequences=False, doctest_mode=True) == ('\x1b]133;C\x07\x1b]133;D;0\x07', '')
-    assert _test_output('1 + 1\n', remove_terminal_sequences=False, doctest_mode=True) == ('\x1b]133;C\x072\n\x1b]133;D;0\x07', '')
+    assert check_output('\n', remove_terminal_sequences=False) == ('\x1b]133;C\x07\n\x1b]133;D;0\x07', '')
+    assert check_output('1 + 1\n', remove_terminal_sequences=False) == ('\x1b]133;C\x072\n\n\x1b]133;D;0\x07', '')
 
-    assert _test_output('\n') == ('\n', '')
-    assert _test_output('1 + 1\n') == ('2\n\n', '')
-    assert _test_output('None\n') == ('None\n\n', '')
-    assert _test_output('a = 1\n') == ('\n', '')
+    assert check_output('\n', remove_terminal_sequences=False, doctest_mode=True) == ('\x1b]133;C\x07\x1b]133;D;0\x07', '')
+    assert check_output('1 + 1\n', remove_terminal_sequences=False, doctest_mode=True) == ('\x1b]133;C\x072\n\x1b]133;D;0\x07', '')
 
-    assert _test_output('\n', doctest_mode=True) == ('', '')
-    assert _test_output('1 + 1\n', doctest_mode=True) == ('2\n', '')
-    assert _test_output('None\n', doctest_mode=True) == ('', '')
-    assert _test_output('a = 1\n', doctest_mode=True) == ('', '')
+    assert check_output('\n', doctest_mode=True) == ('', '')
+    assert check_output('1 + 1\n', doctest_mode=True) == ('2\n', '')
+    assert check_output('None\n', doctest_mode=True) == ('', '')
+    assert check_output('a = 1\n', doctest_mode=True) == ('', '')
 
-    _globals = _test_globals.copy()
-    mybuiltins = startup(_globals, _globals, quiet=True)
-    assert _test_output('a = 1\n', _globals=_globals, mybuiltins=mybuiltins) == ('\n', '')
-    assert _test_output('a\n', _globals=_globals, mybuiltins=mybuiltins) == ('1\n\n', '')
+    assert check_output('a = 1\n') == ('\n', '')
+    assert check_output('a\n') == ('1\n\n', '')
 
-    _globals = _test_globals.copy()
-    mybuiltins = startup(_globals, _globals, quiet=True)
     # Also tests automatic indentation
-    assert _test_output('def test():\nreturn 1\n\n', _globals=_globals, mybuiltins=mybuiltins) == ('\n', '')
-    assert _test_output('test()\n', _globals=_globals, mybuiltins=mybuiltins) == ('1\n\n', '')
+    assert check_output('def test():\nreturn 1\n\n') == ('\n', '')
+    assert check_output('test()\n') == ('1\n\n', '')
 
-    assert _test_output('a = 1;2\n') == ('2\n\n', '')
-    assert _test_output('1;2\n') == ('2\n\n', '')
-    assert _test_output('1;a = 2\n') == ('\n', '')
+    assert check_output('a = 1;2\n') == ('2\n\n', '')
+    assert check_output('1;2\n') == ('2\n\n', '')
+    assert check_output('1;a = 2\n') == ('\n', '')
     # \x1b\n == M-Enter
-    assert _test_output('a = 1\x1b\n2\n\n') == ('2\n\n', '')
-    assert _test_output('1\x1b\n2\n\n') == ('2\n\n', '')
-    assert _test_output('1\x1b\na = 2\n\n') == ('\n', '')
+    assert check_output('a = 1\x1b\n2\n\n') == ('2\n\n', '')
+    assert check_output('1\x1b\n2\n\n') == ('2\n\n', '')
+    assert check_output('1\x1b\na = 2\n\n') == ('\n', '')
 
-    assert _test_output('# comment\n') == ('\n', '')
+    assert check_output('# comment\n') == ('\n', '')
 
-    out, err = _test_output('raise ValueError("error")\n')
+    out, err = check_output('raise ValueError("error")\n')
     assert out == '\n'
     assert err == \
 r"""Traceback (most recent call last):
-  File "<mypython-1>", line 1, in <module>
+  File "<mypython-20>", line 1, in <module>
     raise ValueError("error")
 ValueError: error
 """
 
-    out, err = _test_output('raise ValueError("error")\n', doctest_mode=True)
+    out, err = check_output('raise ValueError("error")\n', doctest_mode=True)
     assert out == ''
     assert err == \
 r"""Traceback (most recent call last):
@@ -563,30 +559,23 @@ r"""Traceback (most recent call last):
 ValueError: error
 """
 
-    _globals = _test_globals.copy()
-    mybuiltins = startup(_globals, _globals, quiet=True)
-    out, err = _test_output('def test():\nraise ValueError("error")\n\n',
-        _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output('def test():\nraise ValueError("error")\n\n')
     assert (out, err) == ('\n', '')
-    out, err = _test_output('test()\n', _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output('test()\n')
     assert out == '\n'
     assert err == \
 r"""Traceback (most recent call last):
-  File "<mypython-2>", line 1, in <module>
+  File "<mypython-21>", line 1, in <module>
     test()
-  File "<mypython-1>", line 2, in test
+  File "<mypython-20>", line 2, in test
     raise ValueError("error")
 ValueError: error
 """
 
-    _globals = _test_globals.copy()
-    mybuiltins = startup(_globals, _globals, quiet=True)
-    out, err = _test_output('def test():\nraise ValueError("error")\n\n',
-        _globals=_globals, doctest_mode=True, mybuiltins=mybuiltins)
+    out, err = check_output('def test():\nraise ValueError("error")\n\n',
+         doctest_mode=True)
     assert (out, err) == ('', '')
-    out, err = _test_output('test()\n', _globals=_globals, doctest_mode=True,
-        mybuiltins=mybuiltins)
+    out, err = check_output('test()\n', doctest_mode=True)
     assert out == ''
     assert err == \
 r"""Traceback (most recent call last):
@@ -596,24 +585,20 @@ ValueError: error
 """
 
     # Non-eval syntax + last line expr
-    _globals = _test_globals.copy()
-    mybuiltins = startup(_globals, _globals, quiet=True)
-    out, err = _test_output('import os;undefined\n', _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output('import os;undefined\n')
     assert out == '\n'
     assert err == \
 """Traceback (most recent call last):
-  File "<mypython-1>", line 1, in <module>
+  File "<mypython-22>", line 1, in <module>
     import os;undefined
 NameError: name 'undefined' is not defined
 """
     # \x1b\n == M-Enter
-    out, err = _test_output('import os\x1b\nundefined\n\n', _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output('import os\x1b\nundefined\n\n')
     assert out == '\n'
     assert err == \
 """Traceback (most recent call last):
-  File "<mypython-1>", line 2, in <module>
+  File "<mypython-22>", line 2, in <module>
     undefined
 NameError: name 'undefined' is not defined
 """
