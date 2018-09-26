@@ -113,14 +113,6 @@ def _get_check_output():
         return ret
     return _test_output
 
-def test_get_cli():
-    _globals = _test_globals.copy()
-    _locals = _globals
-
-    mybuiltins = startup(_globals, _locals, quiet=True)
-    result, cli = _cli_with_input('1\n', builtins=mybuiltins)
-    assert result.text == '1'
-
 def test_autoindent():
     _globals = _test_globals.copy()
     _locals = _globals
