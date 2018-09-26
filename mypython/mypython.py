@@ -466,7 +466,7 @@ def post_command(*, command, res, _globals, _locals, prompt):
     if res is not NoResult:
         print_formatted_text(prompt.get_out_prompt(),
             style=merge_styles([style_from_pygments_cls(OneAMStyle),
-                style_from_pygments_dict({**prompt_style})]), end='')
+                style_from_pygments_dict({**prompt_style})]), end='', output=prompt.output)
 
         prompt.Out[PROMPT_NUMBER] = res
         builtins['_%s' % PROMPT_NUMBER] = res
@@ -539,12 +539,13 @@ class Session(PromptSession):
         self.quiet = quiet
         self.cat = cat
 
-        self.startup(builtins=builtins)
         if not IN_OUT:
             IN_OUT = random.choice(emoji)
         self.IN, self.OUT = IN_OUT
 
         super().__init__(*args, **kwargs)
+
+        self.startup(builtins=builtins)
 
     def startup(self, builtins=None):
         exec("""
@@ -563,7 +564,7 @@ del sys
         self._locals.update(builtins)
 
         if not self.quiet:
-            print_formatted_text(MyPygmentsTokens([(Token.Welcome, "Welcome to mypython.\n")]))
+            print_formatted_text(MyPygmentsTokens([(Token.Welcome, "Welcome to mypython.\n")]), output=self.output)
             if self.cat:
                 try:
                     import catimg
@@ -572,7 +573,7 @@ del sys
                 else:
                     image = catimg.get_random_image()
                 if image:
-                    print_formatted_text(MyPygmentsTokens([(Token.Welcome, "Here is a cat:")]))
+                    print_formatted_text(MyPygmentsTokens([(Token.Welcome, "Here is a cat:")]), output=self.output)
                     iterm2_tools.display_image_file(image)
                     print()
 
