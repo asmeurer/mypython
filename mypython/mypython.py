@@ -559,7 +559,7 @@ del sys
         self.In = builtins['In'] = {}
         self.Out = builtins['Out'] = {}
         self.prompt_number = builtins['PROMPT_NUMBER'] = 1
-        # builtins['_PROMPT'] = self
+        builtins['_PROMPT'] = self
 
         self._locals.update(builtins)
 

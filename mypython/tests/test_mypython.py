@@ -252,6 +252,12 @@ def test_builtin_names():
             assert out == repr(session._globals[name]) + "\n\n"
             assert err == ""
 
+    # Test _PROMPT
+    i += 1
+    out, err = check_output("_PROMPT\n")
+    assert re.match(r'<mypython\.mypython\.Session object at 0x[a-f0-9]+>\n\n', out), out
+    assert err == ""
+
     # Test PROMPT_NUMBER
     # Prompt number not incremented for error or empty commands
     out, err = check_output("\n")
