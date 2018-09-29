@@ -3,9 +3,6 @@ import textwrap
 import time
 import ast
 
-# Needed to enable the fixture
-from .test_mypython import check_output; check_output
-
 from ..magic import sympy_start, ast_expr_for_pudb
 
 def test_echo(check_output):
