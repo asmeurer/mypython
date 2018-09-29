@@ -35,10 +35,11 @@ class _TestOutput(DummyOutput):
         self.written_raw_data += data
 
 def _run_session_with_text(session, text, close=False):
-    assert text.endswith('\n')
-    if '\n' in text[:-1]:
-        assert text.endswith('\n\n')
-    session.input.send_text(text)
+    if text:
+        assert text.endswith('\n')
+        if '\n' in text[:-1]:
+            assert text.endswith('\n\n')
+        session.input.send_text(text)
 
     try:
         with session._auto_refresh_context():
@@ -65,10 +66,10 @@ TERMINAL_SEQUENCE = re.compile(r'(\x1b.*?\x07)|(\x1b\[.*?m)')
 def check_output(pytestconfig):
     return _get_check_output()
 
-def _build_test_session():
+def _build_test_session(_input=None):
     _globals = _test_globals.copy()
     _locals = _globals
-    _input = create_pipe_input()
+    _input = _input or create_pipe_input()
     _output = _TestOutput()
     session = Session(_globals=_globals, _locals=_locals, history=_history(),
         input=_input, output=_output, quiet=True)
