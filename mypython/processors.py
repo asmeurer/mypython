@@ -32,8 +32,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from prompt_toolkit.layout.processors import (Transformation,
     HighlightMatchingBracketProcessor)
-from prompt_toolkit.layout.utils import explode_tokens
-from prompt_toolkit.token import Token
+from prompt_toolkit.layout.utils import explode_text_fragments
+from prompt_toolkit.application import get_app
 
 from .tokenize import matching_parens
 
@@ -65,9 +65,16 @@ class MyHighlightMatchingBracketProcessor(HighlightMatchingBracketProcessor):
         bad = [(i.start[0]-1, i.start[1]) for i in mismatching]
         return good, bad
 
-    def apply_transformation(self, cli, document, lineno, source_to_display, tokens):
+    def apply_transformation(self, transformation_input):
+        buffer_control, document, lineno, source_to_display, fragments, _, _ = transformation_input.unpack()
+
+        # When the application is in the 'done' state, don't highlight.
+        if get_app().is_done:
+            return Transformation(fragments)
+
         # Get the highlight positions.
-        key = (cli.render_counter, document.text, document.cursor_position)
+        key = (get_app().render_counter, document.text, document.cursor_position)
+
         good, bad = self._positions_cache.get(
             key, lambda: self._get_positions_to_highlight(document))
 
@@ -75,27 +82,27 @@ class MyHighlightMatchingBracketProcessor(HighlightMatchingBracketProcessor):
         for row, col in good:
             if row == lineno:
                 col = source_to_display(col)
-                tokens = explode_tokens(tokens)
-                token, text = tokens[col]
+                fragments = explode_text_fragments(fragments)
+                style, text = fragments[col]
 
                 if col == document.cursor_position_col:
-                    token += (':', ) + Token.MatchingBracket.Cursor
+                    style += ' class:pygments.matchingbracket.cursor '
                 else:
-                    token += (':', ) + Token.MatchingBracket.Other
+                    style += ' class:pygments.matchingbracket.other '
 
-                tokens[col] = (token, text)
+                fragments[col] = (style, text)
 
         for row, col in bad:
             if row == lineno:
                 col = source_to_display(col)
-                tokens = explode_tokens(tokens)
-                token, text = tokens[col]
+                fragments = explode_text_fragments(fragments)
+                style, text = fragments[col]
 
                 if col == document.cursor_position_col:
-                    token += (':', ) + Token.MismatchingBracket.Cursor
+                    style += ' class:pygments.mismatchingbracket.cursor '
                 else:
-                    token += (':', ) + Token.MismatchingBracket.Other
+                    style += ' class:pygments.mismatchingbracket.other '
 
-                tokens[col] = (token, text)
+                fragments[col] = (style, text)
 
-        return Transformation(tokens)
+        return Transformation(fragments)

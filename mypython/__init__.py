@@ -1,25 +1,24 @@
-from .mypython import (validate_text, PythonSyntaxValidator,
-    get_continuation_tokens, prompt_style, get_in_prompt_tokens,
-    get_out_prompt_tokens, NoResult, smart_eval, normalize, startup,
-    execute_command, run_shell, myhelp, getsource)
+from .mypython import (validate_text, PythonSyntaxValidator, prompt_style,
+    NoResult, smart_eval, normalize, execute_command, run_shell, myhelp,
+    getsource, Session)
 
-__all__ = ['validate_text', 'PythonSyntaxValidator', 'get_continuation_tokens', 'prompt_style',
-    'get_in_prompt_tokens', 'get_out_prompt_tokens', 'NoResult', 'smart_eval',
-    'normalize', 'startup', 'execute_command', 'run_shell', 'myhelp', 'getsource']
+__all__ = ['validate_text', 'PythonSyntaxValidator', 'prompt_style',
+    'NoResult', 'smart_eval', 'normalize', 'execute_command',
+    'run_shell', 'myhelp', 'getsource', 'Session']
 
-from .keys import get_registry, custom_bindings_registry, split_prompts
+from .keys import get_key_bindings, custom_key_bindings, split_prompts
 
-__all__ += ['get_registry', 'custom_bindings_registry', 'split_prompts']
+__all__ += ['get_key_bindings', 'custom_key_bindings', 'split_prompts']
 
 from .theme import OneAMStyle
 
 __all__ += ['OneAMStyle']
 
 from .multiline import (document_is_multiline_python, auto_newline,
-    TabShouldInsertWhitespaceFilter)
+    tab_should_insert_whitespace)
 
 __all__ += ['document_is_multiline_python',
-    'auto_newline', 'TabShouldInsertWhitespaceFilter']
+    'auto_newline', 'tab_should_insert_whitespace']
 
 from .completion import get_jedi_script_from_document, PythonCompleter
 

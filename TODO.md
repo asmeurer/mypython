@@ -41,6 +41,7 @@
 - Issues pasting multiple prompts with emoji prompts
 - Make the command queue not use input
 - Should not allow newline inside single quote string, even in multiline
+- Forward/backward sexp doesn't work unless it's on a parenthesis
 - Print %time time after the output
 - Add line profiler magic
 - Prompt number not incremented when %pudb exits with traceback

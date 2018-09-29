@@ -8,19 +8,16 @@ import linecache
 import ast
 
 from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.input import PipeInput, Input
+from prompt_toolkit.input.defaults import create_pipe_input
 from prompt_toolkit.output import DummyOutput
 from prompt_toolkit.document import Document
 from prompt_toolkit.validation import ValidationError
-from prompt_toolkit.interface import CommandLineInterface
 
-from ..mypython import (get_cli, _default_globals, get_eventloop,
-    startup, normalize, magic, PythonSyntaxValidator, execute_command,
-    getsource, smart_eval, NoResult)
+from ..mypython import (_default_globals, Session, normalize, magic,
+    PythonSyntaxValidator, execute_command, getsource, smart_eval, NoResult)
 from .. import mypython
-from ..keys import get_registry
 
-from pytest import raises, skip
+from pytest import raises, skip, fixture
 
 _test_globals = _default_globals.copy()
 
@@ -32,47 +29,32 @@ class _TestOutput(DummyOutput):
     def write(self, data):
         self.written_data += data
 
-    # Since we use patch_stdout_context(raw=True) (but only for cli.run()),
+    # Since we use patch_stdout_context(raw=True),
     # things like iTerm2 sequences will go here.
     def write_raw(self, data):
         self.written_raw_data += data
 
-def _cli_with_input(text, history=None, _globals=None, _locals=None,
-    registry=None, eventloop=None, close=True, builtins=None):
-
-    if isinstance(text, Input):
-        _input = text
-    else:
+def _run_session_with_text(session, text, close=False):
+    if text:
         assert text.endswith('\n')
         if '\n' in text[:-1]:
             assert text.endswith('\n\n')
-        _input = PipeInput()
-        _input.send_text(text)
-
-    history = history or _history()
-    _globals = _globals or _test_globals.copy()
-    _locals = _locals or _globals
-    # TODO: Factor this out from main()
-    registry = registry or get_registry()
-
-    eventloop = eventloop or get_eventloop()
+        session.input.send_text(text)
 
     try:
-        cli = get_cli(history=history, _globals=_globals, _locals=_locals,
-            registry=registry, _input=_input, output=_TestOutput(),
-            eventloop=eventloop, builtins=builtins)
-        result = cli.run()
-        return result, cli
+        with session._auto_refresh_context():
+            session.default_buffer.reset(Document(session.default))
+            result = session.app.run()
+        return result
     finally:
         if close:
-            eventloop.close()
-            _input.close()
+            session.input.close()
 
 def _history():
     h = InMemoryHistory()
-    h.append('history1')
-    h.append('history2')
-    h.append('history3')
+    h.append_string('history1')
+    h.append_string('history2')
+    h.append_string('history3')
     return h
 
 def keyboard_interrupt_handler(s, f):
@@ -80,79 +62,72 @@ def keyboard_interrupt_handler(s, f):
 
 TERMINAL_SEQUENCE = re.compile(r'(\x1b.*?\x07)|(\x1b\[.*?m)')
 
-def _test_output(_input, *, doctest_mode=False, remove_terminal_sequences=True,
-    _globals=None, _locals=None, mybuiltins=None):
-    """
-    Test the output from a given input
+@fixture
+def check_output(pytestconfig):
+    return _get_check_output()
 
-    IMPORTANT: Only things printed directly to stdout/stderr are tested.
-    Things printed via prompt_toolkit (e.g., print_tokens) are not caught.
-
-    For now, the input must be a single command. Use \x1b\n (M-Enter) to keep
-    multiple lines in the same input.
-
-    To test multiple inputs to a single session, use
-
-        _globals = _test_globals.copy()
-        mybuiltins = startup(_globals, _globals, quiet=True)
-
-    and pass _test_output(_globals=_globals, mybuiltins=mybuiltins) with each
-    call. Otherwise, each call will run in a new session.
-
-    """
-    mypython.DOCTEST_MODE = doctest_mode
-
-    if (_globals is None) ^ (mybuiltins is None):
-        raise ValueError("_globals and mybuiltins must both be passed together to _test_output()")
-    _globals = _globals or  _test_globals.copy()
-    _locals = _locals or _globals
-
-    custom_stdout = StringIO()
-    custom_stderr = StringIO()
-    try:
-        old_stdout, sys.stdout = sys.stdout, custom_stdout
-        old_stderr, sys.stderr = sys.stderr, custom_stderr
-        # TODO: Test things printed to this
-        old_print_tokens = mypython.print_tokens = lambda *args, **kwargs: None
-
-        mybuiltins = mybuiltins or startup(_globals, _locals, quiet=True)
-
-        result, cli = _cli_with_input(_input, _globals=_globals,
-            _locals=_locals, builtins=mybuiltins)
-
-        if isinstance(result, Document):  # Backwards-compatibility.
-            command = result.text
-        else:
-            command = result
-
-        execute_command(command, cli, _locals=_locals, _globals=_globals)
-    finally:
-        sys.stdout = old_stdout
-        sys.stderr = old_stderr
-        mypython.print_tokens = old_print_tokens
-
-    ret = (custom_stdout.getvalue(), custom_stderr.getvalue())
-    if remove_terminal_sequences:
-        ret = (TERMINAL_SEQUENCE.sub('', ret[0]), TERMINAL_SEQUENCE.sub('', ret[1]))
-
-    return ret
-
-def test_get_cli():
+def _build_test_session(_input=None):
     _globals = _test_globals.copy()
     _locals = _globals
+    _input = _input or create_pipe_input()
+    _output = _TestOutput()
+    session = Session(_globals=_globals, _locals=_locals, history=_history(),
+        input=_input, output=_output, quiet=True)
+    return session
 
-    mybuiltins = startup(_globals, _locals, quiet=True)
-    result, cli = _cli_with_input('1\n', builtins=mybuiltins)
-    assert result.text == '1'
+def _get_check_output(session=None):
+    """
+    Fixture to generate a check_output() function with a persistent session.
+    """
+    session = session or _build_test_session()
+
+    def _test_output(text, *, doctest_mode=False, remove_terminal_sequences=True):
+        """
+        Test the output from a given input
+
+        IMPORTANT: Only things printed directly to stdout/stderr are tested.
+        Things printed via prompt_toolkit (e.g., print_tokens) are not caught.
+
+        For now, the input must be a single command. Use \x1b\n (M-Enter) to keep
+        multiple lines in the same input.
+
+        """
+        mypython.DOCTEST_MODE = doctest_mode
+
+        custom_stdout = StringIO()
+        custom_stderr = StringIO()
+        try:
+            old_stdout, sys.stdout = sys.stdout, custom_stdout
+            old_stderr, sys.stderr = sys.stderr, custom_stderr
+            # TODO: Test things printed to this
+            old_print_formatted_text = mypython.print_formatted_text
+            mypython.print_formatted_text = lambda *args, **kwargs: None
+
+            command = _run_session_with_text(session, text)
+
+            execute_command(command, session, _locals=session._locals, _globals=session._globals)
+        finally:
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
+            mypython.print_formatted_text = old_print_formatted_text
+
+        ret = (custom_stdout.getvalue(), custom_stderr.getvalue())
+        if remove_terminal_sequences:
+            ret = (TERMINAL_SEQUENCE.sub('', ret[0]), TERMINAL_SEQUENCE.sub('', ret[1]))
+
+        return ret
+    return _test_output
+
+def test_run_session_with_text():
+    session = _build_test_session()
+    assert _run_session_with_text(session, '1 + 1\n') == '1 + 1'
+    assert _run_session_with_text(session, ' 1\n') == '1'
 
 def test_autoindent():
-    _globals = _test_globals.copy()
-    _locals = _globals
-
-    mybuiltins = startup(_globals, _locals, quiet=True)
+    session = _build_test_session()
 
     # Test all the indent rules
-    result, cli = _cli_with_input("""\
+    result = _run_session_with_text(session, """\
     def test():
 while True:
 if 1:
@@ -162,8 +137,8 @@ break
 pass
 return
 
-""", builtins=mybuiltins)
-    assert result.text == """\
+""")
+    assert result == """\
 def test():
     while True:
         if 1:
@@ -173,28 +148,24 @@ def test():
         pass
     return"""
 
-    result, cli = _cli_with_input("""\
+    result = _run_session_with_text(session, """\
 (
 \t123)
 
-""", builtins=mybuiltins)
-    assert result.text == """\
+""")
+    assert result == """\
 (
     123)"""
 
 def test_startup():
-    _globals = _locals = {}
-    try:
-        # TODO: Test things printed to this
-        old_print_tokens = mypython.print_tokens = lambda *args, **kwargs: None
+    session = _build_test_session()
+    session._globals = session._locals = {}
+    session.startup()
+    # TODO: Test things printed with quiet=False
 
-        mybuiltins = startup(_globals, _locals)
-    finally:
-        mypython.print_tokens = old_print_tokens
-
-    assert _globals.keys() == _locals.keys() == {'__builtins__', 'In', 'Out', 'PROMPT_NUMBER'}
-    assert mybuiltins.keys() == {'In', 'Out', 'PROMPT_NUMBER'}
-    assert _globals['PROMPT_NUMBER'] == 1
+    assert session._globals.keys() == session._locals.keys() == {'__builtins__', 'In', 'Out', 'PROMPT_NUMBER', '_PROMPT'}
+    assert session.builtins.keys() == {'In', 'Out', 'PROMPT_NUMBER', '_PROMPT'}
+    assert session._globals['PROMPT_NUMBER'] == 1
 
 # Not called test_globals to avoid confusion with _test_globals
 def test_test_globals():
@@ -206,8 +177,8 @@ def test_test_globals():
     import builtins
     assert _test_globals['__builtins__'] is builtins
 
-def test_local_import():
-    out, err = _test_output('from .tests import *\n')
+def test_local_import(check_output):
+    out, err = check_output('from .tests import *\n')
     assert out == '\n'
     assert err == \
 """Traceback (most recent call last):
@@ -216,7 +187,7 @@ def test_local_import():
 ImportError: attempted relative import with no known parent package
 """
 
-    out, err = _test_output('from .test import *\n')
+    out, err = check_output('from .test import *\n')
     assert out == '\n'
     assert err == \
 """Traceback (most recent call last):
@@ -226,38 +197,35 @@ ImportError: attempted relative import with no known parent package
 """
 
 def test_builtin_names():
-    _globals = _test_globals.copy()
-
-    mybuiltins = startup(_globals, _globals, quiet=True)
+    session = _build_test_session()
+    check_output = _get_check_output(session)
 
     i = 1
-    out, err = _test_output("In\n", _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output("In\n")
     assert out == "{1: 'In'}\n\n"
     assert not err
     i += 1
-    out, err = _test_output("Out\n", _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output("Out\n")
     assert out == "{1: {1: 'In', 2: 'Out'}, 2: {...}}\n\n"
     assert not err
 
     # If a name is deleted, it is restored, but if it is reassigned, the
     # reassigned name is used.
-    for name in ["In", "Out", "_", "__", "___", "PROMPT_NUMBER"]:
-        assert name in _globals
-        assert _globals[name] is mybuiltins[name]
+    for name in ["In", "Out", "_", "__", "___", "PROMPT_NUMBER", "_PROMPT"]:
+        assert name in session._globals
+        assert session._globals[name] is session.builtins[name]
 
         i += 1
-        out, err = _test_output("del {name}\n".format(name=name),
-            _globals=_globals, mybuiltins=mybuiltins)
+        out, err = check_output("del {name}\n".format(name=name))
         assert out == "\n"
         assert err == ""
 
         i += 1
-        out, err = _test_output("{name}\n".format(name=name),
-            _globals=_globals, mybuiltins=mybuiltins)
+        out, err = check_output("{name}\n".format(name=name))
         # The prompt number is incremented in the post_command, so it will be
         # one more in the _globals after the command is executed.
-        res = mybuiltins[name] - 1 if name == 'PROMPT_NUMBER' else mybuiltins[name]
-        assert _globals[name] is mybuiltins[name]
+        res = session.builtins[name] - 1 if name == 'PROMPT_NUMBER' else session.builtins[name]
+        assert session._globals[name] is session.builtins[name]
         assert out == repr(res) + "\n\n", name
         assert err == ""
 
@@ -265,83 +233,36 @@ def test_builtin_names():
         # detect if they were changed manually).
         if '_' not in name:
             i += 1
-            out, err = _test_output("{name} = 1\n".format(name=name),
-                _globals=_globals, mybuiltins=mybuiltins)
+            out, err = check_output("{name} = 1\n".format(name=name))
             assert out == '\n'
             assert err == ''
 
             i += 1
-            out, err = _test_output("{name}\n".format(name=name),
-                _globals=_globals, mybuiltins=mybuiltins)
+            out, err = check_output("{name}\n".format(name=name))
             assert out == '1\n\n'
             assert err == ''
 
             i += 1
-            out, err = _test_output("del {name}\n".format(name=name),
-                _globals=_globals, mybuiltins=mybuiltins)
+            out, err = check_output("del {name}\n".format(name=name))
             assert out == '\n'
             assert err == ''
 
             i += 1
-            out, err = _test_output("{name}\n".format(name=name),
-                _globals=_globals, mybuiltins=mybuiltins)
-            assert out == repr(_globals[name]) + "\n\n"
+            out, err = check_output("{name}\n".format(name=name))
+            assert out == repr(session._globals[name]) + "\n\n"
             assert err == ""
-
-
-    # Make sure _CLI cannot be deleted or reassigned
-    assert _globals['_CLI'] is mybuiltins['_CLI']
-
-    i += 1
-    out, err = _test_output("_CLI\n", _globals=_globals,
-        mybuiltins=mybuiltins)
-    assert out == repr(mybuiltins['_CLI']) + "\n\n"
-    assert err == ""
-    assert _globals['_CLI'] is mybuiltins['_CLI']
-    assert isinstance(_globals['_CLI'], CommandLineInterface)
-
-    i += 1
-    out, err = _test_output("del _CLI\n", _globals=_globals,
-        mybuiltins=mybuiltins)
-    assert out == "\n"
-    assert err == ""
-    assert _globals['_CLI'] is mybuiltins['_CLI']
-    assert isinstance(_globals['_CLI'], CommandLineInterface)
-
-    i += 1
-    out, err = _test_output("_CLI\n", _globals=_globals,
-        mybuiltins=mybuiltins)
-    assert out == repr(mybuiltins['_CLI']) + "\n\n"
-    assert err == ""
-    assert isinstance(_globals['_CLI'], CommandLineInterface)
-
-    i += 1
-    out, err = _test_output("_CLI = 1\n", _globals=_globals,
-        mybuiltins=mybuiltins)
-    assert out == "\n"
-    assert err == ""
-    assert _globals['_CLI'] is mybuiltins['_CLI']
-    assert isinstance(_globals['_CLI'], CommandLineInterface)
-
-    i += 1
-    out, err = _test_output("_CLI\n", _globals=_globals,
-        mybuiltins=mybuiltins)
-    assert out == repr(mybuiltins['_CLI']) + "\n\n"
-    assert err == ""
-    assert _globals['_CLI'] is mybuiltins['_CLI']
-    assert isinstance(_globals['_CLI'], CommandLineInterface)
 
     # Test PROMPT_NUMBER
     # Prompt number not incremented for error or empty commands
-    out, err = _test_output("\n", _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output("\n")
     assert out == "\n"
     assert err == ""
 
-    out, err = _test_output("     \n", _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output("     \n")
     assert out == "\n"
     assert err == ""
 
-    out, err = _test_output("fdjksfldj\n", _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output("fdjksfldj\n")
     assert out == "\n"
     assert err == """\
 Traceback (most recent call last):
@@ -351,72 +272,66 @@ NameError: name 'fdjksfldj' is not defined
 """ % (i + 1)
 
     i += 1
-    out, err = _test_output("PROMPT_NUMBER\n", _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output("PROMPT_NUMBER\n")
     assert out == str(i) + '\n\n'
     assert err == ''
 
     i += 1
-    out, err = _test_output("del PROMPT_NUMBER\n", _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output("del PROMPT_NUMBER\n")
     assert out == '\n'
     assert err == ''
 
     i += 1
-    out, err = _test_output("PROMPT_NUMBER\n", _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output("PROMPT_NUMBER\n")
     assert out == str(i) + '\n\n'
     assert err == ''
 
     i += 1
-    out, err = _test_output("PROMPT_NUMBER = 0\n", _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output("PROMPT_NUMBER = 0\n")
     assert out == '\n'
     assert err == ''
 
     i += 1
-    out, err = _test_output("PROMPT_NUMBER\n", _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output("PROMPT_NUMBER\n")
     assert out == str(i) + '\n\n'
     assert err == ''
 
     # Test _
     i += 1
-    _test_output("1\n", _globals=_globals, mybuiltins=mybuiltins)
+    check_output("1\n")
     i += 1
-    _test_output("2\n", _globals=_globals, mybuiltins=mybuiltins)
+    check_output("2\n")
     i += 1
-    _test_output("3\n", _globals=_globals, mybuiltins=mybuiltins)
+    check_output("3\n")
     i += 1
-    out, err = _test_output("_\n", _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output("_\n")
     assert out == "3\n\n"
     assert not err
 
     i += 1
-    _test_output("1\n", _globals=_globals, mybuiltins=mybuiltins)
+    check_output("1\n")
     i += 1
-    _test_output("2\n", _globals=_globals, mybuiltins=mybuiltins)
+    check_output("2\n")
     i += 1
-    _test_output("3\n", _globals=_globals, mybuiltins=mybuiltins)
+    check_output("3\n")
     i += 1
-    out, err = _test_output("__\n", _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output("__\n")
     assert out == "2\n\n"
     assert not err
 
     i += 1
-    _test_output("1\n", _globals=_globals, mybuiltins=mybuiltins)
+    check_output("1\n")
     i += 1
-    _test_output("2\n", _globals=_globals, mybuiltins=mybuiltins)
+    check_output("2\n")
     i += 1
-    _test_output("3\n", _globals=_globals, mybuiltins=mybuiltins)
+    check_output("3\n")
     i += 1
-    out, err = _test_output("___\n", _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output("___\n")
     assert out == "1\n\n"
     assert not err
 
     i += 1
-    out, err = _test_output("_%d\n" % (i-1), _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output("_%d\n" % (i-1))
     assert out == "1\n\n"
     assert not err
 
@@ -513,73 +428,68 @@ def test_syntax_validator():
     doesntvalidate('%timeit  a b?')
 
 def test_getsource():
-    _globals = _test_globals.copy()
-    mybuiltins = startup(_globals, _globals, quiet=True)
+    session = _build_test_session()
+    check_output = _get_check_output(session)
+    _globals = session._globals
 
-    out, err = _test_output('def test():\nraise ValueError("error")\n\n',
-        _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output('def test():\nraise ValueError("error")\n\n')
 
     assert getsource('test', _globals, _globals, ret=True, include_info=False) == """\
 def test():
     raise ValueError("error")
 """
 
-    out, err = _test_output('class Test:\npass\n\n', _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output('class Test:\npass\n\n')
     assert getsource('Test', _globals, _globals, ret=True, include_info=False) == \
         getsource('Test', _globals, _globals, ret=True, include_info=False) == """\
 class Test:
     pass
 """
 
-def test_main_loop():
-    assert _test_output('\n', remove_terminal_sequences=False) == ('\x1b]133;C\x07\n\x1b]133;D;0\x07', '')
-    assert _test_output('1 + 1\n', remove_terminal_sequences=False) == ('\x1b]133;C\x072\n\n\x1b]133;D;0\x07', '')
+def test_main_loop(check_output):
+    assert check_output('\n') == ('\n', '')
+    assert check_output('1 + 1\n') == ('2\n\n', '')
+    assert check_output('None\n') == ('None\n\n', '')
+    assert check_output('a = 1\n') == ('\n', '')
 
-    assert _test_output('\n', remove_terminal_sequences=False, doctest_mode=True) == ('\x1b]133;C\x07\x1b]133;D;0\x07', '')
-    assert _test_output('1 + 1\n', remove_terminal_sequences=False, doctest_mode=True) == ('\x1b]133;C\x072\n\x1b]133;D;0\x07', '')
+    assert check_output('\n', remove_terminal_sequences=False) == ('\x1b]133;C\x07\n\x1b]133;D;0\x07', '')
+    assert check_output('1 + 1\n', remove_terminal_sequences=False) == ('\x1b]133;C\x072\n\n\x1b]133;D;0\x07', '')
 
-    assert _test_output('\n') == ('\n', '')
-    assert _test_output('1 + 1\n') == ('2\n\n', '')
-    assert _test_output('None\n') == ('None\n\n', '')
-    assert _test_output('a = 1\n') == ('\n', '')
+    assert check_output('\n', remove_terminal_sequences=False, doctest_mode=True) == ('\x1b]133;C\x07\x1b]133;D;0\x07', '')
+    assert check_output('1 + 1\n', remove_terminal_sequences=False, doctest_mode=True) == ('\x1b]133;C\x072\n\x1b]133;D;0\x07', '')
 
-    assert _test_output('\n', doctest_mode=True) == ('', '')
-    assert _test_output('1 + 1\n', doctest_mode=True) == ('2\n', '')
-    assert _test_output('None\n', doctest_mode=True) == ('', '')
-    assert _test_output('a = 1\n', doctest_mode=True) == ('', '')
+    assert check_output('\n', doctest_mode=True) == ('', '')
+    assert check_output('1 + 1\n', doctest_mode=True) == ('2\n', '')
+    assert check_output('None\n', doctest_mode=True) == ('', '')
+    assert check_output('a = 1\n', doctest_mode=True) == ('', '')
 
-    _globals = _test_globals.copy()
-    mybuiltins = startup(_globals, _globals, quiet=True)
-    assert _test_output('a = 1\n', _globals=_globals, mybuiltins=mybuiltins) == ('\n', '')
-    assert _test_output('a\n', _globals=_globals, mybuiltins=mybuiltins) == ('1\n\n', '')
+    assert check_output('a = 1\n') == ('\n', '')
+    assert check_output('a\n') == ('1\n\n', '')
 
-    _globals = _test_globals.copy()
-    mybuiltins = startup(_globals, _globals, quiet=True)
     # Also tests automatic indentation
-    assert _test_output('def test():\nreturn 1\n\n', _globals=_globals, mybuiltins=mybuiltins) == ('\n', '')
-    assert _test_output('test()\n', _globals=_globals, mybuiltins=mybuiltins) == ('1\n\n', '')
+    assert check_output('def test():\nreturn 1\n\n') == ('\n', '')
+    assert check_output('test()\n') == ('1\n\n', '')
 
-    assert _test_output('a = 1;2\n') == ('2\n\n', '')
-    assert _test_output('1;2\n') == ('2\n\n', '')
-    assert _test_output('1;a = 2\n') == ('\n', '')
+    assert check_output('a = 1;2\n') == ('2\n\n', '')
+    assert check_output('1;2\n') == ('2\n\n', '')
+    assert check_output('1;a = 2\n') == ('\n', '')
     # \x1b\n == M-Enter
-    assert _test_output('a = 1\x1b\n2\n\n') == ('2\n\n', '')
-    assert _test_output('1\x1b\n2\n\n') == ('2\n\n', '')
-    assert _test_output('1\x1b\na = 2\n\n') == ('\n', '')
+    assert check_output('a = 1\x1b\n2\n\n') == ('2\n\n', '')
+    assert check_output('1\x1b\n2\n\n') == ('2\n\n', '')
+    assert check_output('1\x1b\na = 2\n\n') == ('\n', '')
 
-    assert _test_output('# comment\n') == ('\n', '')
+    assert check_output('# comment\n') == ('\n', '')
 
-    out, err = _test_output('raise ValueError("error")\n')
+    out, err = check_output('raise ValueError("error")\n')
     assert out == '\n'
     assert err == \
 r"""Traceback (most recent call last):
-  File "<mypython-1>", line 1, in <module>
+  File "<mypython-20>", line 1, in <module>
     raise ValueError("error")
 ValueError: error
 """
 
-    out, err = _test_output('raise ValueError("error")\n', doctest_mode=True)
+    out, err = check_output('raise ValueError("error")\n', doctest_mode=True)
     assert out == ''
     assert err == \
 r"""Traceback (most recent call last):
@@ -587,30 +497,23 @@ r"""Traceback (most recent call last):
 ValueError: error
 """
 
-    _globals = _test_globals.copy()
-    mybuiltins = startup(_globals, _globals, quiet=True)
-    out, err = _test_output('def test():\nraise ValueError("error")\n\n',
-        _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output('def test():\nraise ValueError("error")\n\n')
     assert (out, err) == ('\n', '')
-    out, err = _test_output('test()\n', _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output('test()\n')
     assert out == '\n'
     assert err == \
 r"""Traceback (most recent call last):
-  File "<mypython-2>", line 1, in <module>
+  File "<mypython-21>", line 1, in <module>
     test()
-  File "<mypython-1>", line 2, in test
+  File "<mypython-20>", line 2, in test
     raise ValueError("error")
 ValueError: error
 """
 
-    _globals = _test_globals.copy()
-    mybuiltins = startup(_globals, _globals, quiet=True)
-    out, err = _test_output('def test():\nraise ValueError("error")\n\n',
-        _globals=_globals, doctest_mode=True, mybuiltins=mybuiltins)
+    out, err = check_output('def test():\nraise ValueError("error")\n\n',
+         doctest_mode=True)
     assert (out, err) == ('', '')
-    out, err = _test_output('test()\n', _globals=_globals, doctest_mode=True,
-        mybuiltins=mybuiltins)
+    out, err = check_output('test()\n', doctest_mode=True)
     assert out == ''
     assert err == \
 r"""Traceback (most recent call last):
@@ -620,32 +523,28 @@ ValueError: error
 """
 
     # Non-eval syntax + last line expr
-    _globals = _test_globals.copy()
-    mybuiltins = startup(_globals, _globals, quiet=True)
-    out, err = _test_output('import os;undefined\n', _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output('import os;undefined\n')
     assert out == '\n'
     assert err == \
 """Traceback (most recent call last):
-  File "<mypython-1>", line 1, in <module>
+  File "<mypython-22>", line 1, in <module>
     import os;undefined
 NameError: name 'undefined' is not defined
 """
     # \x1b\n == M-Enter
-    out, err = _test_output('import os\x1b\nundefined\n\n', _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output('import os\x1b\nundefined\n\n')
     assert out == '\n'
     assert err == \
 """Traceback (most recent call last):
-  File "<mypython-1>", line 2, in <module>
+  File "<mypython-22>", line 2, in <module>
     undefined
 NameError: name 'undefined' is not defined
 """
 
-def test_traceback_exception():
+def test_traceback_exception(check_output):
     # Functions from the traceback module shouldn't include any mypython lines
-    # \x1b\n = M-Enter. _test_output only works with a single command
-    out, err = _test_output('import traceback\x1b\ntry:\nraise ValueError("error")\nexcept:\ntraceback.print_exc()\n\n')
+    # \x1b\n = M-Enter. check_output only works with a single command
+    out, err = check_output('import traceback\x1b\ntry:\nraise ValueError("error")\nexcept:\ntraceback.print_exc()\n\n')
     assert out == '\n'
     assert err == \
 r"""Traceback (most recent call last):
@@ -654,18 +553,14 @@ r"""Traceback (most recent call last):
 ValueError: error
 """
 
-def test_doctest_tracebacks():
+def test_doctest_tracebacks(check_output):
     # Test that doctest mode tracebacks use <stdin>, and also test that
     # functions defined in doctest mode have a <mypython> filename.
-    _globals = _test_globals.copy()
-    mybuiltins = startup(_globals, _globals, quiet=True)
-    out, err = _test_output('def test():\nraise Exception\n\n', _globals=_globals,
-        mybuiltins=mybuiltins, doctest_mode=True)
+    out, err = check_output('def test():\nraise Exception\n\n', doctest_mode=True)
     assert out == ''
     assert err == ''
 
-    out, err = _test_output('test()\n', _globals=_globals,
-        mybuiltins=mybuiltins, doctest_mode=True)
+    out, err = check_output('test()\n', doctest_mode=True)
     assert out == ''
     assert err == \
 r"""Traceback (most recent call last):
@@ -674,8 +569,7 @@ r"""Traceback (most recent call last):
 Exception
 """
 
-    out, err = _test_output('test()\n', _globals=_globals,
-        mybuiltins=mybuiltins, doctest_mode=False)
+    out, err = check_output('test()\n', doctest_mode=False)
     assert out == '\n'
     assert err == \
 r"""Traceback (most recent call last):
@@ -686,7 +580,7 @@ r"""Traceback (most recent call last):
 Exception
 """
 
-def test_exceptionhook_catches_recursionerror():
+def test_excepthook_catches_recursionerror(check_output):
     # Make sure this doesn't crash
     try:
         import numpy, sympy
@@ -701,15 +595,15 @@ b = numpy.array([sympy.Float(1.1, 30) + sympy.Float(1.1, 30)*sympy.I]*1000)\x1b
 numpy.array(b, dtype=float)\x1b
 
 """
-    out, err = _test_output(command)
+    out, err = check_output(command)
     assert out == '\n'
     assert "RecursionError" in err
     # assert print_tokens_output == "Warning: RecursionError from mypython_excepthook"
 
-def test_error_magic():
+def test_error_magic(check_output):
     # Make sure %error shows the full mypython traceback.
     # Here instead of test_magic.py because it tests the exception handling
-    out, err = _test_output('%error\n')
+    out, err = check_output('%error\n')
     assert out == '\n'
     assert re.match(
 r"""Traceback \(most recent call last\):
@@ -728,9 +622,9 @@ RuntimeError: Error magic
 # !!!!!! ERROR from mypython !!!!!!
 , err), repr(err)
 
-def test_exception_hiding():
+def test_exception_hiding(check_output):
     # Also handled by test_error_magic() above
-    out, err = _test_output('raise ValueError\n')
+    out, err = check_output('raise ValueError\n')
     assert out == '\n'
     # TODO: make sure "ERROR from mypython" is not printed (it wouldn't be
     # included here because it's printed with print_tokens())
@@ -741,7 +635,7 @@ Traceback (most recent call last):
 ValueError
 """
 
-    out, err = _test_output('%time raise ValueError\n')
+    out, err = check_output('%time raise ValueError\n')
     assert out == '\n'
     # TODO: make sure "ERROR from mypython" is not printed (it wouldn't be
     # included here because it's printed with print_tokens())
@@ -752,16 +646,10 @@ r"""Traceback \(most recent call last\):
   File "<mypython>", line 1, in <module>
 ValueError""", err), repr(err)
 
-    _globals = _test_globals.copy()
-
-    mybuiltins = startup(_globals, _globals, quiet=True)
-
-    out, err = _test_output('class Test:\ndef __repr__(self):\nraise ValueError\n\n',
-        _globals=_globals, mybuiltins=mybuiltins)
+    out, err = check_output('class Test:\ndef __repr__(self):\nraise ValueError\n\n')
     assert out == '\n'
     assert err == ''
-    out, err = _test_output('Test()\n', _globals=_globals,
-        mybuiltins=mybuiltins)
+    out, err = check_output('Test()\n')
     assert out == '\n'
     # TODO: make sure "ERROR from mypython" is not printed (it wouldn't be
     # included here because it's printed with print_tokens())
@@ -772,12 +660,12 @@ Traceback (most recent call last):
 ValueError
 """
 
-def test_local_scopes():
-    out, err = _test_output('[x for x in range(10)]\n')
+def test_local_scopes(check_output):
+    out, err = check_output('[x for x in range(10)]\n')
     assert out == '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]\n\n'
     assert err == ''
 
-    out, err = _test_output('x = range(3); [i for i in x]\n')
+    out, err = check_output('x = range(3); [i for i in x]\n')
     assert out == '[0, 1, 2]\n\n'
     assert err == ''
 

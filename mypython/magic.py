@@ -177,7 +177,7 @@ import pydoc as _pydoc
 import pygments as _pygments
 from mypython.theme import OneAMStyle as _OneAMStyle, MyPython3Lexer as _MyPython3Lexer
 from mypython.mypython import blue as _blue
-_pydoc.pipepager('\\n'.join(_pygments.highlight(i, _MyPython3Lexer(), _pygments.formatters.TerminalTrueColorFormatter(style=_OneAMStyle))+_blue('-'*80) for i in _CLI.current_buffer.history.strings), 'less +G')
+_pydoc.pipepager('\\n'.join(_pygments.highlight(i, _MyPython3Lexer(), _pygments.formatters.TerminalTrueColorFormatter(style=_OneAMStyle))+_blue('-'*80) for i in _PROMPT.current_buffer.history.strings), 'less +G')
 del _pydoc, _pygments, _OneAMStyle, _MyPython3Lexer, _blue
 """
 
@@ -196,7 +196,7 @@ import pudb as _pudb
 import bdb as _bdb
 import linecache as _linecache
 
-_filename = '<mypython-pudb-%s>' % _CLI.builtins['PROMPT_NUMBER']
+_filename = '<mypython-pudb-%s>' % PROMPT_NUMBER
 
 _pudb._get_debugger().breaks.setdefault(_filename, [1])
 # Instantiating the Breakpoint class enables the breakpoint. We can't use

@@ -2,12 +2,11 @@ import threading
 import time
 import re
 
-from prompt_toolkit.input import PipeInput
+from prompt_toolkit.input.defaults import create_pipe_input
 
-from ..mypython import startup
 from ..dircompletion import DirCompleter
 
-from .test_mypython import _cli_with_input
+from .test_mypython import _run_session_with_text, _build_test_session
 
 UP_TO_TAB = re.compile('[^\t]*\t?')
 def _input_with_tabs(text, _input, sleep_time=0.8):
@@ -40,18 +39,18 @@ def _test_completion(text, min_time=0.1, max_time=2, runs=3):
     _globals = {}
     exec('', _globals)
     assert _globals
-    mybuiltins = startup(_globals, _globals, quiet=True)
 
     for t in range(runs):
         # Increase sleep time linearly until success
         sleep_time = min_time + (max_time - min_time)*t/(runs - 1)
-        _input = PipeInput()
+        _input = create_pipe_input()
+        session = _build_test_session(_input=_input)
         t = threading.Thread(target=lambda: _input_with_tabs(text, _input, sleep_time=sleep_time))
         t.start()
-        result, cli = _cli_with_input(_input, _globals=_globals, builtins=mybuiltins)
-        if result.text != text.rstrip():
+        result = _run_session_with_text(session, '', close=True)
+        if result != text.rstrip():
             break
-    return result.text
+    return result
 
 def test_completions():
     assert _test_completion('copy\t\n') == "copyright"

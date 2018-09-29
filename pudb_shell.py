@@ -31,4 +31,4 @@ def pudb_shell(_globals, _locals):
 
     return run_shell(ns, ns, quiet=True,
         history_file='~/.mypython/history/pudb_%s_history' % tty_name,
-        in_out=emoji_pudb)
+        IN_OUT=emoji_pudb)

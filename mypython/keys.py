@@ -1,15 +1,21 @@
 from prompt_toolkit.key_binding.bindings.named_commands import (accept_line,
     self_insert, backward_delete_char, beginning_of_line)
 from prompt_toolkit.key_binding.bindings.basic import if_no_repeat
-from prompt_toolkit.key_binding.defaults import load_key_bindings
-from prompt_toolkit.key_binding.registry import Registry, MergedRegistry
-from prompt_toolkit.keys import Keys, Key
+from prompt_toolkit.key_binding.bindings.basic import load_basic_bindings
+from prompt_toolkit.key_binding.bindings.emacs import load_emacs_bindings, load_emacs_search_bindings
+from prompt_toolkit.key_binding.bindings.mouse import load_mouse_bindings
+from prompt_toolkit.key_binding.bindings.cpr import load_cpr_bindings
+
+from prompt_toolkit.key_binding import KeyBindings, merge_key_bindings
+from prompt_toolkit.keys import Keys, ALL_KEYS
 from prompt_toolkit.filters import Condition, HasSelection
 from prompt_toolkit.selection import SelectionState
 from prompt_toolkit.clipboard import ClipboardData
-from prompt_toolkit.terminal.vt100_input import ANSI_SEQUENCES
+from prompt_toolkit.input.vt100_parser import ANSI_SEQUENCES
+from prompt_toolkit.application.current import get_app
+from prompt_toolkit.application import run_in_terminal
 
-from .multiline import (auto_newline, TabShouldInsertWhitespaceFilter,
+from .multiline import (auto_newline, tab_should_insert_whitespace,
     document_is_multiline_python)
 from .tokenize import inside_string, matching_parens
 from .theme import emoji
@@ -19,24 +25,21 @@ import subprocess
 import sys
 import textwrap
 
-def get_registry():
-    registry = MergedRegistry([
-        load_key_bindings(
-            enable_abort_and_exit_bindings=True,
-            enable_search=True,
-            # Not using now but may in the future
-            enable_auto_suggest_bindings=True,
-            enable_extra_page_navigation=True,
-            # Custom one defined below, without execute
-            enable_open_in_editor=False,
-            enable_system_bindings=True,
-        ),
-        custom_bindings_registry,
+def get_key_bindings():
+    # Based on prompt_toolkit.key_binding.defaults.load_key_bindings()
+    return merge_key_bindings([
+        load_basic_bindings(),
+
+        load_emacs_bindings(),
+        load_emacs_search_bindings(),
+
+        load_mouse_bindings(),
+        load_cpr_bindings(),
+
+        custom_key_bindings,
     ])
 
-    return registry
-
-r = custom_bindings_registry = Registry()
+r = custom_key_bindings = KeyBindings()
 
 @r.add_binding(Keys.Escape, 'p')
 def previous_history_search(event):
@@ -276,10 +279,14 @@ def right_multiline(event):
 
 @r.add_binding(Keys.ControlD)
 def exit(event):
-    raise EOFError("Control-D")
+    event.app.exit(exception=EOFError, style='class:exiting')
+
+@r.add_binding(Keys.ControlC)
+def keyboard_interrupt(event):
+    event.app.exit(exception=KeyboardInterrupt, style='class:aborting')
 
 is_returnable = Condition(
-    lambda cli: cli.current_buffer.accept_action.is_returnable)
+    lambda: get_app().current_buffer.is_returnable)
 
 @r.add_binding(Keys.Enter, filter=is_returnable)
 def multiline_enter(event):
@@ -320,14 +327,15 @@ def multiline_enter(event):
 @r.add_binding(Keys.Enter, filter=is_returnable)
 def accept_after_history_backward(event):
     pks = event.previous_key_sequence
-    if pks and getattr(pks[-1], 'accept_next', False) and ((len(pks) == 1 and isinstance(pks[0].key, Key) and pks[0].key.name == "<Up>") \
-       or (len(pks) == 2 and isinstance(pks[0].key, Key) and pks[0].key.name == "<Escape>"
-           and isinstance(pks[1].key, str) and pks[1].key in 'pP')):
+    if pks and getattr(pks[-1], 'accept_next', False) and ((len(pks) == 1 and
+        pks[0].key == "<Up>") or (len(pks) == 2 and pks[0].key == "<Escape>"
+            and isinstance(pks[1].key, str) and pks[1].key in 'pP')):
         accept_line(event)
     else:
         multiline_enter(event)
 
 @r.add_binding(Keys.Escape, Keys.Enter)
+@r.add_binding(Keys.Escape, Keys.ControlJ)
 def insert_newline(event):
     auto_newline(event.current_buffer)
 
@@ -337,12 +345,13 @@ def open_line(event):
     event.current_buffer.cursor_left()
 
 # M-[ a g is set to S-Enter in iTerm2 settings
-Keys.ShiftEnter = Key("<Shift-Enter>")
+Keys.ShiftEnter = "<Shift-Enter>"
+ALL_KEYS.append('<Shift-Enter>')
 ANSI_SEQUENCES['\x1b[ag'] = Keys.ShiftEnter
 
 r.add_binding(Keys.ShiftEnter)(accept_line)
 
-@r.add_binding(Keys.Tab, filter=TabShouldInsertWhitespaceFilter())
+@r.add_binding(Keys.Tab, filter=tab_should_insert_whitespace)
 def indent(event):
     """
     When tab should insert whitespace, do that instead of completion.
@@ -641,7 +650,7 @@ def osx_paste():
 def copy_to_clipboard(event):
     if event.current_buffer.document.selection:
         from_, to = event.current_buffer.document.selection_range()
-        event.cli.run_in_terminal(lambda:osx_copy(event.current_buffer.document.text[from_:to + 1]))
+        run_in_terminal(lambda:osx_copy(event.current_buffer.document.text[from_:to + 1]))
 
 @r.add_binding(Keys.ControlX, Keys.ControlY)
 def paste_from_clipboard(event):
@@ -650,13 +659,14 @@ def paste_from_clipboard(event):
         nonlocal paste_text
         paste_text = osx_paste()
 
-    event.cli.run_in_terminal(get_paste)
+    run_in_terminal(get_paste)
 
     event.current_buffer.cut_selection()
     event.current_buffer.paste_clipboard_data(ClipboardData(paste_text))
 
 # M-[ a b is set to C-S-/ (C-?) in iTerm2 settings
-Keys.ControlQuestionmark = Key("<C-?>")
+Keys.ControlQuestionmark = "<C-?>"
+ALL_KEYS.append("<C-?>")
 ANSI_SEQUENCES['\x1b[ab'] = Keys.ControlQuestionmark
 
 # This won't work until
