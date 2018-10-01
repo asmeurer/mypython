@@ -50,3 +50,13 @@
 - tokenize based dedent
 - Extra indentation when pasting a function from a doctest
 - Importing pyplot causes Python app to become focused
+
+## 2.0 TODOs
+
+- Make all keybindings assign a Document
+- Figure out how to set the prompt-toolkit exception handler
+- Jedi warnings printed to terminal during completion
+- Fix tests
+- Replace "cli" with "app" in the key bindings
+- accept_after_history_backward doesn't work
+- Ask about fixing selection
