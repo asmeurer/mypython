@@ -451,6 +451,15 @@ class Test:
     pass
 """
 
+    # Redefine a function
+    out, err = check_output('def test():\nreturn 1\n\n')
+    assert getsource('test', _globals, _globals, ret=True, include_info=False) == """\
+def test():
+    return 1
+"""
+
+    # TODO: Make getsource also work for redefining a class
+
 def test_main_loop(check_output):
     assert check_output('\n') == ('\n', '')
     assert check_output('1 + 1\n') == ('2\n\n', '')
