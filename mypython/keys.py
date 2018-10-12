@@ -654,15 +654,11 @@ def copy_to_clipboard(event):
 
 @r.add_binding(Keys.ControlX, Keys.ControlY)
 def paste_from_clipboard(event):
-    paste_text = ''
-    def get_paste():
-        nonlocal paste_text
-        paste_text = osx_paste()
-
-    run_in_terminal(get_paste)
+    paste_text_future = run_in_terminal(osx_paste)
 
     event.current_buffer.cut_selection()
-    event.current_buffer.paste_clipboard_data(ClipboardData(paste_text))
+    paste_text_future.add_done_callback(lambda future:\
+        event.current_buffer.paste_clipboard_data(ClipboardData(future.result())))
 
 # M-[ a b is set to C-S-/ (C-?) in iTerm2 settings
 Keys.ControlQuestionmark = "<C-?>"

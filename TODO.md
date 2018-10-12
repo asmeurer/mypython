@@ -50,7 +50,6 @@
 - tokenize based dedent
 - Extra indentation when pasting a function from a doctest
 - Importing pyplot causes Python app to become focused
-- C-x C-y doesn't work more than once in a row
 
 ## 2.0 TODOs
 
