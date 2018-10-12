@@ -436,7 +436,6 @@ def smart_eval(stmt, _globals, _locals, filename=None, *, ast_transformer=None):
     function. It should take in an ast and return a new ast.
     """
     if filename:
-        # Don't show context lines in doctest mode
         if filename != "<stdin>":
             # (size, mtime, lines, fullname)
             linecache.cache[filename] = (len(stmt), None, stmt.splitlines(keepends=True), filename)
