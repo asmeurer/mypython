@@ -16,9 +16,10 @@ def _input_with_tabs(text, _input, sleep_time=0.8):
 
     This should be run in a separate thread, like
 
-        _input = PipeInput()
-        threading.Thread(target=lambda: _input_with_tabs(text, _input)
-        result, cli = _cli_with_input(_input)
+        _input = create_pipe_input()
+        session = _build_test_session(_input=_input)
+        threading.Thread(target=lambda: _input_with_tabs(text, _input))
+        result = _run_session_with_text(session, '', close=True)
 
     If the test fails because the completion didn't happen, you may need to
     increase the sleep_time.
