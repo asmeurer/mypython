@@ -1,6 +1,3 @@
-"""
-Based on prompt_toolkit.tests.test_cli
-"""
 import sys
 import re
 from io import StringIO
