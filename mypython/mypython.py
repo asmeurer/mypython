@@ -407,7 +407,7 @@ finally:
     elif command.startswith('%'):
         return magic(command)
     else:
-        return command
+        return command + '\n'
 
 
 class NoResult:

@@ -33,7 +33,9 @@ def magic(command):
     if not result.strip():
         # Magic should return something, so that prompt numbers get
         # incremented
-        return 'pass'
+        return 'pass\n'
+    if not result.endswith('\n'):
+        result = result + '\n'
     return result
 
 def error(message):

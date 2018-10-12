@@ -199,11 +199,11 @@ def test_builtin_names():
 
     i = 1
     out, err = check_output("In\n")
-    assert out == "{1: 'In'}\n\n"
+    assert out == "{1: 'In\\n'}\n\n"
     assert not err
     i += 1
     out, err = check_output("Out\n")
-    assert out == "{1: {1: 'In', 2: 'Out'}, 2: {...}}\n\n"
+    assert out == "{1: {1: 'In\\n', 2: 'Out\\n'}, 2: {...}}\n\n"
     assert not err
 
     # If a name is deleted, it is restored, but if it is reassigned, the
@@ -345,15 +345,17 @@ def test_normalize(capsys):
     def _normalize(command):
         return normalize(command, _globals, _locals)
 
-    assert _normalize('1') == '1'
-    assert _normalize('  1') == '1'
-    assert _normalize('  1  ') == '1'
-    assert _normalize('  def test():\n      pass\n') == 'def test():\n    pass'
+    assert _normalize('1') == '1\n'
+    assert _normalize('  1') == '1\n'
+    assert _normalize('  1  ') == '1\n'
+    assert _normalize('  def test():\n      pass\n') == 'def test():\n    pass\n'
     normalize_help =  _normalize('test?')
     assert 'myhelp' in normalize_help
+    assert normalize_help.endswith('\n')
     compile(normalize_help, '<test>', 'exec')
     normalize_source = _normalize('test??')
     assert 'getsource' in normalize_source
+    assert normalize_source.endswith('\n')
     compile(normalize_source, '<test>', 'exec')
     assert _normalize('test???') == 'test???'
     assert _normalize('%timeit 1') == magic('%timeit 1')
