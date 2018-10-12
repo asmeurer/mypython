@@ -331,7 +331,8 @@ def getsource(command, _globals, _locals, ret=False, include_info=True):
             __main__file = sys.modules['__main__'].__file__
         else:
             __main__file = None
-        if filename in ["<stdin>", __main__file] or filename.startswith("<mypython"):
+
+        if filename == [__main__file] or filename.startswith("<mypython"):
             return '\n'.join([i for _, i in sorted(_locals['In'].items())] + ['']).splitlines(keepends=True)
         else:
             return linecache._orig_getlines(filename, module_globals)
