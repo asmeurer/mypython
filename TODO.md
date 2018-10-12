@@ -58,4 +58,3 @@
 - Jedi warnings printed to terminal during completion
 - Fix tests
 - Replace "cli" with "app" in the key bindings
-- accept_after_history_backward doesn't work

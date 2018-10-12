@@ -328,7 +328,7 @@ def multiline_enter(event):
 def accept_after_history_backward(event):
     pks = event.previous_key_sequence
     if pks and getattr(pks[-1], 'accept_next', False) and ((len(pks) == 1 and
-        pks[0].key == "<Up>") or (len(pks) == 2 and pks[0].key == "<Escape>"
+        pks[0].key == "up") or (len(pks) == 2 and pks[0].key == "escape"
             and isinstance(pks[1].key, str) and pks[1].key in 'pP')):
         accept_line(event)
     else:
