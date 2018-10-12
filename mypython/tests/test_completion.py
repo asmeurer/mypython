@@ -75,6 +75,9 @@ def test_completions():
     # Test Python completion with magic
     assert _test_completion('%time copy\t\n')
 
+    # Jedi completion
+    assert _test_completion('(1 + 1).bit\t\n') == '(1 + 1).bit_length'
+
 def test_DirCompletion():
     # Only test the modifications
 
