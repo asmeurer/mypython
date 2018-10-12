@@ -57,4 +57,3 @@
 - Figure out how to set the prompt-toolkit exception handler
 - Jedi warnings printed to terminal during completion
 - Fix tests
-- Replace "cli" with "app" in the key bindings
