@@ -137,7 +137,7 @@ def kill_word(event):
 
     if pos:
         deleted = buffer.delete(count=pos)
-        event.cli.clipboard.set_text(deleted)
+        event.app.clipboard.set_text(deleted)
 
 @r.add_binding(Keys.Escape, Keys.Backspace)
 def backward_kill_word(event):
@@ -154,7 +154,7 @@ def backward_kill_word(event):
 
     if pos:
         deleted = buffer.delete_before_cursor(count=pos)
-        event.cli.clipboard.set_text(deleted)
+        event.app.clipboard.set_text(deleted)
 
 def insert_text_ovewrite(buffer, data, move_cursor=True):
     """
@@ -236,7 +236,7 @@ def forward_sexp(event):
             new_pos = document.translate_row_col_to_index(closing.end[0]-1, closing.end[1])
             buffer.cursor_position = new_pos
             return
-    event.cli.output.bell()
+    event.app.output.bell()
 
 @r.add_binding(Keys.Escape, Keys.ControlB)
 def backward_sexp(event):
@@ -253,7 +253,7 @@ def backward_sexp(event):
             new_pos = document.translate_row_col_to_index(opening.start[0]-1, opening.start[1])
             buffer.cursor_position = new_pos
             return
-    event.cli.output.bell()
+    event.app.output.bell()
 
 @r.add_binding(Keys.Left)
 def left_multiline(event):
@@ -358,8 +358,8 @@ def indent(event):
     """
     # Text before cursor on the line must be whitespace because of the
     # TabShouldInsertWhitespaceFilter.
-    before_cursor = event.cli.current_buffer.document.current_line_before_cursor
-    event.cli.current_buffer.insert_text(' '*(4 - len(before_cursor)%4))
+    before_cursor = event.app.current_buffer.document.current_line_before_cursor
+    event.app.current_buffer.insert_text(' '*(4 - len(before_cursor)%4))
 
 LEADING_WHITESPACE = re.compile(r'( *)[^ ]?')
 @r.add_binding(Keys.Escape, 'm')
@@ -367,15 +367,15 @@ def back_to_indentation(event):
     """
     Move back to the beginning of the line, ignoring whitespace.
     """
-    current_line = event.cli.current_buffer.document.current_line
-    before_cursor = event.cli.current_buffer.document.current_line_before_cursor
+    current_line = event.app.current_buffer.document.current_line
+    before_cursor = event.app.current_buffer.document.current_line_before_cursor
     indent = LEADING_WHITESPACE.search(current_line)
     if indent:
-        event.cli.current_buffer.cursor_position -= len(before_cursor) - indent.end(1)
+        event.app.current_buffer.cursor_position -= len(before_cursor) - indent.end(1)
 
 @r.add_binding(Keys.Backspace, save_before=if_no_repeat)
 def delete_char_or_unindent(event):
-    buffer = event.cli.current_buffer
+    buffer = event.app.current_buffer
     if (buffer.document.current_line_before_cursor.isspace() and
         len(buffer.document.current_line_before_cursor) >= 4):
         buffer.delete_before_cursor(count=4)
@@ -397,7 +397,7 @@ def cycle_spacing(event):
 
     On third call, restore the original whitespace and cursor position.
     """
-    buffer = event.cli.current_buffer
+    buffer = event.app.current_buffer
 
     # Avoid issues when text grows or shrinks below, keeping the cursor
     # position out of sync
@@ -453,7 +453,7 @@ def delete_blank_lines(event):
     On isolated blank line, delete that one.
     On nonblank line, delete any immediately following blank lines.
     """
-    buffer = event.cli.current_buffer
+    buffer = event.app.current_buffer
     document = buffer.document
     lines_up_to_current = document.lines[:document.cursor_position_row+1]
     lines_after_current = document.lines[document.cursor_position_row+1:]
@@ -622,7 +622,7 @@ def self_insert_and_clear_selection(event):
 @r.add_binding(Keys.ControlU, filter=HasSelection())
 def kill_selection(event):
     data = event.current_buffer.cut_selection()
-    event.cli.clipboard.set_data(data)
+    event.app.clipboard.set_data(data)
 
 def osx_copy(text):
     try:
@@ -858,7 +858,7 @@ def comment(event):
 
 @r.add_binding(Keys.ControlX, Keys.ControlE)
 def open_in_editor(event):
-    event.current_buffer.open_in_editor(event.cli)
+    event.current_buffer.open_in_editor(event.app)
 
 @r.add_binding(Keys.ControlX, Keys.ControlS)
 @r.add_binding(Keys.ControlX, Keys.ControlC)
