@@ -133,7 +133,7 @@ class MyBuffer(Buffer):
             if count == 0:
                 break
         else:
-            # Can't access cli.output.bell()
+            # Can't access app.output.bell()
             print("\a", end='')
             sys.stdout.flush()
 
@@ -773,9 +773,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
             elif _exit:
                 break
 
-            # Replace stdout.
-            # patch_context = cli.patch_stdout_context(raw=True)
-            # with patch_context:
+            # TODO: Should we use patch_stdout()?
             command = prompt.prompt(default=default, accept_default=default)
         except KeyboardInterrupt:
             # TODO: Keep it in the history
