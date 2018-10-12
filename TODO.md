@@ -56,4 +56,3 @@
 - Make all keybindings assign a Document
 - Figure out how to set the prompt-toolkit exception handler
 - Jedi warnings printed to terminal during completion
-- Fix tests
