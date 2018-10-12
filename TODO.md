@@ -50,6 +50,7 @@
 - tokenize based dedent
 - Extra indentation when pasting a function from a doctest
 - Importing pyplot causes Python app to become focused
+- Make In a list like IPython?
 
 ## 2.0 TODOs
 
