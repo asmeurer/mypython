@@ -333,7 +333,10 @@ def getsource(command, _globals, _locals, ret=False, include_info=True):
             __main__file = None
 
         if filename == __main__file:
-            return '\n'.join([i for _, i in sorted(_locals['In'].items())] + ['']).splitlines(keepends=True)
+            # inspect.findsource returns the first class in the file, not the
+            # last, so we use reverse=True to handle class redefinitions (this
+            # code should only ever be run for classes).
+            return '\n'.join([i for _, i in sorted(_locals['In'].items(), reverse=True)] + ['']).splitlines(keepends=True)
 
         return linecache._orig_getlines(filename, module_globals)
 

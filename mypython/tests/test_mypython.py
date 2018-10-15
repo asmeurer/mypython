@@ -458,7 +458,12 @@ def test():
     return 1
 """
 
-    # TODO: Make getsource also work for redefining a class
+    # Redefine a function
+    out, err = check_output('class Test:\na = 1\n\n')
+    assert getsource('Test', _globals, _globals, ret=True, include_info=False) == """\
+class Test:
+    a = 1
+"""
 
 def test_main_loop(check_output):
     assert check_output('\n') == ('\n', '')

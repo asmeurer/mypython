@@ -45,7 +45,6 @@
 - Print %time time after the output
 - Add line profiler magic
 - Prompt number not incremented when %pudb exits with traceback
-- ?? isn't smart enough to handle redefined functions
 - SyntaxError from the tokenizing functions on invalid # -*- coding: invalid -*-
 - tokenize based dedent
 - Extra indentation when pasting a function from a doctest
