@@ -50,6 +50,7 @@
 - Extra indentation when pasting a function from a doctest
 - Importing pyplot causes Python app to become focused
 - Make In a list like IPython?
+- %sympy not shown with isympy in Python 3.6
 
 ## 2.0 TODOs
 
