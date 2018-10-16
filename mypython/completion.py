@@ -42,9 +42,14 @@ def get_jedi_script_from_document(document, _locals, _globals, session):
     if not full_document.endswith('\n'):
         full_document += '\n'
 
+    text = document.text
+    for magic in MAGICS:
+        if text.startswith(magic):
+            text = ' '*len(magic) + text[len(magic):]
+            break
     try:
         return jedi.Interpreter(
-            full_document + '\n' + document.text,
+            full_document + '\n' + text,
             column=document.cursor_position_col,
             line=document.cursor_position_row + 2 + len(full_document.splitlines()),
             path='<mypython>',
@@ -83,6 +88,14 @@ class PythonCompleter(Completer):
 
             if document.text.startswith('%'):
                 return
+
+        text_before_cursor = document.text_before_cursor
+
+        for magic in MAGICS:
+            if text_before_cursor.startswith(magic + ' '):
+                text_before_cursor = text_before_cursor[len(magic) + 1:]
+                break
+
         if complete_event.completion_requested or self._complete_python_while_typing(document):
 
             # First do the dir completions (should be faster, and more
@@ -91,11 +104,11 @@ class PythonCompleter(Completer):
             state = 0
             dir_completions = set()
             while True:
-                completion = completer.complete(document.text_before_cursor, state)
+                completion = completer.complete(text_before_cursor, state)
                 if completion:
-                    name = completer.NAME.match(document.text_before_cursor[::-1]).group(0)[::-1]
+                    name = completer.NAME.match(text_before_cursor[::-1]).group(0)[::-1]
                     dir_completions.add(completion)
-                    if len(completion) < len(document.text_before_cursor):
+                    if len(completion) < len(text_before_cursor):
                         state += 1
                         continue
                     yield Completion(completion,
