@@ -51,6 +51,7 @@
 - Importing pyplot causes Python app to become focused
 - Make In a list like IPython?
 - %sympy not shown with isympy in Python 3.6
+- --cmd items being kept in history (see https://github.com/jonathanslenders/python-prompt-toolkit/issues/762)
 
 ## 2.0 TODOs
 
