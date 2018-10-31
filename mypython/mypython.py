@@ -626,6 +626,7 @@ del sys
         return MyPygmentsTokens([
             (Token.Clapping, '\N{CLAPPING HANDS SIGN}'*((width - 1)//2)),
             (Token.VerticalLine, '⎢'),
+            (Token.Space, ' ' if not width % 2 else ''),
         ])
 
     def get_out_prompt(self):
