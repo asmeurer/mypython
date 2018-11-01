@@ -650,6 +650,7 @@ del sys
             buffer.text = dedented_text
 
             self.app.exit(result=buffer.document.text)
+            return True
 
         def is_buffer_multiline():
             return document_is_multiline_python(buffer.document)
