@@ -52,6 +52,7 @@
 - Make In a list like IPython?
 - --cmd items being kept in history (see https://github.com/jonathanslenders/python-prompt-toolkit/issues/762)
 - Multiline prompt paste fails when there are no continuation prompts
+- PuDB needs a new filename even when the old one's prompt didn't return
 
 ## 2.0 TODOs
 
