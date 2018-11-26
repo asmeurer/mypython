@@ -618,6 +618,8 @@ del sys
         ])
 
     def get_prompt_continuation(self, width, line_number, is_soft_wrap):
+        if NO_PROMPT_MODE:
+            return MyPygmentsTokens([])
         if DOCTEST_MODE:
             return MyPygmentsTokens([
                 (Token.DoctestContinuation, '...'),
