@@ -127,6 +127,7 @@ else:
 del _mypython
 """
 
+prompt_magic = noprompt_magic
 
 def debug_magic(rest):
     """
