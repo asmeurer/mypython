@@ -101,6 +101,13 @@ def test_noprompt(check_output):
         assert check_output('%noprompt\n') == ('prompts enabled\n\n', '')
         assert not mypython.DEBUG
         assert check_output('%noprompt 1\n') == ('\n', '%noprompt takes no arguments\n')
+
+
+        assert check_output('%prompt\n') == ('prompts disabled\n\n', '')
+        assert mypython.NO_PROMPT_MODE
+        assert check_output('%prompt\n') == ('prompts enabled\n\n', '')
+        assert not mypython.DEBUG
+        assert check_output('%prompt 1\n') == ('\n', '%noprompt takes no arguments\n')
     finally:
         mypython.NO_PROMPT_MODE = False
 
