@@ -54,6 +54,7 @@
 - Multiline prompt paste fails when there are no continuation prompts
 - PuDB needs a new filename even when the old one's prompt didn't return
 - Make dir completion not complete imports
+- Newlines at the end of the prompt not being cleared from history
 
 ## 2.0 TODOs
 
