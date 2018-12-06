@@ -81,6 +81,10 @@ def test_completions():
     # Jedi completion with magic
     assert _test_completion('%time [1][9].bit\t\n') == '%time [1][9].bit_length'
 
+    # Dir completion doesn't happen on imports
+    assert _test_completion('import copy.\t\n') == 'import copy.'
+    assert _test_completion('from copy.\t\n') == 'from copy.'
+
 def test_DirCompletion():
     # Only test the modifications
 
