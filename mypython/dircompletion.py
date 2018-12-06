@@ -131,6 +131,9 @@ class DirCompleter:
         returns None.  The completion should begin with 'text'.
 
         """
+        if text.startswith('import ') or text.startswith('from '):
+            return None
+
         m = self.NAME.match(text[::-1])
         if not m:
             return None
