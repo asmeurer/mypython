@@ -54,6 +54,8 @@
 - Multiline prompt paste fails when there are no continuation prompts
 - PuDB needs a new filename even when the old one's prompt didn't return
 - Newlines at the end of the prompt not being cleared from history (https://github.com/prompt-toolkit/python-prompt-toolkit/pull/800)
+- Issue pasting multiline prompt with spaces after prompts
+- Issue keyboard interrupting a reverse search
 
 ## 2.0 TODOs
 
