@@ -56,6 +56,7 @@
 - Newlines at the end of the prompt not being cleared from history (https://github.com/prompt-toolkit/python-prompt-toolkit/pull/800)
 - Issue pasting multiline prompt with spaces after prompts
 - Issue keyboard interrupting a reverse search
+- Broken pretty printing with solveset(log(x) - y, x)
 
 ## 2.0 TODOs
 
