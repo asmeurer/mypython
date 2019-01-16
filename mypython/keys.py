@@ -8,7 +8,7 @@ from prompt_toolkit.key_binding.bindings.cpr import load_cpr_bindings
 
 from prompt_toolkit.key_binding import KeyBindings, merge_key_bindings
 from prompt_toolkit.keys import Keys, ALL_KEYS
-from prompt_toolkit.filters import Condition, HasSelection
+from prompt_toolkit.filters import Condition, HasSelection, is_searching
 from prompt_toolkit.selection import SelectionState
 from prompt_toolkit.clipboard import ClipboardData
 from prompt_toolkit.input.vt100_parser import ANSI_SEQUENCES
@@ -281,7 +281,7 @@ def right_multiline(event):
 def exit(event):
     event.app.exit(exception=EOFError, style='class:exiting')
 
-@r.add_binding(Keys.ControlC)
+@r.add_binding(Keys.ControlC, filter=~is_searching)
 def keyboard_interrupt(event):
     event.app.exit(exception=KeyboardInterrupt, style='class:aborting')
 
