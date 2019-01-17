@@ -28,4 +28,4 @@ install:
 
 script:
   - pyflakes mypython bin/mypython
-  - py.test
+  - py.test -vvv --fulltrace
