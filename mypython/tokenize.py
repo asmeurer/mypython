@@ -6,7 +6,7 @@ them at 0.
 """
 
 import io
-from itertools import tee
+from itertools import tee, chain
 from tokenize import tokenize, TokenError
 from token import (LPAR, RPAR, LSQB, RSQB, LBRACE, RBRACE, ERRORTOKEN, STRING,
     COLON, AT, ENDMARKER, DEDENT, NAME)
@@ -265,6 +265,25 @@ def pairwise(iterable):
     a, b = tee(iterable)
     next(b, None)
     return zip(a, b)
+
+def nwise(iterable, n, fill=False):
+    """
+    n-way rolling window over iterable.
+
+    Generalization of pairwise().
+
+    If fill=True then the window will start like (None, ..., None, s0), (None,
+    ..., None, s0, s1), .... Otherwise it will start with (s0, s1, ..., sn).
+    """
+    iters = tee(iterable, n)
+    if fill:
+        iters = [chain([None]*i, iter) for i, iter in enumerate(reversed(iters))]
+        iters.reverse()
+    else:
+        for i, iter in enumerate(iters):
+            for j in range(i):
+                next(iter, None)
+    return zip(*iters)
 
 def is_multiline_python(text):
     """

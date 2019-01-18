@@ -1,4 +1,4 @@
-from ..tokenize import matching_parens, inside_string, is_multiline_python
+from ..tokenize import matching_parens, inside_string, is_multiline_python, nwise
 
 def test_matching_parens():
     def _tokenvals(matching, mismatching):
@@ -727,3 +727,11 @@ def test_is_multiline_python():
 
     for s in notmultiline:
         assert not is_multiline_python(s)
+
+def test_nwise():
+    l = list(range(5))
+
+    assert list(nwise(l, 2)) == [(0, 1), (1, 2), (2, 3), (3, 4)]
+    assert list(nwise(l, 3)) == [(0, 1, 2), (1, 2, 3), (2, 3, 4)]
+    assert list(nwise(l, 2, fill=True)) == [(None, 0), (0, 1), (1, 2), (2, 3), (3, 4)]
+    assert list(nwise(l, 3, fill=True)) == [(None, None, 0), (None, 0, 1), (0, 1, 2), (1, 2, 3), (2, 3, 4)]
