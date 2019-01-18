@@ -8,8 +8,8 @@ them at 0.
 import io
 from itertools import tee, chain
 from tokenize import tokenize, TokenError
-from token import (LPAR, RPAR, LSQB, RSQB, LBRACE, RBRACE, ERRORTOKEN, STRING,
-    COLON, AT, ENDMARKER, DEDENT, NAME)
+from tokenize import (LPAR, RPAR, LSQB, RSQB, LBRACE, RBRACE, ERRORTOKEN, STRING,
+    COLON, AT, ENDMARKER, DEDENT, NAME, NEWLINE, ENCODING)
 import ast
 
 braces = {
@@ -287,7 +287,7 @@ def nwise(iterable, n, fill=False):
 
 def is_multiline_python(text):
     """
-    Returns True of text should be considered multiline
+    Returns True of text should be considered multiline.
 
     text is considered multiline if typing Enter at the end of text should add
     a newline. Returns False if the text is a single line that can be
@@ -300,29 +300,33 @@ def is_multiline_python(text):
     text = text.lstrip()
 
     try:
-        first = True
         error = False
-        for (prev, tok) in pairwise(tokenize_string(text)):
+        for (prevprev, prev, tok) in nwise(tokenize_string(text), 3, fill=True):
             toknum, tokval, start, end, line = tok
-            if first:
-                # The first token is encoding, which will be prev
-                if tok.exact_type == AT:
-                    # Decorator
-                    return True
-                first = False
+            # The first token is encoding
+            if prev and prev.type == ENCODING and tok.exact_type == AT:
+                # Decorator
+                return True
             if toknum == ERRORTOKEN:
                 # Error means unclosed (non doc-) string or backslash
                 # continuation. We want a backslash continuation to be
                 # multiline, which is caught below. Every other case shouldn't
                 # be multiline.
                 error = True
-            if toknum in {ENDMARKER, DEDENT} and prev.type == ERRORTOKEN and prev.string == '\\':
-                return True
+            if toknum in {ENDMARKER, DEDENT}:
+                # In 3.6.7 and 3.7.1 the last token before ENDMARKER is always
+                # NEWLINE. We want to handle both cases here.
+                if prev.type == NEWLINE:
+                    if prevprev.type == ERRORTOKEN and prevprev.string == '\\':
+                        return True
+                else:
+                    if prev.type == ERRORTOKEN and prev.string == '\\':
+                        return True
 
     except TokenError:
         # Uncompleted docstring or braces
         # Multiline unless there is an uncompleted non-docstring
-        if not first and toknum == ERRORTOKEN and tokval == '\\':
+        if tok.type != ENCODING and toknum == ERRORTOKEN and tokval == '\\':
             return True
         return not error
     except IndentationError:
@@ -333,4 +337,4 @@ def is_multiline_python(text):
     if '\n' in text:
         return True
 
-    return prev.exact_type == COLON
+    return prev.exact_type == COLON or (prev.exact_type == NEWLINE and prevprev.exact_type == COLON)
