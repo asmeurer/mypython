@@ -177,21 +177,46 @@ def test_test_globals():
 def test_local_import(check_output):
     out, err = check_output('from .tests import *\n')
     assert out == '\n'
-    assert err == \
+    # There are different error messages depending on the Python version. The
+    # important thing is that it fails.
+    assert err in [
 """Traceback (most recent call last):
   File "<mypython-1>", line 1, in <module>
     from .tests import *
 ImportError: attempted relative import with no known parent package
-"""
+""",
+"""Traceback (most recent call last):
+  File "<mypython-1>", line 1, in <module>
+    from .tests import *
+ModuleNotFoundError: No module named '__main__.tests'; '__main__' is not a package
+""",
+"""Traceback (most recent call last):
+  File "<mypython-1>", line 1, in <module>
+    from .test import *
+SystemError: Parent module '' not loaded, cannot perform relative import
+""",
+    ]
+
 
     out, err = check_output('from .test import *\n')
     assert out == '\n'
-    assert err == \
+    assert err in [
 """Traceback (most recent call last):
   File "<mypython-1>", line 1, in <module>
     from .test import *
 ImportError: attempted relative import with no known parent package
-"""
+""",
+"""Traceback (most recent call last):
+  File "<mypython-1>", line 1, in <module>
+    from .test import *
+ModuleNotFoundError: No module named '__main__.test'; '__main__' is not a package
+""",
+"""Traceback (most recent call last):
+  File "<mypython-1>", line 1, in <module>
+    from .test import *
+SystemError: Parent module '' not loaded, cannot perform relative import
+""",
+    ]
 
 def test_builtin_names():
     session = _build_test_session()
@@ -601,6 +626,8 @@ Exception
 
 def test_excepthook_catches_recursionerror(check_output):
     # Make sure this doesn't crash
+    # Unfortunately, it only crashes in Python 3.5 (I think maybe it was a bug
+    # in the standard library traceback module).
     try:
         import numpy, sympy
         numpy, sympy # silence pyflakes
@@ -616,7 +643,7 @@ numpy.array(b, dtype=float)\x1b
 """
     out, err = check_output(command)
     assert out == '\n'
-    assert "RecursionError" in err
+    assert "RecursionError" in err or "TypeError" in err
     # assert print_tokens_output == "Warning: RecursionError from mypython_excepthook"
 
 def test_error_magic(check_output):
