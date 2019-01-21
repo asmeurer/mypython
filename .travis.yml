@@ -27,5 +27,6 @@ install:
   - source activate test-environment
 
 script:
+  - python -c 'import time;print(time.time());time.sleep(1);print(time.time())'
   - pyflakes mypython bin/mypython
   - py.test -vvv --fulltrace
