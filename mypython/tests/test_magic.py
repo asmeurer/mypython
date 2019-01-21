@@ -41,11 +41,11 @@ def test_time(check_output):
 def test_timeit(check_output):
     # Each timeit takes ~10 seconds, so only one test here :)
     assert check_output('import time\n') == ('\n', '')
-    # 127 loops is the smallest 2**n - 1 >= 10
-    out, err = check_output('%timeit time.sleep(.1)\n')
-    assert re.match(r"""127 loops, [\.\d]+ ms average
-Minimum time: [\.\d]+ ms
-Maximum time: [\.\d]+ ms
+    # 15 loops is the smallest 2**n - 1 >= 10
+    out, err = check_output('%timeit time.sleep(1)\n')
+    assert re.match(r"""15 loops, [\.\d]+ s average
+Minimum time: [\.\d]+ s
+Maximum time: [\.\d]+ s
 
 
 """, out)
