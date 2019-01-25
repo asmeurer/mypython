@@ -56,7 +56,9 @@
 - Newlines at the end of the prompt not being cleared from history (https://github.com/prompt-toolkit/python-prompt-toolkit/pull/800)
 - Issue pasting multiline prompt with spaces after prompts
 - Broken pretty printing with solveset(log(x) - y, x)
-- Regexes don't work with Unicode characters correctly (https://stackoverflow.com/questions/36187349/python-regex-for-unicode-capitalized-words)
+- Regexes don't work with Unicode characters correctly
+  (https://stackoverflow.com/questions/36187349/python-regex-for-unicode-capitalized-words)
+- dir completion includes global names on attribute completion
 
 ## 2.0 TODOs
 
