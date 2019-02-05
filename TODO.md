@@ -59,6 +59,8 @@
 - Regexes don't work with Unicode characters correctly
   (https://stackoverflow.com/questions/36187349/python-regex-for-unicode-capitalized-words)
 - dir completion includes global names on attribute completion
+- Wrong line numbers on traceback if the input that defined the function raise
+  an exception.
 
 ## 2.0 TODOs
 
