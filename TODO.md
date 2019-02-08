@@ -61,7 +61,6 @@
 - dir completion includes global names on attribute completion
 - Wrong line numbers on traceback if the input that defined the function raise
   an exception.
-- Tab completion calls @property methods
 
 ## 2.0 TODOs
 

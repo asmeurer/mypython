@@ -104,3 +104,13 @@ def test_DirCompletion():
     # Dir completion doesn't happen on imports
     assert completer.complete('import copy.', 0) == None
     assert completer.complete('from copy.', 0) == None
+
+    # Test that dircompletion doesn't evaluate property methods
+    class Test:
+        @property
+        def test(self):
+            raise RuntimeError("This exception should not be raised from the completer")
+
+    completer = DirCompleter({'t': Test()})
+
+    assert completer.complete('t.t', 0) == 't.test'

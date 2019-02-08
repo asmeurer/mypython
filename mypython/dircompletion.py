@@ -237,10 +237,6 @@ class DirCompleter:
                 if (lower_word[:n] == lower_attr and
                     not (noprefix and word[:n+1] == noprefix)):
                     match = "%s.%s" % (expr, word)
-                    try:
-                        getattr(thisobject, word)
-                    except Exception:
-                        pass  # Include even if attribute not set
                     matches.append(match)
             if matches or not noprefix:
                 break
