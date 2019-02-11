@@ -61,6 +61,7 @@
 - dir completion includes global names on attribute completion
 - Wrong line numbers on traceback if the input that defined the function raise
   an exception.
+- Add line profiler support
 
 ## 2.0 TODOs
 
