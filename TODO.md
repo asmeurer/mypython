@@ -62,6 +62,7 @@
 - Wrong line numbers on traceback if the input that defined the function raise
   an exception.
 - Add line profiler support
+- Fix pudb timeout stringifier
 
 ## 2.0 TODOs
 
