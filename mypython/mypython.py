@@ -42,10 +42,6 @@ from prompt_toolkit.filters import Condition, IsDone
 from prompt_toolkit.formatted_text import PygmentsTokens
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.completion import DynamicCompleter, ThreadedCompleter
-try:
-    from prompt_toolkit.completion import FuzzyCompleter
-except ImportError:
-    FuzzyCompleter = lambda x: x
 from prompt_toolkit.output.color_depth import ColorDepth
 
 import iterm2_tools
@@ -668,10 +664,10 @@ del sys
             multiline=multiline,
             validator=PythonSyntaxValidator(),
             history=self.history,
-            completer=FuzzyCompleter(DynamicCompleter(lambda:
+            completer=DynamicCompleter(lambda:
                 ThreadedCompleter(self.completer)
                 if self.complete_in_thread and self.completer
-                else self.completer)),
+                else self.completer),
             # Needs to be False until
             # https://github.com/jonathanslenders/python-prompt-toolkit/issues/472
             # is fixed.
