@@ -63,6 +63,7 @@
   an exception.
 - Add line profiler support
 - Fix pudb timeout stringifier
+- Show unbalanced parentheses under the cursor
 
 ## 2.0 TODOs
 
