@@ -36,9 +36,7 @@
 - Enter in the middle of a line in multiline tries to execute
 - Some kind of session object
 - Make the doctest mode session local (part of the builtins)
-- Continuation lines not dedented correctly with copy-paste
 - TAB in the middle of a line should indent
-- Issues pasting multiple prompts with emoji prompts
 - Make the command queue not use input
 - Should not allow newline inside single quote string, even in multiline
 - Forward/backward sexp doesn't work unless it's on a parenthesis

@@ -56,8 +56,29 @@ def test_split_prompts():
     \N{OUTBOX TRAY}\N{OUTBOX TRAY}\N{OUTBOX TRAY}[3]: None
 
     \N{INBOX TRAY}\N{INBOX TRAY}\N{INBOX TRAY}[4]: def test():
-    \N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}⎢    for i in range(10):
-    \N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}⎢        print(i)
+    \N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN} ⎢     for i in range(10):
+    \N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN} ⎢         print(i)
+
+    \N{INBOX TRAY}\N{INBOX TRAY}\N{INBOX TRAY}[5]: b = 2
+    \N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN} ⎢
+    \N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN} ⎢ c = 2
+
+    \N{INBOX TRAY}\N{INBOX TRAY}\N{INBOX TRAY}[6]: b
+    \N{OUTBOX TRAY}\N{OUTBOX TRAY}\N{OUTBOX TRAY}[6]: 2
+
+    \N{INBOX TRAY}\N{INBOX TRAY}\N{INBOX TRAY}[7]: c
+    \N{OUTBOX TRAY}\N{OUTBOX TRAY}\N{OUTBOX TRAY}[7]: 2
+
+    \N{INBOX TRAY}\N{INBOX TRAY}\N{INBOX TRAY}[8]: a
+    \N{OUTBOX TRAY}\N{OUTBOX TRAY}\N{OUTBOX TRAY}[8]: 1
+
+    \N{INBOX TRAY}\N{INBOX TRAY}\N{INBOX TRAY}[9]: a
+    \N{OUTBOX TRAY}\N{OUTBOX TRAY}\N{OUTBOX TRAY}[9]: 1
+
+    \N{INBOX TRAY}\N{INBOX TRAY}\N{INBOX TRAY}[10]: def test():
+    \N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}⎢     for i in range(10):
+    \N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}⎢         print(i)
+
     """
 
     python_prompts = """
@@ -69,6 +90,21 @@ def test_split_prompts():
 >>> def test():
 ...     for i in range(10):
 ...         print(i)
+>>> b = 2
+...
+... c = 2
+>>> b
+2
+>>> c
+2
+>>> a
+1
+>>> a
+1
+>>> def test():
+...     for i in range(10):
+...         print(i)
+
     """
 
     ipython_prompts = """
@@ -84,17 +120,38 @@ In [4]: def test():
    ...:     for i in range(10):
    ...:         print(i)
    ...:
+
+In [5]: b = 2
+   ...:
+   ...: c = 2
+
+In [6]: b
+Out[6]: 2
+
+In [7]: c
+Out[7]: 2
+
+In [8]: a
+Out[8]: 1
+
+In [9]: a
+Out[9]: 1
+
+In [10]: def test():
+    ...:     for i in range(10):
+    ...:         print(i)
+    ...:
     """
 
     assert split_prompts(mypython_prompts) == split_prompts(python_prompts) == \
     split_prompts(ipython_prompts) == ['a = 1\n', 'a\n', 'print(a)\n',
-        'def test():\n    for i in range(10):\n        print(i)\n\n']
+        'def test():\n    for i in range(10):\n        print(i)\n\n', 'b = 2\nc = 2\n\n', 'b\n', 'c\n', 'a\n', 'a\n', 'def test():\n    for i in range(10):\n        print(i)\n\n']
 
     assert split_prompts(mypython_prompts, indent='    ') == \
         split_prompts(python_prompts, indent='    ') == \
         split_prompts(ipython_prompts, indent='    ') == \
         ['a = 1\n', '    a\n', '    print(a)\n',
-        '    def test():\n        for i in range(10):\n            print(i)\n\n']
+        '    def test():\n        for i in range(10):\n            print(i)\n\n', '    b = 2\n    c = 2\n\n', '    b\n', '    c\n', '    a\n', '    a\n', '    def test():\n        for i in range(10):\n            print(i)\n\n']
 
     mypython_magic = """
 \N{SNAKE}\N{SNAKE}\N{SNAKE}[1]: %doctest
@@ -136,7 +193,7 @@ a
     # Test DARK SUNGLASSES, which has spaces between the emoji
     mypython_prompts2 = """
     \N{DARK SUNGLASSES} \N{DARK SUNGLASSES} \N{DARK SUNGLASSES} [1]: def test():
-    \N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}⎢    pass
+    \N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}⎢     pass
 
     \N{DARK SUNGLASSES} \N{DARK SUNGLASSES} \N{DARK SUNGLASSES} [2]: a = 1
 
@@ -150,8 +207,8 @@ a
     # Test splitting only continuation (PS2) prompts
 
     mypython_prompts = """\
-    \N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}⎢    for i in range(10):
-    \N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}⎢        print(i)
+    \N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}⎢     for i in range(10):
+    \N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}\N{CLAPPING HANDS SIGN}⎢         print(i)
 """
 
     python_prompts = """\
