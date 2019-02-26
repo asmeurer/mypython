@@ -213,7 +213,7 @@ prompt_style = {
 style_extra = {
     Token.MatchingBracket.Cursor:    "bg:#0000ff", # blue
     Token.MatchingBracket.Other:     "bg:#0000ff", # blue
-    Token.MismatchingBracket.Cursor: "bg:#ff0000", # red
+    Token.MismatchingBracket.Cursor: "italic bg:#ff0000", # red
     Token.MismatchingBracket.Other:  "bg:#ff0000", # red
 }
 

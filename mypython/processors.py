@@ -62,6 +62,7 @@ class MyHighlightMatchingBracketProcessor(HighlightMatchingBracketProcessor):
                     (left.start[0]-1, left.start[1]),
                     (right.start[0]-1, right.start[1]),
                     ])
+
         bad = [(i.start[0]-1, i.start[1]) for i in mismatching]
         return good, bad
 
