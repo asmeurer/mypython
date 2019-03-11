@@ -61,6 +61,7 @@
   an exception.
 - Add line profiler support
 - Fix pudb timeout stringifier
+- Indentation error pasting from multiline IPython prompt
 
 ## 2.0 TODOs
 
