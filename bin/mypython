@@ -4,6 +4,9 @@
 import os
 import sys
 
+if sys.version_info[0] == 2:
+    raise RuntimeError("Cannot run mypython in Python 2")
+
 mypython_path = os.path.realpath(__file__)
 mypython_dir = os.path.dirname(mypython_path)
 mypython_top = os.path.split(mypython_dir)[0]
