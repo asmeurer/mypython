@@ -42,12 +42,14 @@ def get_key_bindings():
 r = custom_key_bindings = KeyBindings()
 
 @r.add_binding(Keys.Escape, 'p')
+@r.add_binding(Keys.Escape, Keys.Up)
 def previous_history_search(event):
     event.key_sequence[-1].accept_next = True
     buffer = event.current_buffer
     buffer.history_backward(count=event.arg, history_search=True)
 
 @r.add_binding(Keys.Escape, 'P')
+@r.add_binding(Keys.Escape, Keys.Down)
 def forward_history_search(event):
     event.key_sequence[-1].accept_next = True
     buffer = event.current_buffer
