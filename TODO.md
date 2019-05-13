@@ -66,6 +66,7 @@
 - Warnings come from mypython instead of __main__ in doctest mode
 - Split out return value from sys.stdout.write('test')
 - Issue pasting multiple lines with typeahead
+- Automatic indentation after indenting closing triple quoted string
 
 ## 2.0 TODOs
 
