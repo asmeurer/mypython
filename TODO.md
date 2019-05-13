@@ -65,6 +65,7 @@
 - Sort completions case sensitively if the text typed has an uppercase letter
 - Warnings come from mypython instead of __main__ in doctest mode
 - Split out return value from sys.stdout.write('test')
+- Issue pasting multiple lines with typeahead
 
 ## 2.0 TODOs
 
