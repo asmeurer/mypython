@@ -34,7 +34,13 @@
 import sys
 from io import BytesIO
 
-from iterm2_tools import display_image_bytes
+try:
+    from iterm2_tools import display_image_bytes
+except ImportError:
+    import platform
+    if platform.system() == "Darwin":
+        raise
+    display_image_bytes = lambda x: ''
 
 from . import mypython
 
