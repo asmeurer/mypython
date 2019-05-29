@@ -350,6 +350,7 @@ def open_line(event):
 Keys.ShiftEnter = "<Shift-Enter>"
 ALL_KEYS.append('<Shift-Enter>')
 ANSI_SEQUENCES['\x1b[ag'] = Keys.ShiftEnter
+ANSI_SEQUENCES['\x1bOM'] = Keys.ShiftEnter
 
 r.add_binding(Keys.ShiftEnter)(accept_line)
 
