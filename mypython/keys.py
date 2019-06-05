@@ -24,6 +24,7 @@ import re
 import subprocess
 import sys
 import textwrap
+import platform
 
 def get_key_bindings():
     # Based on prompt_toolkit.key_binding.defaults.load_key_bindings()
@@ -627,37 +628,48 @@ def kill_selection(event):
     data = event.current_buffer.cut_selection()
     event.app.clipboard.set_data(data)
 
-def osx_copy(text):
-    try:
-        # In Python 3.6 we can do this:
-        # run('pbcopy', input=text, encoding='utf-8', check=True)
-        subprocess.run('pbcopy', input=text.encode('utf-8'), check=True)
-    except FileNotFoundError:
-        print("Error: could not find pbcopy", file=sys.stderr)
-    except subprocess.CalledProcessError as e:
-        print("pbcopy error:", e, file=sys.stderr)
+def system_copy(text):
+    if "Linux" in platform.platform():
+        copy_command = ['xclip', '-selection', 'c']
+    else:
+        copy_command = ['pbcopy']
 
-def osx_paste():
     try:
         # In Python 3.6 we can do this:
-        # run('pbcopy', input=text, encoding='utf-8')
-        p = subprocess.run('pbpaste', stdout=subprocess.PIPE, check=True)
+        # run(copy_command, input=text, encoding='utf-8', check=True)
+        subprocess.run(copy_command, input=text.encode('utf-8'), check=True)
     except FileNotFoundError:
-        print("Error: could not find pbpaste", file=sys.stderr)
+        print("Error: could not find", copy_command[0], file=sys.stderr)
     except subprocess.CalledProcessError as e:
-        print("pbpaste error:", e, file=sys.stderr)
+        print(copy_command[0], "error:", e, file=sys.stderr)
+
+def system_paste():
+    if "Linux" in platform.platform():
+        paste_command = ['xsel', '-b']
+    else:
+        paste_command = ['pbpaste']
+
+    try:
+        # In Python 3.6 we can do this:
+        # run(paste_command, input=text, encoding='utf-8')
+        p = subprocess.run(paste_command, stdout=subprocess.PIPE, check=True)
+    except FileNotFoundError:
+        print("Error: could not find", paste_command[0], file=sys.stderr)
+    except subprocess.CalledProcessError as e:
+        print(paste_command[0], "error:", e, file=sys.stderr)
 
     return p.stdout.decode('utf-8')
+
 
 @r.add_binding(Keys.ControlX, Keys.ControlW)
 def copy_to_clipboard(event):
     if event.current_buffer.document.selection:
         from_, to = event.current_buffer.document.selection_range()
-        run_in_terminal(lambda:osx_copy(event.current_buffer.document.text[from_:to + 1]))
+        run_in_terminal(lambda:system_copy(event.current_buffer.document.text[from_:to + 1]))
 
 @r.add_binding(Keys.ControlX, Keys.ControlY)
 def paste_from_clipboard(event):
-    paste_text_future = run_in_terminal(osx_paste)
+    paste_text_future = run_in_terminal(system_paste)
 
     event.current_buffer.cut_selection()
     paste_text_future.add_done_callback(lambda future:\
