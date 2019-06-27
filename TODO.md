@@ -64,6 +64,8 @@
 - Indentation error pasting from multiline IPython prompt
 - Sort completions case sensitively if the text typed has an uppercase letter
 - Split out return value from sys.stdout.write('test')
+- Issue pasting multiple lines with typeahead
+- Automatic indentation after indenting closing triple quoted string
 
 ## 2.0 TODOs
 

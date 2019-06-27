@@ -44,7 +44,13 @@ from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.completion import DynamicCompleter, ThreadedCompleter
 from prompt_toolkit.output.color_depth import ColorDepth
 
-import iterm2_tools
+try:
+    import iterm2_tools
+except ImportError:
+    import platform
+    if platform.system() == 'Darwin':
+        raise
+    iterm2_tools = None
 
 from .multiline import document_is_multiline_python
 from .completion import PythonCompleter
@@ -595,9 +601,12 @@ del sys
                 else:
                     image = catimg.get_random_image()
                 if image:
-                    print_formatted_text(MyPygmentsTokens([(Token.Welcome, "Here is a cat:")]))
-                    iterm2_tools.display_image_file(image)
-                    print()
+                    if not iterm2_tools:
+                        print("Cannot display a cat: iterm2_tools not installed.", file=sys.stderr)
+                    else:
+                        print_formatted_text(MyPygmentsTokens([(Token.Welcome, "Here is a cat:")]))
+                        iterm2_tools.display_image_file(image)
+                        print()
 
         sys.displayhook = mypython_displayhook
         sys.excepthook = mypython_excepthook
@@ -612,20 +621,26 @@ del sys
         self.builtins = builtins
 
     def get_in_prompt(self):
+        if iterm2_tools:
+            before_prompt = (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT)
+            after_prompt = (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT)
+        else:
+            before_prompt = after_prompt = (Token.Nothing, "")
+
         if NO_PROMPT_MODE:
             return MyPygmentsTokens([
-                (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
-                (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
+                before_prompt,
+                after_prompt,
                 ])
         if DOCTEST_MODE:
             return MyPygmentsTokens([
-                (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
+                before_prompt,
                 (Token.DoctestIn, '>>>'),
                 (Token.Space, ' '),
-                (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
+                after_prompt,
                 ])
         return MyPygmentsTokens([
-            (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT),
+            before_prompt,
 
             (Token.Emoji, self.IN),
             (Token.InBracket, '['),
@@ -633,7 +648,7 @@ del sys
             (Token.InBracket, ']'),
             (Token.InColon, ':'),
             (Token.Space, ' '),
-            (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT),
+            after_prompt,
         ])
 
     def get_prompt_continuation(self, width, line_number, is_soft_wrap):
@@ -752,11 +767,24 @@ def mypython_excepthook(etype, value, tb):
             style=style_from_pygments_dict({Token.InternalError: "#ansired"}),
             file=sys.stderr, end='')
 
+if iterm2_tools is None:
+    class NoOp:
+        def set_command_status(self, status):
+            return
+
+    class Output:
+        def __enter__(self):
+            return NoOp()
+        def __exit__(self, *args):
+            return
+else:
+    Output = iterm2_tools.Output
+
 def execute_command(command, prompt, *, _globals=None, _locals=None):
     _globals = _globals or _default_globals
     _locals = _locals or _default_locals
 
-    with iterm2_tools.Output() as o:
+    with Output() as o:
         try:
             command = normalize(command, _globals, _locals)
 
