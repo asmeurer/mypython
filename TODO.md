@@ -66,6 +66,8 @@
 - Split out return value from sys.stdout.write('test')
 - Issue pasting multiple lines with typeahead
 - Automatic indentation after indenting closing triple quoted string
+- Make tab work like in emacs
+- pyflakes errors
 
 ## 2.0 TODOs
 
