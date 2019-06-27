@@ -102,7 +102,8 @@ def backward_paragraph(event):
     event.current_buffer.cursor_position = 0
 
 WORD = re.compile(r'([a-z0-9]+|[A-Z]{2,}|[a-zA-Z0-9][a-z0-9]*)')
-@r.add_binding(Keys.Escape, 'f') # Keys.Escape, Keys.Right
+@r.add_binding(Keys.Escape, 'f')
+@r.add_binding(Keys.Escape, Keys.Right)
 def forward_word(event):
     text = event.current_buffer.text
     cursor_position = event.current_buffer.cursor_position
@@ -112,7 +113,8 @@ def forward_word(event):
             return
     event.current_buffer.cursor_position = len(text)
 
-@r.add_binding(Keys.Escape, 'b') # Keys.Escape, Keys.Left
+@r.add_binding(Keys.Escape, 'b')
+@r.add_binding(Keys.Escape, Keys.Right)
 def backward_word(event):
     """
     Move back one paragraph of text
