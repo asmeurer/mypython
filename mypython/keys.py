@@ -115,7 +115,7 @@ def forward_word(event):
     event.current_buffer.cursor_position = len(text)
 
 @r.add_binding(Keys.Escape, 'b')
-@r.add_binding(Keys.Escape, Keys.Right)
+@r.add_binding(Keys.Escape, Keys.Left)
 def backward_word(event):
     """
     Move back one paragraph of text
