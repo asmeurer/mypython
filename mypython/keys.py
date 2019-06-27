@@ -692,7 +692,7 @@ def redo(event):
 
 # Need to escape all spaces here because of verbose (x) option below
 ps1_prompts = [r'>>>\ '] + [re.escape(i) + r'\[\d+\]:\ ' for i, j in emoji] + [r'In\ \[\d+\]:\ ']
-ps2_prompts = [r'\.\.\.\ ', '\N{CLAPPING HANDS SIGN}+\ ?⎢\ '] + [r'\ *\.\.\.:\ ']
+ps2_prompts = [r'\.\.\.\ ', '\N{CLAPPING HANDS SIGN}+\\ ?⎢\\ '] + [r'\ *\.\.\.:\ ']
 PS1_PROMPTS_RE = re.compile('|'.join(ps1_prompts))
 PS2_PROMPTS_RE = re.compile('|'.join(ps2_prompts))
 PROMPTED_TEXT_RE = re.compile(r'''(?x) # Multiline and verbose
