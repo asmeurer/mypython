@@ -63,7 +63,6 @@
 - Fix pudb timeout stringifier
 - Indentation error pasting from multiline IPython prompt
 - Sort completions case sensitively if the text typed has an uppercase letter
-- Warnings come from mypython instead of __main__ in doctest mode
 - Split out return value from sys.stdout.write('test')
 
 ## 2.0 TODOs

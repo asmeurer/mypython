@@ -100,7 +100,7 @@ def doctest_magic(rest):
     return """\
 from mypython import mypython as _mypython
 
-_mypython.DOCTEST_MODE ^= True
+_mypython.doctest_mode()
 
 if _mypython.DOCTEST_MODE:
     print("doctest mode enabled")

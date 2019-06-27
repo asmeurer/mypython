@@ -221,6 +221,25 @@ NO_PROMPT_MODE = False
 DOCTEST_MODE = False
 DEBUG = False
 
+_sysargv0 = sys.argv[0]
+
+def doctest_mode(enable=None):
+    """
+    Enable/disable/toggle doctestmode
+
+    If enable=None, toggle it, otherwise, set it to enable.
+    """
+    global DOCTEST_MODE
+    if enable is None:
+        DOCTEST_MODE ^= True
+    else:
+        DOCTEST_MODE = enable
+    if DOCTEST_MODE:
+        # forces sys.getframe(1).f_code.co_filename to be __main__, which makes warnings output match the default interpreter.
+        sys.argv[0] = '__main__'
+    else:
+        sys.argv[0] = _sysargv0
+
 def mypython_file(prompt_number=None):
     if prompt_number is not None:
         return "<mypython-{prompt_number}>".format(prompt_number=prompt_number)
