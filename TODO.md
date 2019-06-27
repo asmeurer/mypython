@@ -68,6 +68,7 @@
 - Automatic indentation after indenting closing triple quoted string
 - Make tab work like in emacs
 - pyflakes errors
+- C-c > indentation removes selection
 
 ## 2.0 TODOs
 
