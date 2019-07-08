@@ -47,7 +47,7 @@ def auto_newline(buffer):
     """
     insert_text = buffer.insert_text
 
-    if buffer.document.current_line_after_cursor:
+    if buffer.document.current_line_after_cursor.strip():
         # When we are in the middle of a line. Always insert a newline.
         insert_text('\n')
     else:
