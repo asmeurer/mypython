@@ -15,6 +15,7 @@ from ..mypython import (_default_globals, Session, normalize, magic,
 from .. import mypython
 
 from pytest import raises, skip, fixture
+import pytest
 
 _test_globals = _default_globals.copy()
 
@@ -89,7 +90,7 @@ def _get_check_output(session=None):
         multiple lines in the same input.
 
         """
-        mypython.DOCTEST_MODE = doctest_mode
+        mypython.doctest_mode(doctest_mode)
 
         custom_stdout = StringIO()
         custom_stderr = StringIO()
@@ -496,11 +497,18 @@ def test_main_loop(check_output):
     assert check_output('None\n') == ('None\n\n', '')
     assert check_output('a = 1\n') == ('\n', '')
 
-    assert check_output('\n', remove_terminal_sequences=False) == ('\x1b]133;C\x07\n\x1b]133;D;0\x07', '')
-    assert check_output('1 + 1\n', remove_terminal_sequences=False) == ('\x1b]133;C\x072\n\n\x1b]133;D;0\x07', '')
+    if sys.platform == 'darwin':
+        assert check_output('\n', remove_terminal_sequences=False) == ('\x1b]133;C\x07\n\x1b]133;D;0\x07', '')
+        assert check_output('1 + 1\n', remove_terminal_sequences=False) == ('\x1b]133;C\x072\n\n\x1b]133;D;0\x07', '')
 
-    assert check_output('\n', remove_terminal_sequences=False, doctest_mode=True) == ('\x1b]133;C\x07\x1b]133;D;0\x07', '')
-    assert check_output('1 + 1\n', remove_terminal_sequences=False, doctest_mode=True) == ('\x1b]133;C\x072\n\x1b]133;D;0\x07', '')
+        assert check_output('\n', remove_terminal_sequences=False, doctest_mode=True) == ('\x1b]133;C\x07\x1b]133;D;0\x07', '')
+        assert check_output('1 + 1\n', remove_terminal_sequences=False, doctest_mode=True) == ('\x1b]133;C\x072\n\x1b]133;D;0\x07', '')
+    else:
+        assert check_output('\n', remove_terminal_sequences=False) == ('\n', '')
+        assert check_output('1 + 1\n', remove_terminal_sequences=False) == ('2\n\n', '')
+
+        assert check_output('\n', remove_terminal_sequences=False, doctest_mode=True) == ('', '')
+        assert check_output('1 + 1\n', remove_terminal_sequences=False, doctest_mode=True) == ('2\n', '')
 
     assert check_output('\n', doctest_mode=True) == ('', '')
     assert check_output('1 + 1\n', doctest_mode=True) == ('2\n', '')
@@ -623,6 +631,34 @@ r"""Traceback (most recent call last):
     raise Exception
 Exception
 """
+
+# This doesn't seem possible to actually test due to the way pytest hooks into
+# the warnings system. See https://stackoverflow.com/questions/56436817/disable-pytest-warnings-capture-in-a-single-test/56437010?noredirect=1#comment99502411_56437010.
+@pytest.mark.xfail
+# @pytest.mark.filterwarnings('ignore')
+def test_doctest_warnings(check_output):
+    # Test that warnings use __main__ as the filename in doctest mode
+    out, err = check_output('import warnings\x1b\nwarnings.filterwarnings("always", "test")\n\n')
+    assert out == 'None\n\n'
+    assert err == ''
+
+    out, err = check_output('warnings.warn("test")\n')
+    assert out == 'None\n\n'
+    assert "UserWarning: test" in err
+
+    out, err = check_output('warnings.warn("test")\n', doctest_mode=True)
+    assert out == ''
+    assert err == '__main__:1: UserWarning: test'
+
+# This doesn't seem possible to actually test due to the way pytest hooks into
+# the warnings system. See https://stackoverflow.com/questions/56436817/disable-pytest-warnings-capture-in-a-single-test/56437010?noredirect=1#comment99502411_56437010.
+@pytest.mark.xfail
+def test_warning():
+    mystderr = StringIO()
+    sys.stderr = mystderr
+    import warnings
+    warnings.warn('warning')
+    assert 'UserWarning: warning' in mystderr.getvalue()
 
 def test_excepthook_catches_recursionerror(check_output):
     # Make sure this doesn't crash

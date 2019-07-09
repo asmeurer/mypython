@@ -63,10 +63,12 @@
 - Fix pudb timeout stringifier
 - Indentation error pasting from multiline IPython prompt
 - Sort completions case sensitively if the text typed has an uppercase letter
-- Warnings come from mypython instead of __main__ in doctest mode
 - Split out return value from sys.stdout.write('test')
 - Issue pasting multiple lines with typeahead
 - Automatic indentation after indenting closing triple quoted string
+- Make tab work like in emacs
+- pyflakes errors
+- C-c > indentation removes selection
 
 ## 2.0 TODOs
 
