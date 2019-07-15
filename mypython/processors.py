@@ -90,7 +90,7 @@ class MyHighlightMatchingBracketProcessor(HighlightMatchingBracketProcessor):
                 fragments = explode_text_fragments(fragments)
                 style, text = fragments[col]
 
-                if col == document.cursor_position_col:
+                if col == document.cursor_position_col and row == document.cursor_position_row:
                     style += ' class:pygments.matchingbracket.cursor '
                 else:
                     style += ' class:pygments.matchingbracket.other '
@@ -103,7 +103,7 @@ class MyHighlightMatchingBracketProcessor(HighlightMatchingBracketProcessor):
                 fragments = explode_text_fragments(fragments)
                 style, text = fragments[col]
 
-                if col == document.cursor_position_col:
+                if col == document.cursor_position_col and row == document.cursor_position_row:
                     style += ' class:pygments.mismatchingbracket.cursor '
                 else:
                     style += ' class:pygments.mismatchingbracket.other '
