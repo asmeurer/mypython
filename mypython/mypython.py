@@ -56,7 +56,7 @@ from .multiline import document_is_multiline_python
 from .completion import PythonCompleter
 from .theme import OneAMStyle, MyPython3Lexer, emoji
 from .keys import get_key_bindings, LEADING_WHITESPACE
-from .processors import MyHighlightMatchingBracketProcessor
+from .processors import MyHighlightMatchingBracketProcessor, HighlightPyflakesErrorsProcessor
 from .magic import magic, MAGICS
 from .printing import mypython_displayhook
 
@@ -221,6 +221,8 @@ style_extra = {
     Token.MatchingBracket.Other:     "bg:#0000ff", # blue
     Token.MismatchingBracket.Cursor: "italic bg:#ff0000", # red
     Token.MismatchingBracket.Other:  "bg:#ff0000", # red
+    Token.PyflakesWarning.Cursor: "italic",
+    Token.PyflakesWarning.Other: "italic bg:#ff0000",
 }
 
 NO_PROMPT_MODE = False
@@ -546,8 +548,13 @@ class Session(PromptSession):
                 # 20000 is ~most characters that fit on screen even with
                 # really small font
                 processor=MyHighlightMatchingBracketProcessor(max_cursor_distance=20000),
-                filter=~IsDone()
-                )])
+                filter=~IsDone(),
+                ),
+            ConditionalProcessor(
+                processor=HighlightPyflakesErrorsProcessor(),
+                filter=~IsDone(),
+                ),
+        ])
         kwargs.setdefault('search_ignore_case', True)
         kwargs.setdefault('style', merge_styles([style_from_pygments_cls(OneAMStyle),
                 style_from_pygments_dict({**prompt_style, **style_extra})]))
