@@ -81,9 +81,10 @@ class MyBuffer(Buffer):
     """
     Subclass of buffer that fixes some broken behavior of Buffer
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, session=None, **kwargs):
         super().__init__(*args, **kwargs)
         self._multiline_history_search_index = None
+        self.session = session
 
     def delete_before_cursor(self, count=1):
         self.multiline_history_search_index = None
