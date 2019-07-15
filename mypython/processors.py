@@ -137,7 +137,7 @@ class HighlightPyflakesErrorsProcessor(Processor):
                 col = source_to_display(col)
                 fragments = explode_text_fragments(fragments)
                 if col >= len(fragments):
-                    print("Error", col, len(fragments))
+                    print("Error with pyflakes checker", col, len(fragments))
                     continue
                 style, char = fragments[col]
 
