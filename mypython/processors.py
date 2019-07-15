@@ -141,7 +141,8 @@ class HighlightPyflakesErrorsProcessor(Processor):
                     continue
                 style, char = fragments[col]
 
-                if col == document.cursor_position_col:
+                # TODO: For name related errors, highlight the whole name
+                if col == document.cursor_position_col and lineno == document.cursor_position_row:
                     style += ' class:pygments.pyflakeswarning.cursor '
                 else:
                     style += ' class:pygments.pyflakeswarning.other '
