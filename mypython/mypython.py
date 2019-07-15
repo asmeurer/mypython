@@ -222,8 +222,8 @@ style_extra = {
     Token.MatchingBracket.Other:     "bg:#0000ff", # blue
     Token.MismatchingBracket.Cursor: "italic bg:#ff0000", # red
     Token.MismatchingBracket.Other:  "bg:#ff0000", # red
-    Token.PyflakesWarning.Cursor: "italic",
-    Token.PyflakesWarning.Other: "italic bg:#ff0000",
+    Token.PyflakesWarning.Cursor: "underline fg:#ffaa00",
+    Token.PyflakesWarning.Other: "underline fg:#ffaa00",
 }
 
 NO_PROMPT_MODE = False
