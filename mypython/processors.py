@@ -113,14 +113,14 @@ class MyHighlightMatchingBracketProcessor(HighlightMatchingBracketProcessor):
         return Transformation(fragments)
 
 class HighlightPyflakesErrorsProcessor(Processor):
-    def _get_warnings(self, document):
+    def _get_warnings(self, document, buffer_control):
         # TODO: Add builtins=locals()
         try:
             tree = ast.parse(document.text)
         except SyntaxError:
             # TODO: Handle this
             return
-        checker = Checker(tree)
+        checker = Checker(tree, builtins=buffer_control.buffer.session._locals)
         messages = checker.messages
         for m in messages:
             row = m.lineno
@@ -131,7 +131,7 @@ class HighlightPyflakesErrorsProcessor(Processor):
     def apply_transformation(self, transformation_input):
         buffer_control, document, lineno, source_to_display, fragments, width, height = transformation_input.unpack()
 
-        for col, row, text in self._get_warnings(document):
+        for col, row, text in self._get_warnings(document, buffer_control):
             if row == lineno+1:
                 # TODO: handle warnings without a column
                 col = source_to_display(col)
