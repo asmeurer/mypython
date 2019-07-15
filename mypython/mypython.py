@@ -718,6 +718,7 @@ del sys
             on_text_insert=on_text_insert,
             tempfile_suffix='.py',
             accept_handler=accept,
+            session=self,
         )
         return buffer
 
