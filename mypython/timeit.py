@@ -1,11 +1,11 @@
 import sys
 import math
 from io import BytesIO
+import platform
 
 try:
     from iterm2_tools.images import image_bytes
 except ImportError:
-    import platform
     if platform.system() == 'Darwin':
         raise
     image_bytes = lambda x: ''
@@ -53,7 +53,10 @@ def timeit_format(times, expr):
     s = 's' if number > 1 else ''
     minimum = format_time(min(times))
     maximum = format_time(max(times))
-    hist = timeit_histogram(times, expr)
+    if platform.system == 'Darwin':
+        hist = timeit_histogram(times, expr)
+    else:
+        hist=''
     return TIME_REPORT_TEMPLATE.format(number=number, avg=avg, s=s,
         minimum=minimum, maximum=maximum, hist=hist)
 
