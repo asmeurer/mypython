@@ -830,6 +830,7 @@ def comment(event):
         from_, to = document.selection_range()
         start_line, start_col = document.translate_index_to_position(from_ + 1)
         end_line, end_col = document.translate_index_to_position(to - 1)
+        end_line += 1
     else:
         start_line = cursor_line
         end_line = start_line + 1
