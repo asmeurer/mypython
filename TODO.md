@@ -69,7 +69,6 @@
 - Make tab work like in emacs
 - pyflakes errors
 - C-c > indentation removes selection
-- M-; moves cursor when invoked at the end of the line
 
 ## 2.0 TODOs
 

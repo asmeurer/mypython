@@ -825,7 +825,7 @@ def comment(event):
     buffer = event.current_buffer
     document = buffer.document
 
-    cursor_line, _ = document.translate_index_to_position(document.cursor_position)
+    cursor_line, cursor_col = document.translate_index_to_position(document.cursor_position)
     if document.selection:
         from_, to = document.selection_range()
         start_line, start_col = document.translate_index_to_position(from_ + 1)
@@ -864,11 +864,17 @@ def comment(event):
 
     new_text = '\n'.join(lines)
     # TODO: Set the cursor position correctly
+    n_changed = 2*(cursor_line - start_line + 1)
+    if cursor_col <= min_indent:
+        n_changed -= 2
+
     if uncomment:
-        buffer.cursor_position -= 2*(cursor_line - start_line + 1)
+        buffer.cursor_position -= n_changed
+        buffer.text = new_text
     else:
-        buffer.cursor_position += 2*(cursor_line - start_line + 1)
-    buffer.text = new_text
+        buffer.text = new_text
+        buffer.cursor_position += n_changed
+
 
 @r.add_binding(Keys.ControlX, Keys.ControlE)
 def open_in_editor(event):
