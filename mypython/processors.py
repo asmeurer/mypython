@@ -36,6 +36,7 @@ from prompt_toolkit.layout.utils import explode_text_fragments
 from prompt_toolkit.application import get_app
 
 from pyflakes.checker import Checker
+from pyflakes.messages import UnusedImport, UnusedVariable, UndefinedName
 
 from .tokenize import matching_parens
 
@@ -126,27 +127,34 @@ class HighlightPyflakesErrorsProcessor(Processor):
             row = m.lineno
             col = m.col
             text = m.message % m.message_args
-            yield (col, row, text)
+            yield (col, row, text, m)
 
     def apply_transformation(self, transformation_input):
         buffer_control, document, lineno, source_to_display, fragments, width, height = transformation_input.unpack()
 
-        for col, row, text in self._get_warnings(document, buffer_control):
+        for col, row, text, message in self._get_warnings(document, buffer_control):
+            if isinstance(message, UnusedImport):
+                continue
+
             if row == lineno+1:
                 # TODO: handle warnings without a column
-                col = source_to_display(col)
+                col = endcol = source_to_display(col)
                 fragments = explode_text_fragments(fragments)
                 if col >= len(fragments):
                     print("Error with pyflakes checker", col, len(fragments))
                     continue
-                style, char = fragments[col]
 
                 # TODO: For name related errors, highlight the whole name
-                if col == document.cursor_position_col and lineno == document.cursor_position_row:
-                    style += ' class:pygments.pyflakeswarning.cursor '
-                else:
-                    style += ' class:pygments.pyflakeswarning.other '
+                if isinstance(message, (UndefinedName, UnusedVariable)):
+                    endcol = col + len(message.message_args[0])
 
-                fragments[col] = (style, char)
+                for c in range(col, endcol):
+                    style, char = fragments[c]
+                    if c == document.cursor_position_col and lineno == document.cursor_position_row:
+                        style += ' class:pygments.pyflakeswarning.cursor '
+                    else:
+                        style += ' class:pygments.pyflakeswarning.other '
+
+                    fragments[c] = (style, char)
 
         return Transformation(fragments)
