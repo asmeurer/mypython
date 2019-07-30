@@ -144,10 +144,12 @@ class HighlightPyflakesErrorsProcessor(Processor):
                     print("Error with pyflakes checker", col, len(fragments))
                     continue
 
-                # TODO: For name related errors, highlight the whole name
                 if isinstance(message, (UndefinedName, UnusedVariable)):
                     endcol = col + len(message.message_args[0])
-
+                else:
+                    # Highlight the whole line
+                    while endcol < len(fragments) and fragments[endcol][1] != '\n':
+                        endcol += 1
                 for c in range(col, endcol):
                     style, char = fragments[c]
                     if c == document.cursor_position_col and lineno == document.cursor_position_row:
