@@ -224,8 +224,8 @@ style_extra = {
     Token.MismatchingBracket.Other:  "bg:#ff0000", # red
     Token.PyflakesWarning.Cursor: "fg:#ffafaf", # light pink
     Token.PyflakesWarning.Other: "fg:#ffafaf",
-    # Token.PyflakesError.Cursor: "fg:#ff8700", # dark orange
-    # Token.PyflakesError.Other: "fg:#ff8700",
+    Token.PyflakesError.Cursor: "fg:#ff8700", # dark orange
+    Token.PyflakesError.Other: "fg:#ff8700",
     Token.PyflakesError.Column: "underline fg:#ff8700",
 }
 

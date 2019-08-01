@@ -180,6 +180,9 @@ class HighlightPyflakesErrorsProcessor(Processor):
                         style += ' class:pygments.pyflakeswarning.other '
 
                     if isinstance(message, SyntaxErrorMessage):
+                        # Only color the whole line if the cursor is not on it
+                        if lineno == document.cursor_position_row:
+                            style = style.replace('class:pygments.pyflakeswarning.other', '')
                         style = style.replace('pyflakeswarning', 'pyflakeserror')
 
                     fragments[c] = (style, char)
