@@ -36,11 +36,12 @@ from prompt_toolkit.layout.utils import explode_text_fragments
 from prompt_toolkit.application import get_app
 
 from pyflakes.checker import Checker
-from pyflakes.messages import UnusedImport, UnusedVariable, UndefinedName
+from pyflakes.messages import UnusedImport, UnusedVariable, UndefinedName, Message
 
 from .tokenize import matching_parens
 
 import ast
+from collections import namedtuple
 
 class MyHighlightMatchingBracketProcessor(HighlightMatchingBracketProcessor):
     def _get_positions_to_highlight(self, document):
@@ -113,21 +114,34 @@ class MyHighlightMatchingBracketProcessor(HighlightMatchingBracketProcessor):
 
         return Transformation(fragments)
 
+loc = namedtuple("loc", ["lineno", "col_offset"])
+
+class SyntaxErrorMessage(Message):
+    message = "SyntaxError: %s"
+
+    def __init__(self, filename, loc, msg, text):
+        Message.__init__(self, filename, loc)
+        self.message_args = (msg,)
+        self.text = text
+
 class HighlightPyflakesErrorsProcessor(Processor):
     def _get_warnings(self, document, buffer_control):
         # TODO: Add builtins=locals()
         try:
             tree = ast.parse(document.text)
-        except SyntaxError:
-            # TODO: Handle this
+        except SyntaxError as e:
+            msg, (filename, lineno, offset, text) = e.args
+            col = offset - 1
+            m = SyntaxErrorMessage(filename, loc(lineno, col), msg, text)
+            yield (col, lineno, msg, m)
             return
         checker = Checker(tree, builtins=buffer_control.buffer.session._locals)
         messages = checker.messages
         for m in messages:
             row = m.lineno
             col = m.col
-            text = m.message % m.message_args
-            yield (col, row, text, m)
+            msg = m.message % m.message_args
+            yield (col, row, msg, m)
 
     def apply_transformation(self, transformation_input):
         buffer_control, document, lineno, source_to_display, fragments, width, height = transformation_input.unpack()
@@ -140,9 +154,12 @@ class HighlightPyflakesErrorsProcessor(Processor):
                 # TODO: handle warnings without a column
                 col = endcol = source_to_display(col)
                 fragments = explode_text_fragments(fragments)
-                if col >= len(fragments):
+                if col > len(fragments):
                     print("Error with pyflakes checker", col, len(fragments))
                     continue
+
+                if col == len(fragments):
+                    fragments += [('', ' ')]
 
                 if isinstance(message, (UndefinedName, UnusedVariable)):
                     endcol = col + len(message.message_args[0])
@@ -150,6 +167,11 @@ class HighlightPyflakesErrorsProcessor(Processor):
                     # Highlight the whole line
                     while endcol < len(fragments) and fragments[endcol][1] != '\n':
                         endcol += 1
+                if isinstance(message, SyntaxErrorMessage):
+                    syntax_error_col = col
+                    # Highlight the whole line
+                    while col > 0 and fragments[col][1] != '\n':
+                        col -= 1
                 for c in range(col, endcol):
                     style, char = fragments[c]
                     if c == document.cursor_position_col and lineno == document.cursor_position_row:
@@ -157,6 +179,14 @@ class HighlightPyflakesErrorsProcessor(Processor):
                     else:
                         style += ' class:pygments.pyflakeswarning.other '
 
+                    if isinstance(message, SyntaxErrorMessage):
+                        style = style.replace('pyflakeswarning', 'pyflakeserror')
+
                     fragments[c] = (style, char)
+
+                if isinstance(message, SyntaxErrorMessage):
+                    style, char = fragments[syntax_error_col]
+                    style += ' class:pygments.pyflakeserror.column '
+                    fragments[syntax_error_col] = (style, char)
 
         return Transformation(fragments)
