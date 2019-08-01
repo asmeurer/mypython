@@ -42,6 +42,7 @@ from .tokenize import matching_parens
 
 import ast
 from collections import namedtuple
+from functools import lru_cache
 
 class MyHighlightMatchingBracketProcessor(HighlightMatchingBracketProcessor):
     def _get_positions_to_highlight(self, document):
@@ -114,6 +115,15 @@ class MyHighlightMatchingBracketProcessor(HighlightMatchingBracketProcessor):
 
         return Transformation(fragments)
 
+#####################
+# Pyflakes warnings #
+#####################
+
+# Note:
+# pyflakes counts rows from 1 and columns from 0
+# prompt-toolkit counts rows from 0 and columns from 0
+# SyntaxErrors count rows (lineno) from 1 and columns (offset) from 1
+
 loc = namedtuple("loc", ["lineno", "col_offset"])
 
 class SyntaxErrorMessage(Message):
@@ -124,33 +134,53 @@ class SyntaxErrorMessage(Message):
         self.message_args = (msg,)
         self.text = text
 
-class HighlightPyflakesErrorsProcessor(Processor):
-    def _get_warnings(self, document, buffer_control):
-        # TODO: Add builtins=locals()
+@lru_cache()
+def get_pyflakes_warnings(code, defined_names=frozenset()):
+    """
+    Get pyflakes warnings for code
+
+    Return a list of (row, col, msg, m) tuples, where
+
+    row is the line number (starting at 0),
+    col is the column number (starting at 0),
+    msg is the string message for the warning, and
+    m is the pyflakes Message class for the message
+
+    defined_names should be a frozenset of names which should be considered
+    already defined in the global namespace for the code.
+
+    """
+    # TODO: Cache this as a generator
+    def _get_warnings(code, defined_names):
         try:
-            tree = ast.parse(document.text)
+            tree = ast.parse(code)
         except SyntaxError as e:
             msg, (filename, lineno, offset, text) = e.args
             col = offset - 1
+            row = lineno - 1
             m = SyntaxErrorMessage(filename, loc(lineno, col), msg, text)
-            yield (col, lineno, msg, m)
+            yield (row, col, msg, m)
             return
-        checker = Checker(tree, builtins=buffer_control.buffer.session._locals)
+        checker = Checker(tree, builtins=defined_names)
         messages = checker.messages
         for m in messages:
-            row = m.lineno
+            row = m.lineno - 1
             col = m.col
             msg = m.message % m.message_args
-            yield (col, row, msg, m)
+            yield (row, col, msg, m)
+
+    return list(_get_warnings(code, defined_names))
+
+class HighlightPyflakesErrorsProcessor(Processor):
 
     def apply_transformation(self, transformation_input):
         buffer_control, document, lineno, source_to_display, fragments, width, height = transformation_input.unpack()
 
-        for col, row, text, message in self._get_warnings(document, buffer_control):
-            if isinstance(message, UnusedImport):
+        for row, col, msg, m in get_pyflakes_warnings(document.text, frozenset(buffer_control.buffer.session._locals)):
+            if isinstance(m, UnusedImport):
                 continue
 
-            if row == lineno+1:
+            if row == lineno:
                 # TODO: handle warnings without a column
                 col = endcol = source_to_display(col)
                 fragments = explode_text_fragments(fragments)
@@ -161,13 +191,13 @@ class HighlightPyflakesErrorsProcessor(Processor):
                 if col == len(fragments):
                     fragments += [('', ' ')]
 
-                if isinstance(message, (UndefinedName, UnusedVariable)):
-                    endcol = col + len(message.message_args[0])
+                if isinstance(m, (UndefinedName, UnusedVariable)):
+                    endcol = col + len(m.message_args[0])
                 else:
                     # Highlight the whole line
                     while endcol < len(fragments) and fragments[endcol][1] != '\n':
                         endcol += 1
-                if isinstance(message, SyntaxErrorMessage):
+                if isinstance(m, SyntaxErrorMessage):
                     syntax_error_col = col
                     # Highlight the whole line
                     while col > 0 and fragments[col][1] != '\n':
@@ -179,7 +209,7 @@ class HighlightPyflakesErrorsProcessor(Processor):
                     else:
                         style += ' class:pygments.pyflakeswarning.other '
 
-                    if isinstance(message, SyntaxErrorMessage):
+                    if isinstance(m, SyntaxErrorMessage):
                         # Only color the whole line if the cursor is not on it
                         if lineno == document.cursor_position_row:
                             style = style.replace('class:pygments.pyflakeswarning.other', '')
@@ -187,7 +217,7 @@ class HighlightPyflakesErrorsProcessor(Processor):
 
                     fragments[c] = (style, char)
 
-                if isinstance(message, SyntaxErrorMessage):
+                if isinstance(m, SyntaxErrorMessage):
                     style, char = fragments[syntax_error_col]
                     style += ' class:pygments.pyflakeserror.column '
                     fragments[syntax_error_col] = (style, char)

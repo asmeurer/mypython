@@ -43,6 +43,9 @@ from prompt_toolkit.formatted_text import PygmentsTokens
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.completion import DynamicCompleter, ThreadedCompleter
 from prompt_toolkit.output.color_depth import ColorDepth
+from prompt_toolkit.filters import renderer_height_is_known, is_done
+from prompt_toolkit.layout import (HSplit, ConditionalContainer, Layout,
+    Window, FormattedTextControl, Dimension)
 
 try:
     import iterm2_tools
@@ -56,7 +59,8 @@ from .multiline import document_is_multiline_python
 from .completion import PythonCompleter
 from .theme import OneAMStyle, MyPython3Lexer, emoji
 from .keys import get_key_bindings, LEADING_WHITESPACE
-from .processors import MyHighlightMatchingBracketProcessor, HighlightPyflakesErrorsProcessor
+from .processors import (MyHighlightMatchingBracketProcessor,
+                         HighlightPyflakesErrorsProcessor, get_pyflakes_warnings)
 from .magic import magic, MAGICS
 from .printing import mypython_displayhook
 
@@ -724,6 +728,34 @@ del sys
             session=self,
         )
         return buffer
+
+    def _create_layout(self):
+        layout = super()._create_layout()
+
+        def message():
+            document = self.default_buffer.document
+            warnings = get_pyflakes_warnings(document.text, frozenset(self._locals))
+            cursor_row_col = document.cursor_position_row, document.cursor_position_col
+            for row, col, msg, m in warnings:
+                # Assume they are in order
+                if (row, col) == cursor_row_col:
+                    return msg
+                # if (row, col) > cursor_row_col:
+                #     break
+            return ''
+
+        # Create bottom toolbar.
+        bottom_toolbar = ConditionalContainer(
+            Window(FormattedTextControl(
+                        message,
+                        style='class:bottom-toolbar.text'),
+                   style='class:bottom-toolbar',
+                   dont_extend_height=True,
+                   height=Dimension(min=1)),
+            filter=~is_done & renderer_height_is_known & Condition(message))
+
+        new_layout = HSplit(layout.container.children + [bottom_toolbar])
+        return Layout(new_layout)
 
 class MyTracebackException(traceback.TracebackException):
     def __init__(self, exc_type, exc_value, exc_traceback, *,
