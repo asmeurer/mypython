@@ -163,12 +163,13 @@ def get_pyflakes_warnings(code, defined_names=frozenset(), skip=(UnusedImport,))
 
             endcol = col
             # Highlight the whole line
-            while endcol < len(code) and code[endcol] != '\n':
+            line = code.splitlines()[row]
+            while endcol < len(line) and line[endcol] != '\n':
                 endcol += 1
-            if endcol == len(code) - 1:
-                endcol += 1
-            code = code + ' ' # Handle col = len(code)
-            while col > 0 and code[col] != '\n':
+            # if endcol == len(code) - 1:
+            #     endcol += 1
+            line = line + ' ' # Handle col == len(line)
+            while col > 0 and line[col] != '\n':
                 col -= 1
 
             for c in range(col, endcol):
