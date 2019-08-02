@@ -748,8 +748,8 @@ del sys
         bottom_toolbar = ConditionalContainer(
             Window(FormattedTextControl(
                         message,
-                        style='class:bottom-toolbar.text'),
-                   style='class:bottom-toolbar',
+                        style='class:validation-toolbar.text'),
+                   style='class:validation-toolbar',
                    dont_extend_height=True,
                    height=Dimension(min=1)),
             filter=~is_done & renderer_height_is_known & Condition(message) &
