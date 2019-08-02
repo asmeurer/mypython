@@ -737,9 +737,9 @@ del sys
             warnings = get_pyflakes_warnings(document.text, frozenset(self._locals))
             cursor_row_col = document.cursor_position_row, document.cursor_position_col
             for row, col, msg, m in warnings:
-                # Assume they are in order
                 if (row, col) == cursor_row_col:
                     return msg
+                # Assume they are in order
                 # if (row, col) > cursor_row_col:
                 #     break
             return ''
