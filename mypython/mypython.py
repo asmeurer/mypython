@@ -60,7 +60,8 @@ from .completion import PythonCompleter
 from .theme import OneAMStyle, MyPython3Lexer, emoji
 from .keys import get_key_bindings, LEADING_WHITESPACE
 from .processors import (MyHighlightMatchingBracketProcessor,
-                         HighlightPyflakesErrorsProcessor, get_pyflakes_warnings)
+                         HighlightPyflakesErrorsProcessor,
+                         get_pyflakes_warnings, SyntaxErrorMessage)
 from .magic import magic, MAGICS
 from .printing import mypython_displayhook
 
@@ -229,8 +230,10 @@ style_extra = {
     Token.PyflakesWarning.Cursor: "fg:#ffafaf", # light pink
     Token.PyflakesWarning.Other: "fg:#ffafaf",
     Token.PyflakesError.Cursor: "fg:#ff8700", # dark orange
-    Token.PyflakesError.Other: "fg:#ff8700",
+    Token.PyflakesError.Other: "fg:#ansiwhite bg:#550000",
     Token.PyflakesError.Column: "underline fg:#ff8700",
+    Token.PyflakesSyntaxErrorToolbar: "fg:#ansiwhite bg:#550000", # same as the prompt-toolkit validation-toolbar style
+    Token.PyflakesWarningToolbar: "reverse",
 }
 
 NO_PROMPT_MODE = False
@@ -744,14 +747,31 @@ del sys
                 #     break
             return ''
 
+        def style():
+            document = self.default_buffer.document
+            warnings = get_pyflakes_warnings(document.text, frozenset(self._locals))
+            cursor_row_col = document.cursor_position_row, document.cursor_position_col
+            for row, col, msg, m in warnings:
+                if (row, col) == cursor_row_col:
+                    break
+            else:
+                # Should not happen
+                raise RuntimeError("Unexpected no warning found for %s" % (cursor_row_col,))
+
+            if isinstance(m, SyntaxErrorMessage):
+                return 'class:pygments.pyflakessyntaxerrortoolbar'
+            return 'class:pygments.pyflakeswarningtoolbar'
+
+
         # Create bottom toolbar.
         bottom_toolbar = ConditionalContainer(
-            Window(FormattedTextControl(
-                        message,
-                        style='class:validation-toolbar.text'),
-                   style='class:validation-toolbar',
-                   dont_extend_height=True,
-                   height=Dimension(min=1)),
+            Window(
+                FormattedTextControl(
+                    message,
+                ),
+                style=style,
+                dont_extend_height=True,
+                height=Dimension(min=1)),
             filter=~is_done & renderer_height_is_known & Condition(message) &
             ~Condition(lambda: self.default_buffer.validation_error))
 
