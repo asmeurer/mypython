@@ -135,7 +135,7 @@ class SyntaxErrorMessage(Message):
         self.text = text
 
 @lru_cache()
-def get_pyflakes_warnings(code, defined_names=frozenset()):
+def get_pyflakes_warnings(code, defined_names=frozenset(), skip=(UnusedImport,)):
     """
     Get pyflakes warnings for code
 
@@ -149,6 +149,7 @@ def get_pyflakes_warnings(code, defined_names=frozenset()):
     defined_names should be a frozenset of names which should be considered
     already defined in the global namespace for the code.
 
+    skip should be a tuple of pyflakes message classes to skip.
     """
     # TODO: Cache this as a generator
     def _get_warnings(code, defined_names):
@@ -164,6 +165,8 @@ def get_pyflakes_warnings(code, defined_names=frozenset()):
         checker = Checker(tree, builtins=defined_names)
         messages = checker.messages
         for m in messages:
+            if isinstance(m, skip):
+                continue
             row = m.lineno - 1
             col = m.col
             msg = m.message % m.message_args
