@@ -752,7 +752,8 @@ del sys
                    style='class:bottom-toolbar',
                    dont_extend_height=True,
                    height=Dimension(min=1)),
-            filter=~is_done & renderer_height_is_known & Condition(message))
+            filter=~is_done & renderer_height_is_known & Condition(message) &
+            ~Condition(lambda: self.default_buffer.validation_error))
 
         new_layout = HSplit(layout.container.children + [bottom_toolbar])
         return Layout(new_layout)
