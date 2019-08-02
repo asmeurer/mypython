@@ -19,6 +19,7 @@ from .multiline import (auto_newline, tab_should_insert_whitespace,
     document_is_multiline_python)
 from .tokenize import inside_string, matching_parens
 from .theme import emoji
+from .processors import get_pyflakes_warnings, SyntaxErrorMessage
 
 import re
 import subprocess
@@ -42,7 +43,45 @@ def get_key_bindings():
 
 r = custom_key_bindings = KeyBindings()
 
+def warning_positions(event):
+    document = event.current_buffer.document
+    warnings = get_pyflakes_warnings(document.text, frozenset(event.current_buffer.session._locals))
+    positions = []
+    _m = None
+    for (row, col, msg, m) in warnings:
+        if m is _m:
+            continue
+        _m = m
+        pos = document.translate_row_col_to_index(m.lineno-1, m.col)
+        positions.append(pos)
+    return positions
+
 @r.add_binding(Keys.Escape, 'p')
+def previous_warning(event):
+    positions = warning_positions(event)
+    buffer = event.current_buffer
+    if not positions or positions[0] >= buffer.cursor_position:
+        return
+    p = positions[0]
+    for pos in positions:
+        if pos >= buffer.cursor_position:
+            break
+        p = pos
+    event.current_buffer.cursor_position = p
+
+@r.add_binding(Keys.Escape, 'n')
+def next_warning(event):
+    positions = warning_positions(event)
+    buffer = event.current_buffer
+    if not positions or positions[-1] <= buffer.cursor_position:
+        return
+    p = positions[-1]
+    for pos in reversed(positions):
+        if pos <= buffer.cursor_position:
+            break
+        p = pos
+    event.current_buffer.cursor_position = p
+
 @r.add_binding(Keys.Escape, Keys.Up)
 def previous_history_search(event):
     event.key_sequence[-1].accept_next = True
