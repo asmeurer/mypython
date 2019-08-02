@@ -36,7 +36,8 @@ from prompt_toolkit.layout.utils import explode_text_fragments
 from prompt_toolkit.application import get_app
 
 from pyflakes.checker import Checker
-from pyflakes.messages import UnusedImport, UnusedVariable, UndefinedName, Message
+from pyflakes.messages import (UnusedImport, UnusedVariable, UndefinedName,
+                               Message, ImportStarUsed)
 
 from .tokenize import matching_parens
 
@@ -135,7 +136,7 @@ class SyntaxErrorMessage(Message):
         self.text = text
 
 @lru_cache()
-def get_pyflakes_warnings(code, defined_names=frozenset(), skip=(UnusedImport,)):
+def get_pyflakes_warnings(code, defined_names=frozenset(), skip=(UnusedImport, ImportStarUsed)):
     """
     Get pyflakes warnings for code
 
