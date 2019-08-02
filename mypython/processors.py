@@ -151,11 +151,21 @@ def get_pyflakes_warnings(code, defined_names=frozenset(), skip=(UnusedImport,))
 
     skip should be a tuple of pyflakes message classes to skip.
     """
+    from .mypython import validate_text
     # TODO: Cache this as a generator
     def _get_warnings(code, defined_names):
         try:
             tree = ast.parse(code)
         except SyntaxError as e:
+            try:
+                # TODO: Check things like x? without the ?
+                validate_text(code)
+            except SyntaxError:
+                pass
+            else:
+                # Something like help? that isn't valid Python but shouldn't give warnings
+                return
+
             msg, (filename, lineno, offset, text) = e.args
             col = offset - 1
             row = lineno - 1
