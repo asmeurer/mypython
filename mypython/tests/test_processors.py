@@ -116,3 +116,19 @@ def test_get_pyflakes_warnings_syntaxerror():
         assert w[2] == "SyntaxError: invalid syntax"
         assert isinstance(w[3], SyntaxErrorMessage)
         assert w[3].text == 'a +\n'
+
+
+def test_get_pyflakes_warnings_syntaxerror_multiline():
+    warnings = get_pyflakes_warnings("""\
+a
+01
+""")
+    assert len(warnings) == 3
+    assert warnings[0][:2] == (1, 0)
+    assert warnings[1][:2] == (1, 1)
+    assert warnings[2][:2] == (1, 2)
+
+    for w in warnings:
+        assert w[2] == "SyntaxError: invalid token"
+        assert isinstance(w[3], SyntaxErrorMessage)
+        assert w[3].text == '01\n'
