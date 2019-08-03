@@ -19,7 +19,6 @@ from .multiline import (auto_newline, tab_should_insert_whitespace,
     document_is_multiline_python)
 from .tokenize import inside_string, matching_parens
 from .theme import emoji
-from .processors import get_pyflakes_warnings, SyntaxErrorMessage
 
 import re
 import subprocess
