@@ -103,3 +103,16 @@ def test_get_pyflakes_warnings_magic():
 def test_get_pyflakes_warnings_help():
     warnings = get_pyflakes_warnings("f?")
     assert len(warnings) == 0
+
+def test_get_pyflakes_warnings_syntaxerror():
+    warnings = get_pyflakes_warnings("a +")
+    assert len(warnings) == 4
+    assert warnings[0][:2] == (0, 0)
+    assert warnings[1][:2] == (0, 1)
+    assert warnings[2][:2] == (0, 2)
+    assert warnings[3][:2] == (0, 3)
+
+    for w in warnings:
+        assert w[2] == "SyntaxError: invalid syntax"
+        assert isinstance(w[3], SyntaxErrorMessage)
+        assert w[3].text == 'a +\n'
