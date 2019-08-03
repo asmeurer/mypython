@@ -85,6 +85,12 @@ def next_warning(event):
         p = pos
     event.current_buffer.cursor_position = p
 
+# This can be removed once
+# https://github.com/prompt-toolkit/python-prompt-toolkit/pull/857 is in a
+# released version of prompt-toolkit.
+ANSI_SEQUENCES['\x1b[1;9A'] = (Keys.Escape, Keys.Up)
+ANSI_SEQUENCES['\x1b[1;9B'] = (Keys.Escape, Keys.Down)
+
 @r.add_binding(Keys.Escape, Keys.Up)
 def previous_history_search(event):
     event.key_sequence[-1].accept_next = True
