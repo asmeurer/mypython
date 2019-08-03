@@ -747,9 +747,6 @@ del sys
                     if isinstance(m, SyntaxErrorMessage) and not self.default_buffer._show_syntax_warning:
                         return ''
                     return msg
-                # Assume they are in order
-                # if (row, col) > cursor_row_col:
-                #     break
             return ''
 
         def style():
