@@ -90,6 +90,7 @@ class MyBuffer(Buffer):
         super().__init__(*args, **kwargs)
         self._multiline_history_search_index = None
         self.session = session
+        self._show_syntax_warning = False
 
     def delete_before_cursor(self, count=1):
         self.multiline_history_search_index = None
@@ -179,9 +180,11 @@ class MyBuffer(Buffer):
         """
         return self._history('forward', count=count, history_search=history_search)
 
-def on_text_insert(buf):
-    buf.multiline_history_search_index = None
+def on_text_insert(buffer):
+    buffer.multiline_history_search_index = None
+    buffer._show_syntax_warning = False
 
+# TODO: cache this?
 def validate_text(text):
     """
     Return None if text is valid, or raise SyntaxError.
@@ -741,6 +744,8 @@ del sys
             cursor_row_col = document.cursor_position_row, document.cursor_position_col
             for row, col, msg, m in warnings:
                 if (row, col) == cursor_row_col:
+                    if isinstance(m, SyntaxErrorMessage) and not self.default_buffer._show_syntax_warning:
+                        return ''
                     return msg
                 # Assume they are in order
                 # if (row, col) > cursor_row_col:

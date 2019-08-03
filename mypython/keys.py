@@ -60,6 +60,7 @@ def warning_positions(event):
 def previous_warning(event):
     positions = warning_positions(event)
     buffer = event.current_buffer
+    buffer._show_syntax_warning = True
     if not positions or positions[0] >= buffer.cursor_position:
         return
     p = positions[0]
@@ -67,12 +68,14 @@ def previous_warning(event):
         if pos >= buffer.cursor_position:
             break
         p = pos
+    event.current_buffer._show_syntax_warning = True
     event.current_buffer.cursor_position = p
 
 @r.add_binding(Keys.Escape, 'n')
 def next_warning(event):
     positions = warning_positions(event)
     buffer = event.current_buffer
+    buffer._show_syntax_warning = True
     if not positions or positions[-1] <= buffer.cursor_position:
         return
     p = positions[-1]
