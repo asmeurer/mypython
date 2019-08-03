@@ -186,7 +186,7 @@ def get_pyflakes_warnings(code, defined_names=frozenset(), skip=(UnusedImport, I
                 col -= 1
 
             for c in range(col, endcol):
-                yield (row, c, msg, m)
+                yield (row, c, m.message % m.message_args, m)
             return
 
         checker = Checker(tree, builtins=defined_names)
