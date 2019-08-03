@@ -179,7 +179,9 @@ def get_pyflakes_warnings(code, defined_names=frozenset(), skip=(UnusedImport, I
                 endcol += 1
             if endcol == len(line):
                 endcol += 1
-            line = line + ' ' # Handle col == len(line)
+            if col >= len(line):
+                # Handle col == len(line) and also a bug where the col is very large.
+                line = line + ' '*(col - len(line) + 1)
             while col > 0 and line[col] != '\n':
                 col -= 1
 
