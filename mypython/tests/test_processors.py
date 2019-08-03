@@ -95,3 +95,11 @@ def test_get_pyflakes_warnings_syntaxerror_bug():
     assert warnings
     for w in warnings:
         assert isinstance(w[3], SyntaxErrorMessage)
+
+def test_get_pyflakes_warnings_magic():
+    warnings = get_pyflakes_warnings("%debug")
+    assert len(warnings) == 0
+
+def test_get_pyflakes_warnings_help():
+    warnings = get_pyflakes_warnings("f?")
+    assert len(warnings) == 0
