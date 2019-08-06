@@ -23,8 +23,6 @@ install:
   - source activate test-environment
 
 script:
-  - python -We::SyntaxWarning -m compileall -f -q mypython/
-  # Remove the second one once we have Python 3.8
-  - python -We:invalid -m compileall -f -q mypython/
+  - python -We:invalid -We::SyntaxWarning -m compileall -f -q mypython/
   - pyflakes mypython bin/mypython
   - pythonw -m pytest -vvv --fulltrace
