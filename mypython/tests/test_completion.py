@@ -33,7 +33,7 @@ def _input_with_tabs(text, _input, sleep_time=0.8):
         time.sleep(sleep_time)
 
 
-def _test_completion(text, min_time=0.1, max_time=2, runs=3):
+def _test_completion(text, min_time=0.1, max_time=5, runs=5):
     # TODO: Figure out how to test this without executing the command
 
     # Make sure we have a globals dict with the builtins in it
