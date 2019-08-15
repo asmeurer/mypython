@@ -71,6 +71,7 @@
 - C-c > indentation removes selection
 - Sometimes syntax errors can have an offset of 0
 - Syntax warning on indented code
+- Add %pager magic
 
 ## 2.0 TODOs
 
