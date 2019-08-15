@@ -72,6 +72,7 @@
 - Sometimes syntax errors can have an offset of 0
 - Syntax warning on indented code
 - Add %pager magic
+- mypython line has smart_eval in traceback from %pudb
 
 ## 2.0 TODOs
 
