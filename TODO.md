@@ -73,6 +73,7 @@
 - Syntax warning on indented code
 - Add %pager magic
 - mypython line has smart_eval in traceback from %pudb
+- paste magic should strip leading whitespace from IPython prompts
 
 ## 2.0 TODOs
 
