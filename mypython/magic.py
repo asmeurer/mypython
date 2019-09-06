@@ -266,6 +266,7 @@ with _Profiler() as _profiler:
 {rest}
 
 _profiler.open_in_browser()
+del _profiler
 """
     return res.format(rest=textwrap.indent(rest, '    '))
 
@@ -274,7 +275,6 @@ def error_magic(rest):
     Always raise an exception. For testing.
     """
     raise RuntimeError("Error magic")
-
 
 def echo_magic(rest):
     """
