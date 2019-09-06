@@ -281,6 +281,9 @@ def red(text):
 def blue(text):
     return "\033[34m%s\033[0m" % text
 
+def underline(text):
+    return '\033[4m%s\033[0m' % text
+
 def myhelp(item):
     help_io = StringIO()
     helper = Helper(output=help_io)
