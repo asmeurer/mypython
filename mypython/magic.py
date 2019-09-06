@@ -259,14 +259,13 @@ def pyinstrument_magic(rest):
     """
     res = """\
 from pyinstrument import Profiler as _Profiler
-import inspect
 
 with _Profiler() as _profiler:
     pass
 {rest}
 
 _profiler.open_in_browser()
-del _profiler
+del _profiler, _Profiler
 """
     return res.format(rest=textwrap.indent(rest, '    '))
 
