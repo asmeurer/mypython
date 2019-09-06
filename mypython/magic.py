@@ -253,6 +253,21 @@ def ast_expr_for_pudb(p, name='_val'):
         ast.fix_missing_locations(p)
     return p
 
+def pyinstrument_magic(rest):
+    """
+    Profile the code with pyinstrument.
+    """
+    res = """\
+from pyinstrument import Profiler as _Profiler
+import inspect
+
+with _Profiler() as _profiler:
+{rest}
+
+_profiler.open_in_browser()
+"""
+    return res.format(rest=textwrap.indent(rest, '    '))
+
 def error_magic(rest):
     """
     Always raise an exception. For testing.
