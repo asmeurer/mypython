@@ -67,7 +67,6 @@
 - Issue pasting multiple lines with typeahead
 - Automatic indentation after indenting closing triple quoted string
 - Make tab work like in emacs
-- pyflakes errors
 - C-c > indentation removes selection
 - Sometimes syntax errors can have an offset of 0
 - Syntax warning on indented code
