@@ -262,6 +262,7 @@ from pyinstrument import Profiler as _Profiler
 import inspect
 
 with _Profiler() as _profiler:
+    pass
 {rest}
 
 _profiler.open_in_browser()
