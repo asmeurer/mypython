@@ -483,6 +483,19 @@ def smart_eval(stmt, _globals, _locals, filename=None, *, ast_transformer=None):
 
     To transform the ast before compiling it, pass in an ast_transformer
     function. It should take in an ast and return a new ast.
+
+    Examples:
+
+        >>> g = l = {}
+        >>> smart_eval('1 + 1', g, l)
+        2
+        >>> smart_eval('a = 1 + 1', g, l)
+        <class 'mypython.mypython.NoResult'>
+        >>> g['a']
+        2
+        >>> smart_eval('a = 1 + 1; a', g, l)
+        2
+
     """
     if filename:
         if filename != "<stdin>":
