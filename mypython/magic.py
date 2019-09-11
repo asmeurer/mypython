@@ -260,14 +260,16 @@ def pyinstrument_magic(rest):
     res = """\
 from pyinstrument import Profiler as _Profiler
 
-with _Profiler() as _profiler:
-    pass
+try:
+    with _Profiler() as _profiler:
+        pass
 {rest}
 
-_profiler.open_in_browser()
-del _profiler, _Profiler
+    _profiler.open_in_browser()
+finally:
+    del _profiler, _Profiler
 """
-    return res.format(rest=textwrap.indent(rest, '    '))
+    return res.format(rest=textwrap.indent(rest, ' '*8))
 
 def error_magic(rest):
     """
