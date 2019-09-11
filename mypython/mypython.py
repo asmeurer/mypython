@@ -467,7 +467,9 @@ def smart_eval(stmt, _globals, _locals, filename=None, *, ast_transformer=None):
     Automatically exec/eval stmt.
 
     Returns the result if eval, or NoResult if it was an exec. Or raises if
-    the stmt is a syntax error or raises an exception.
+    the stmt is a syntax error or raises an exception. If stmt is multiple
+    statements ending in an expression, the statements are exec-ed and the
+    final expression is eval-ed and returned as the result.
 
     filename should be the filename used for compiling the statement. If
     given, the statement will be saved to the Python linecache, so that it
