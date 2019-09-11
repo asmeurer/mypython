@@ -616,7 +616,14 @@ del sys
         self._locals.update(builtins)
 
         if not self.quiet:
-            print_formatted_text(MyPygmentsTokens([(Token.Welcome, "Welcome to mypython.\n")]))
+            if sys.version_info[3] == 'final':
+                version = '.'.join(map(str, sys.version_info[:3]))
+            else:
+                version = '.'.join(map(str, sys.version_info))
+            print_formatted_text(MyPygmentsTokens([
+                (Token.Welcome, "%s (version %s)\nWelcome to mypython.\n" %
+                 (sys.executable, version))
+            ]))
             if self.cat:
                 try:
                     import catimg
