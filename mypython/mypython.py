@@ -467,7 +467,9 @@ def smart_eval(stmt, _globals, _locals, filename=None, *, ast_transformer=None):
     Automatically exec/eval stmt.
 
     Returns the result if eval, or NoResult if it was an exec. Or raises if
-    the stmt is a syntax error or raises an exception.
+    the stmt is a syntax error or raises an exception. If stmt is multiple
+    statements ending in an expression, the statements are exec-ed and the
+    final expression is eval-ed and returned as the result.
 
     filename should be the filename used for compiling the statement. If
     given, the statement will be saved to the Python linecache, so that it
@@ -481,6 +483,19 @@ def smart_eval(stmt, _globals, _locals, filename=None, *, ast_transformer=None):
 
     To transform the ast before compiling it, pass in an ast_transformer
     function. It should take in an ast and return a new ast.
+
+    Examples:
+
+        >>> g = l = {}
+        >>> smart_eval('1 + 1', g, l)
+        2
+        >>> smart_eval('a = 1 + 1', g, l)
+        <class 'mypython.mypython.NoResult'>
+        >>> g['a']
+        2
+        >>> smart_eval('a = 1 + 1; a', g, l)
+        2
+
     """
     if filename:
         if filename != "<stdin>":
@@ -616,7 +631,14 @@ del sys
         self._locals.update(builtins)
 
         if not self.quiet:
-            print_formatted_text(MyPygmentsTokens([(Token.Welcome, "Welcome to mypython.\n")]))
+            if sys.version_info[3] == 'final':
+                version = '.'.join(map(str, sys.version_info[:3]))
+            else:
+                version = '.'.join(map(str, sys.version_info))
+            print_formatted_text(MyPygmentsTokens([
+                (Token.Welcome, "%s (version %s)\nWelcome to mypython.\n" %
+                 (sys.executable, version))
+            ]))
             if self.cat:
                 try:
                     import catimg

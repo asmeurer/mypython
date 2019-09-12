@@ -74,6 +74,7 @@
 - mypython line has smart_eval in traceback from %pudb
 - paste magic should strip leading whitespace from IPython prompts
 - numba exceptions sometimes show <mypython> in doctest mode (https://github.com/numba/numba/issues/4542)
+- Use a cleaner way of isolating variables in magics
 - No dircompletion on doctree objects
 
 ## 2.0 TODOs
