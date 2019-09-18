@@ -636,7 +636,7 @@ del sys
             else:
                 version = '.'.join(map(str, sys.version_info))
             print_formatted_text(MyPygmentsTokens([
-                (Token.Welcome, "%s (version %s)\nWelcome to mypython.\n" %
+                (Token.Welcome, "Welcome to mypython.\n%s (version %s)\n" %
                  (sys.executable, version))
             ]))
             if self.cat:
