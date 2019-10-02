@@ -472,10 +472,10 @@ def smart_eval(stmt, _globals, _locals, filename=None, *, ast_transformer=None):
     final expression is eval-ed and returned as the result.
 
     filename should be the filename used for compiling the statement. If
-    given, the statement will be saved to the Python linecache, so that it
-    appears in tracebacks. Otherwise, a default filename is used and it isn't
-    saved to the linecache. To work properly, "fake" filenames should start
-    with < and end with >, and be unique for each stmt.
+    given, stmt will be saved to the Python linecache, so that it appears in
+    tracebacks. Otherwise, a default filename is used and it isn't saved to the
+    linecache. To work properly, "fake" filenames should start with < and end
+    with >, and be unique for each stmt.
 
     Note that classes defined with this will have their module set to
     '__main__'.  To change this, set _globals['__name__'] to the desired
