@@ -48,7 +48,6 @@
 - Extra indentation when pasting a function from a doctest
 - Importing pyplot causes Python app to become focused
 - Make In a list like IPython?
-- --cmd items being kept in history (see https://github.com/jonathanslenders/python-prompt-toolkit/issues/762)
 - Multiline prompt paste fails when there are no continuation prompts
 - PuDB needs a new filename even when the old one's prompt didn't return
 - Newlines at the end of the prompt not being cleared from history (https://github.com/prompt-toolkit/python-prompt-toolkit/pull/800)

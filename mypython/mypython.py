@@ -23,6 +23,15 @@ from io import StringIO
 from textwrap import dedent
 from pydoc import pager, Helper
 from collections import deque
+from contextlib import contextmanager
+
+try:
+    # Python 3.7 only
+    from contextlib import nullcontext
+except:
+    @contextmanager
+    def nullcontext():
+        yield
 
 from pygments.lexers import Python3Lexer, Python3TracebackLexer
 from pygments.formatters import TerminalTrueColorFormatter
@@ -91,6 +100,7 @@ class MyBuffer(Buffer):
         self._multiline_history_search_index = None
         self.session = session
         self._show_syntax_warning = False
+        self._append_history = True
 
     def delete_before_cursor(self, count=1):
         self.multiline_history_search_index = None
@@ -179,6 +189,19 @@ class MyBuffer(Buffer):
 
         """
         return self._history('forward', count=count, history_search=history_search)
+
+    def append_to_history(self):
+        if self._append_history:
+            super().append_to_history()
+
+    @contextmanager
+    def disable_history(self):
+        old_append_history = self._append_history
+        try:
+            self._append_history = False
+            yield
+        finally:
+            self._append_history = old_append_history
 
 def on_text_insert(buffer):
     buffer.multiline_history_search_index = None
@@ -915,13 +938,17 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
             default = ''
             if CMD_QUEUE:
                 default = CMD_QUEUE.popleft()
-                if cmd:
-                    cmd = None
             elif _exit:
                 break
 
             # TODO: Should we use patch_stdout()?
-            command = prompt.prompt(default=default, accept_default=default)
+            if cmd:
+                context = prompt.default_buffer.disable_history()
+                cmd = None
+            else:
+                context = nullcontext()
+            with context:
+                command = prompt.prompt(default=default, accept_default=default)
         except KeyboardInterrupt:
             # TODO: Keep it in the history
             print("KeyboardInterrupt\n", file=sys.stderr)
