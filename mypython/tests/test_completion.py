@@ -8,6 +8,9 @@ from ..dircompletion import DirCompleter
 
 from .test_mypython import _run_session_with_text, _build_test_session
 
+import flaky
+retry = flaky.flaky(max_runs=5)
+
 UP_TO_TAB = re.compile('[^\t]*\t?')
 def _input_with_tabs(text, _input, sleep_time=0.8):
     """
@@ -32,7 +35,6 @@ def _input_with_tabs(text, _input, sleep_time=0.8):
         _input.send_text(t)
         time.sleep(sleep_time)
 
-
 def _test_completion(text, min_time=0.1, max_time=2, runs=3):
     # TODO: Figure out how to test this without executing the command
 
@@ -53,6 +55,7 @@ def _test_completion(text, min_time=0.1, max_time=2, runs=3):
             break
     return result
 
+@retry
 def test_completions():
     assert _test_completion('copy\t\n') == "copyright"
 
