@@ -75,6 +75,7 @@
 - numba exceptions sometimes show <mypython> in doctest mode (https://github.com/numba/numba/issues/4542)
 - Use a cleaner way of isolating variables in magics
 - No dircompletion on doctree objects
+- exit() inside of pudb kills the process
 
 ## 2.0 TODOs
 
