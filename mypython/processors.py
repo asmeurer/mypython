@@ -45,6 +45,10 @@ import ast
 from collections import namedtuple
 from functools import lru_cache
 
+###########################################
+# Highlight matching/mismatching brackets #
+###########################################
+
 class MyHighlightMatchingBracketProcessor(HighlightMatchingBracketProcessor):
     def _get_positions_to_highlight(self, document):
         """
