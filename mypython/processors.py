@@ -45,6 +45,10 @@ import ast
 from collections import namedtuple
 from functools import lru_cache
 
+###########################################
+# Highlight matching/mismatching brackets #
+###########################################
+
 class MyHighlightMatchingBracketProcessor(HighlightMatchingBracketProcessor):
     def _get_positions_to_highlight(self, document):
         """
@@ -189,7 +193,10 @@ def get_pyflakes_warnings(code, defined_names=frozenset(), skip=(UnusedImport, I
                 yield (row, c, m.message % m.message_args, m)
             return
 
-        checker = Checker(tree, builtins=defined_names)
+        try:
+            checker = Checker(tree, builtins=defined_names)
+        except RecursionError:
+            return
         messages = checker.messages
         for m in messages:
             if isinstance(m, skip):
