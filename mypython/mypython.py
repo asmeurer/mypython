@@ -623,7 +623,7 @@ class Session(PromptSession):
         # This is needed to make matplotlib plots work
         if sys.platform == 'darwin':
             from .inputhook import inputhook
-            kwargs.setdefault('inputhook', inputhook)
+            # kwargs.setdefault('inputhook', inputhook)
 
         self._globals = _globals
         self._locals = _locals
