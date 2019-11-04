@@ -444,6 +444,8 @@ def indentation(text):
             assert not line or line.startswith(margin), \
                    "line = %r, margin = %r" % (line, margin)
 
+    if margin is None:
+        return ''
     return margin
 
 def dedent(text, margin):

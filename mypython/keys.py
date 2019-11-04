@@ -19,7 +19,7 @@ from .multiline import (auto_newline, tab_should_insert_whitespace,
     document_is_multiline_python)
 from .tokenize import inside_string, matching_parens
 from .theme import emoji
-from .processors import get_pyflakes_warnings
+from .processors import get_pyflakes_warnings, SyntaxErrorMessage
 
 import re
 import subprocess
@@ -47,12 +47,12 @@ def warning_positions(event):
     document = event.current_buffer.document
     warnings = get_pyflakes_warnings(document.text, frozenset(event.current_buffer.session._locals))
     positions = []
-    _m = None
     for (row, col, msg, m) in warnings:
-        if m is _m:
+        # Handle SyntaxErrorMessage which is the same warning for the whole
+        # line.
+        if isinstance(m, SyntaxErrorMessage) and m.col != col:
             continue
-        _m = m
-        pos = document.translate_row_col_to_index(m.lineno-1, m.col)
+        pos = document.translate_row_col_to_index(row, col)
         positions.append(pos)
     return positions
 

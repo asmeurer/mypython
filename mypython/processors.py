@@ -39,7 +39,7 @@ from pyflakes.checker import Checker
 from pyflakes.messages import (UnusedImport, UnusedVariable, UndefinedName,
                                Message, ImportStarUsed)
 
-from .tokenize import matching_parens
+from .tokenize import matching_parens, indentation, dedent
 
 import ast
 from collections import namedtuple
@@ -158,6 +158,10 @@ def get_pyflakes_warnings(code, defined_names=frozenset(), skip=(UnusedImport, I
     """
     from .mypython import validate_text
     # TODO: Cache this as a generator
+    margin = indentation(code)
+    code = dedent(code, margin)
+    col_offset = len(margin)
+
     def _get_warnings(code, defined_names):
         try:
             tree = ast.parse(code)
@@ -174,7 +178,7 @@ def get_pyflakes_warnings(code, defined_names=frozenset(), skip=(UnusedImport, I
             msg, (filename, lineno, offset, text) = e.args
             col = offset - 1
             row = lineno - 1
-            m = SyntaxErrorMessage(filename, loc(lineno, col), msg, text)
+            m = SyntaxErrorMessage(filename, loc(lineno, col + col_offset), msg, text)
 
             endcol = col
             # Highlight the whole line
@@ -189,7 +193,7 @@ def get_pyflakes_warnings(code, defined_names=frozenset(), skip=(UnusedImport, I
             while col > 0 and line[col] != '\n':
                 col -= 1
 
-            for c in range(col, endcol):
+            for c in range(col + col_offset, endcol + col_offset):
                 yield (row, c, m.message % m.message_args, m)
             return
 
@@ -213,7 +217,8 @@ def get_pyflakes_warnings(code, defined_names=frozenset(), skip=(UnusedImport, I
                 while endcol < len(code) and code[endcol] != '\n':
                     endcol += 1
 
-            for c in range(col, endcol):
+
+            for c in range(col + col_offset, endcol + col_offset):
                 yield (row, c, msg, m)
 
     return list(_get_warnings(code, defined_names))
