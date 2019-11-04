@@ -221,7 +221,7 @@ def get_pyflakes_warnings(code, defined_names=frozenset(), skip=(UnusedImport, I
             for c in range(col + col_offset, endcol + col_offset):
                 yield (row, c, msg, m)
 
-    return list(_get_warnings(code, defined_names))
+    return sorted(_get_warnings(code, defined_names))
 
 class HighlightPyflakesErrorsProcessor(Processor):
 
