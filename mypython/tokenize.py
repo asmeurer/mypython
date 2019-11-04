@@ -11,6 +11,7 @@ from tokenize import tokenize, TokenError
 from tokenize import (LPAR, RPAR, LSQB, RSQB, LBRACE, RBRACE, ERRORTOKEN, STRING,
     COLON, AT, ENDMARKER, DEDENT, NAME, NEWLINE, ENCODING)
 import ast
+import re
 
 braces = {
     LPAR: RPAR,
@@ -338,3 +339,114 @@ def is_multiline_python(text):
         return True
 
     return prev.exact_type == COLON or (prev.exact_type == NEWLINE and prevprev.exact_type == COLON)
+
+# Taken from standard library textwrap module
+
+# Changes:
+
+# - Renamed dedent() to indentation() and made it return the indentation level
+#   of the text instead of dedenting it.
+
+# - Made dedent() function that applies dedentation to text and a margin
+
+# Copyright (C) 1999-2001 Gregory P. Ward.
+# Copyright (C) 2002, 2003 Python Software Foundation.
+# Written by Greg Ward <gward@python.net>
+
+# 1. This LICENSE AGREEMENT is between the Python Software Foundation ("PSF"), and
+#    the Individual or Organization ("Licensee") accessing and otherwise using Python
+#    3.6.0 software in source or binary form and its associated documentation.
+#
+# 2. Subject to the terms and conditions of this License Agreement, PSF hereby
+#    grants Licensee a nonexclusive, royalty-free, world-wide license to reproduce,
+#    analyze, test, perform and/or display publicly, prepare derivative works,
+#    distribute, and otherwise use Python 3.6.0 alone or in any derivative
+#    version, provided, however, that PSF's License Agreement and PSF's notice of
+#    copyright, i.e., "Copyright © 2001-2017 Python Software Foundation; All Rights
+#    Reserved" are retained in Python 3.6.0 alone or in any derivative version
+#    prepared by Licensee.
+#
+# 3. In the event Licensee prepares a derivative work that is based on or
+#    incorporates Python 3.6.0 or any part thereof, and wants to make the
+#    derivative work available to others as provided herein, then Licensee hereby
+#    agrees to include in any such work a brief summary of the changes made to Python
+#    3.6.0.
+#
+# 4. PSF is making Python 3.6.0 available to Licensee on an "AS IS" basis.
+#    PSF MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED.  BY WAY OF
+#    EXAMPLE, BUT NOT LIMITATION, PSF MAKES NO AND DISCLAIMS ANY REPRESENTATION OR
+#    WARRANTY OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT THE
+#    USE OF PYTHON 3.6.0 WILL NOT INFRINGE ANY THIRD PARTY RIGHTS.
+#
+# 5. PSF SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF PYTHON 3.6.0
+#    FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR LOSS AS A RESULT OF
+#    MODIFYING, DISTRIBUTING, OR OTHERWISE USING PYTHON 3.6.0, OR ANY DERIVATIVE
+#    THEREOF, EVEN IF ADVISED OF THE POSSIBILITY THEREOF.
+#
+# 6. This License Agreement will automatically terminate upon a material breach of
+#    its terms and conditions.
+#
+# 7. Nothing in this License Agreement shall be deemed to create any relationship
+#    of agency, partnership, or joint venture between PSF and Licensee.  This License
+#    Agreement does not grant permission to use PSF trademarks or trade name in a
+#    trademark sense to endorse or promote products or services of Licensee, or any
+#    third party.
+#
+# 8. By copying, installing or otherwise using Python 3.6.0, Licensee agrees
+#    to be bound by the terms and conditions of this License Agreement.
+
+_whitespace_only_re = re.compile('^[ \t]+$', re.MULTILINE)
+_leading_whitespace_re = re.compile('(^[ \t]*)(?:[^ \t\n])', re.MULTILINE)
+
+def indentation(text):
+    """Remove any common leading whitespace from every line in `text`.
+
+    This can be used to make triple-quoted strings line up with the left
+    edge of the display, while still presenting them in the source code
+    in indented form.
+
+    Note that tabs and spaces are both treated as whitespace, but they
+    are not equal: the lines "  hello" and "\\thello" are
+    considered to have no common leading whitespace.  (This behaviour is
+    new in Python 2.5; older versions of this module incorrectly
+    expanded tabs before searching for common leading whitespace.)
+    """
+    # Look for the longest leading string of spaces and tabs common to
+    # all lines.
+    margin = None
+    text = _whitespace_only_re.sub('', text)
+    indents = _leading_whitespace_re.findall(text)
+    for indent in indents:
+        if margin is None:
+            margin = indent
+
+        # Current line more deeply indented than previous winner:
+        # no change (previous winner is still on top).
+        elif indent.startswith(margin):
+            pass
+
+        # Current line consistent with and no deeper than previous winner:
+        # it's the new winner.
+        elif margin.startswith(indent):
+            margin = indent
+
+        # Find the largest common whitespace between current line and previous
+        # winner.
+        else:
+            for i, (x, y) in enumerate(zip(margin, indent)):
+                if x != y:
+                    margin = margin[:i]
+                    break
+
+    # sanity check (testing/debugging only)
+    if 0 and margin:
+        for line in text.split("\n"):
+            assert not line or line.startswith(margin), \
+                   "line = %r, margin = %r" % (line, margin)
+
+    return margin
+
+def dedent(text, margin):
+    if margin:
+        text = re.sub(r'(?m)^' + margin, '', text)
+    return text
