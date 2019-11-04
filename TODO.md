@@ -68,7 +68,6 @@
 - Make tab work like in emacs
 - C-c > indentation removes selection
 - Sometimes syntax errors can have an offset of 0
-- Syntax warning on indented code
 - Add %pager magic
 - mypython line has smart_eval in traceback from %pudb
 - paste magic should strip leading whitespace from IPython prompts
