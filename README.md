@@ -47,8 +47,10 @@ without any additional work (unlike REPLs based on readline).
   times in the terminal (using iTerm2).
 - `%doctest` mode to emulate standard Python REPL (for copy-paste purposes).
 - `%sympy` magic (works like `sympy.init_session()`.
+- `%pyinstrument` magic to run code with
+  [pyinstrument](https://github.com/joerick/pyinstrument).
 - `%pudb` magic to run code in [PuDB](https://documen.tician.de/pudb/).
-  Debugging functions defined interactively is possible.
+- Debugging functions defined interactively works.
 - SymPy objects automatically pretty print.
 - [Shell integration](https://www.iterm2.com/documentation-shell-integration.html) with iTerm2.
 - GUI Matplotlib plots on macOS work correctly.
