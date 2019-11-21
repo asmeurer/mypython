@@ -31,6 +31,7 @@ without any additional work (unlike REPLs based on readline).
 - prompts are stripped automatically from pasted text.
 - Emacs command editing keybindings.
 - Automatic syntax highlighting.
+- Automatic highlighting of errors via pyflakes.
 - On syntax error, the cursor is moved to the error.
 - Matching and mismatching parentheses highlighting.
 - Tracebacks for stuff defined interactively show the code line.
