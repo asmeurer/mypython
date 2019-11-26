@@ -76,6 +76,8 @@ from [conda-forge](https://conda-forge.github.io/):
 - catimg
 - matplotlib
 - seaborn
+- jedi
+- pyflakes
 
 # Configuration
 
