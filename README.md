@@ -24,7 +24,12 @@ without any additional work (unlike REPLs based on readline).
 # Features
 
 - Fancy emoji numbered prompts.
+- Multiline input, which "just works"
 - Keyboard shortcuts configured exactly the way I like them.
+- History search (M-Up/Down Arrow) can be used to combine multiple things from
+  the history.
+- Up/down automatically go to the top/bottom of multiline inputs from the
+  history. Up+Enter intelligently executes.
 - Outputs saved as `_1`, `_2`, etc.. Previous outputs saved in `_`, `__`, and
   `___`.
 - Support for bracketed paste (pasting stuff in the terminal "just works"
@@ -36,7 +41,7 @@ without any additional work (unlike REPLs based on readline).
 - On syntax error, the cursor is moved to the error.
 - Matching and mismatching parentheses highlighting.
 - Tracebacks for stuff defined interactively show the code line.
-- Tab completion using [Jedi](https://github.com/davidhalter/jedi).
+- Tab completion using [Jedi](https://github.com/davidhalter/jedi) and `dir()`.
 - Per-terminal history.
 - A nice theme (the same one I use in emacs, called "1am", based on XCode's
   "midnight").
