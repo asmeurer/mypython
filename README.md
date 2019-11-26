@@ -25,7 +25,8 @@ without any additional work (unlike REPLs based on readline).
 
 - Fancy emoji numbered prompts.
 - Keyboard shortcuts configured exactly the way I like them.
-- Outputs saved as `_NUM`. Previous outputs saved in `_`, `__`, and `___`.
+- Outputs saved as `_1`, `_2`, etc.. Previous outputs saved in `_`, `__`, and
+  `___`.
 - Support for bracketed paste (pasting stuff in the terminal "just works"
   without the need for any %paste magic or a special "paste" mode).
 - prompts are stripped automatically from pasted text.
