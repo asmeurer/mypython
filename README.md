@@ -57,6 +57,7 @@ without any additional work (unlike REPLs based on readline).
   [pyinstrument](https://github.com/joerick/pyinstrument).
 - `%pudb` magic to run code in [PuDB](https://documen.tician.de/pudb/).
 - Debugging functions defined interactively works.
+- Integration as a custom shell for PuDB.
 - SymPy objects automatically pretty print.
 - [Shell integration](https://www.iterm2.com/documentation-shell-integration.html) with iTerm2.
 - GUI Matplotlib plots on macOS work correctly.
