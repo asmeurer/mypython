@@ -76,6 +76,7 @@
 - No dircompletion on doctree objects
 - exit() inside of pudb kills the process
 - Shift down does not work in Linux
+- Files are not flushed at exit
 
 ## 2.0 TODOs
 
