@@ -77,6 +77,7 @@
 - exit() inside of pudb kills the process
 - Shift down does not work in Linux
 - Files are not flushed at exit
+- ? should fail if the input is not an expression
 
 ## 2.0 TODOs
 
