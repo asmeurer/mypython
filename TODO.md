@@ -79,6 +79,11 @@
 - Files are not flushed at exit
 - ? should fail if the input is not an expression
 - Add C-v M-v shortcuts
+- Incorrect pyflakes highlighting
+
+      import h5py
+      from versioned_hdf5.versions import *
+      create_hashtable
 
 ## 2.0 TODOs
 
