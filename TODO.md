@@ -85,6 +85,8 @@
       from versioned_hdf5.versions import *
       create_hashtable
 
+- Match indentation on paste
+
 ## 2.0 TODOs
 
 - Make all keybindings assign a Document
