@@ -71,7 +71,7 @@ from .keys import get_key_bindings, LEADING_WHITESPACE
 from .processors import (MyHighlightMatchingBracketProcessor,
                          HighlightPyflakesErrorsProcessor,
                          get_pyflakes_warnings, SyntaxErrorMessage)
-from .magic import magic, MAGICS
+from .magic import magic, MAGICS, NON_PYTHON_MAGICS
 from .printing import mypython_displayhook
 
 class MyPygmentsTokens(PygmentsTokens):
@@ -218,6 +218,8 @@ def validate_text(text):
         text = text.rstrip('?')
     elif any(text.startswith(i) for i in MAGICS):
         if ' ' not in text.splitlines()[0]:
+            text = ''
+        elif any(text.startswith(i) for i in NON_PYTHON_MAGICS):
             text = ''
         else:
             magic, text = text.split(' ', 1)

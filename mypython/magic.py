@@ -13,6 +13,10 @@ itself.
 import textwrap
 import ast
 import copy
+import shlex
+import subprocess
+import platform
+from functools import wraps
 
 def magic(command):
     """
@@ -37,6 +41,15 @@ def magic(command):
     if not result.endswith('\n'):
         result = result + '\n'
     return result
+
+NON_PYTHON_MAGICS = []
+
+def nonpython(f):
+    @wraps(f)
+    def inner(rest):
+        return f(rest)
+    NON_PYTHON_MAGICS.append('%' + f.__name__[:-len('_magic')])
+    return inner
 
 def error(message):
     return """\
@@ -270,6 +283,19 @@ finally:
     del _profiler, _Profiler
 """
     return res.format(rest=textwrap.indent(rest, ' '*8))
+
+@nonpython
+def ls_magic(rest):
+    """
+    Run ls.
+    """
+    if "Linux" in platform.platform():
+        ls=['ls', '--color', '-AFlha']
+    else:
+        ls = ['ls', '-AGFlha']
+
+    subprocess.run(ls + shlex.split(rest.strip()))
+    return ''
 
 def error_magic(rest):
     """
