@@ -403,7 +403,7 @@ ALL_KEYS.append('<Shift-Enter>')
 ANSI_SEQUENCES['\x1b[ag'] = Keys.ShiftEnter
 ANSI_SEQUENCES['\x1bOM'] = Keys.ShiftEnter
 
-r.add_binding(Keys.ShiftEnter)(accept_line)
+# r.add_binding(Keys.ShiftEnter)(accept_line)
 
 @r.add_binding(Keys.Tab, filter=tab_should_insert_whitespace)
 def indent(event):
@@ -733,7 +733,7 @@ ANSI_SEQUENCES['\x1b[ab'] = Keys.ControlQuestionmark
 # This won't work until
 # https://github.com/jonathanslenders/python-prompt-toolkit/pull/484 is
 # merged.
-@r.add_binding(Keys.ControlQuestionmark, save_before=lambda e: False)
+# @r.add_binding(Keys.ControlQuestionmark, save_before=lambda e: False)
 def redo(event):
     event.current_buffer.redo()
 

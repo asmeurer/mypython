@@ -40,9 +40,9 @@ def _run_session_with_text(session, text, close=False):
         session.input.send_text(text)
 
     try:
-        with session._auto_refresh_context():
-            session.default_buffer.reset(Document(''))
-            result = session.app.run()
+        # with session._auto_refresh_context():
+        session.default_buffer.reset(Document(''))
+        result = session.app.run()
         return result
     finally:
         if close:
