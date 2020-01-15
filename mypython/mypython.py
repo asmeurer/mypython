@@ -55,6 +55,7 @@ from prompt_toolkit.output.color_depth import ColorDepth
 from prompt_toolkit.filters import renderer_height_is_known, is_done
 from prompt_toolkit.layout import (HSplit, ConditionalContainer, Layout,
     Window, FormattedTextControl, Dimension)
+from prompt_toolkit import __version__ as prompt_toolkit_version
 
 try:
     import iterm2_tools
@@ -625,7 +626,8 @@ class Session(PromptSession):
         # This is needed to make matplotlib plots work
         if sys.platform == 'darwin':
             from .inputhook import inputhook
-            # kwargs.setdefault('inputhook', inputhook)
+            if prompt_toolkit_version[0] != '3':
+                kwargs.setdefault('inputhook', inputhook)
 
         self._globals = _globals
         self._locals = _locals

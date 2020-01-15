@@ -15,6 +15,8 @@ from prompt_toolkit.input.vt100_parser import ANSI_SEQUENCES
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.application import run_in_terminal
 
+from prompt_toolkit import __version__ as prompt_toolkit_version
+
 from .multiline import (auto_newline, tab_should_insert_whitespace,
     document_is_multiline_python)
 from .tokenize import inside_string, matching_parens
@@ -403,7 +405,8 @@ ALL_KEYS.append('<Shift-Enter>')
 ANSI_SEQUENCES['\x1b[ag'] = Keys.ShiftEnter
 ANSI_SEQUENCES['\x1bOM'] = Keys.ShiftEnter
 
-# r.add_binding(Keys.ShiftEnter)(accept_line)
+if prompt_toolkit_version[0] != '3':
+    r.add_binding(Keys.ShiftEnter)(accept_line)
 
 @r.add_binding(Keys.Tab, filter=tab_should_insert_whitespace)
 def indent(event):
@@ -733,9 +736,10 @@ ANSI_SEQUENCES['\x1b[ab'] = Keys.ControlQuestionmark
 # This won't work until
 # https://github.com/jonathanslenders/python-prompt-toolkit/pull/484 is
 # merged.
-# @r.add_binding(Keys.ControlQuestionmark, save_before=lambda e: False)
-def redo(event):
-    event.current_buffer.redo()
+if prompt_toolkit_version[0] != '3':
+    @r.add_binding(Keys.ControlQuestionmark, save_before=lambda e: False)
+    def redo(event):
+        event.current_buffer.redo()
 
 
 # Need to escape all spaces here because of verbose (x) option below
