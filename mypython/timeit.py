@@ -53,7 +53,7 @@ def timeit_format(times, expr):
     s = 's' if number > 1 else ''
     minimum = format_time(min(times))
     maximum = format_time(max(times))
-    if platform.system == 'Darwin':
+    if platform.system() == 'Darwin':
         hist = timeit_histogram(times, expr)
     else:
         hist=''
