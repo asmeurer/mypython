@@ -86,6 +86,7 @@
       create_hashtable
 
 - Match indentation on paste
+- Traceback on %timeit doesn't show line of code
 
 ## 2.0 TODOs
 
