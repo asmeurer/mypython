@@ -87,6 +87,7 @@
 
 - Match indentation on paste
 - Traceback on %timeit doesn't show line of code
+- Python 3.8 test failures
 
 ## 2.0 TODOs
 
