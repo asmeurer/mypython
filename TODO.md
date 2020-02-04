@@ -89,6 +89,7 @@
 - Traceback on %timeit doesn't show line of code
 - Python 3.8 test failures
 - Extra quotes added with '\U1d400'
+- Allow dircompletion to work with getitem
 
 ## 2.0 TODOs
 
