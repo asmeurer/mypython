@@ -37,7 +37,7 @@ from prompt_toolkit.application import get_app
 
 from pyflakes.checker import Checker
 from pyflakes.messages import (UnusedImport, UnusedVariable, UndefinedName,
-                               Message, ImportStarUsed)
+                               Message, ImportStarUsed, ImportStarUsage)
 
 from .tokenize import matching_parens, indentation, dedent
 
@@ -140,7 +140,8 @@ class SyntaxErrorMessage(Message):
         self.text = text
 
 @lru_cache()
-def get_pyflakes_warnings(code, defined_names=frozenset(), skip=(UnusedImport, ImportStarUsed)):
+def get_pyflakes_warnings(code, defined_names=frozenset(),
+                          skip=(UnusedImport, ImportStarUsed, ImportStarUsage)):
     """
     Get pyflakes warnings for code
 

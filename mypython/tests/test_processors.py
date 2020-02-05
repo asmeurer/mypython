@@ -157,3 +157,16 @@ a
         # The text is None in Python 3.8. We
         # don't presently use it so it doesn't matter.
         assert w[3].text in ['01\n', None]
+
+def test_get_pyflakes_warnings_skip():
+    warnings = get_pyflakes_warnings("import stuff")
+    assert warnings == []
+
+    warnings = get_pyflakes_warnings("from stuff import *")
+    assert warnings == []
+
+    warnings = get_pyflakes_warnings("""\
+from stuff import *
+a + b
+""")
+    assert warnings == []
