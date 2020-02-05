@@ -176,7 +176,7 @@ def get_pyflakes_warnings(code, defined_names=frozenset(), skip=(UnusedImport, I
                 return
 
             msg = e.args[0]
-            col = e.offset - 1
+            col = max(e.offset - 1, 0)
             row = e.lineno - 1
             m = SyntaxErrorMessage(e.filename, loc(e.lineno, col + col_offset), msg, e.text)
 

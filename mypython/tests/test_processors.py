@@ -118,6 +118,26 @@ def test_get_pyflakes_warnings_syntaxerror():
         assert w[3].text == 'a +\n'
 
 
+def test_get_pyflakes_warnings_syntaxerror_unicode():
+    # The SyntaxError for '\U1d400' gives an offset of 0
+    warnings = get_pyflakes_warnings(r"'\U1d400'")
+    assert len(warnings) == 10
+    assert warnings[0][:2] == (0, 0)
+    assert warnings[1][:2] == (0, 1)
+    assert warnings[2][:2] == (0, 2)
+    assert warnings[3][:2] == (0, 3)
+    assert warnings[4][:2] == (0, 4)
+    assert warnings[5][:2] == (0, 5)
+    assert warnings[6][:2] == (0, 6)
+    assert warnings[7][:2] == (0, 7)
+    assert warnings[8][:2] == (0, 8)
+    assert warnings[9][:2] == (0, 9)
+
+    for w in warnings:
+        assert w[2] == "SyntaxError: (unicode error) 'unicodeescape' codec can't decode bytes in position 0-6: truncated \\UXXXXXXXX escape"
+        assert isinstance(w[3], SyntaxErrorMessage)
+        assert w[3].text == None
+
 def test_get_pyflakes_warnings_syntaxerror_multiline():
     warnings = get_pyflakes_warnings("""\
 a
