@@ -87,14 +87,14 @@ def test_completions():
 def test_DirCompletion():
     # Only test the modifications
 
-    completer = DirCompleter({'A': 1, 'b': [], 'B': (), 'abcd': 0, 'ABCD': 0})
+    completer = DirCompleter({'A': 1., 'b': [], 'B': (), 'abcd': 0, 'ABCD': 0})
 
     # Case insensitive.
     assert completer.attr_matches('a.')[0] == \
         completer.attr_matches('A.')[0] == \
-        completer.attr_matches('A.bi')[0] == \
-        completer.attr_matches('A.Bi')[0] == \
-        'A.bit_length'
+        completer.attr_matches('A.as')[0] == \
+        completer.attr_matches('A.As')[0] == \
+        'A.as_integer_ratio'
 
     assert completer.attr_matches('b.')[0] == 'b.append'
     assert completer.attr_matches('B.')[0] == 'B.count'
