@@ -175,10 +175,10 @@ def get_pyflakes_warnings(code, defined_names=frozenset(), skip=(UnusedImport, I
                 # Something like help? that isn't valid Python but shouldn't give warnings
                 return
 
-            msg, (filename, lineno, offset, text) = e.args
-            col = offset - 1
-            row = lineno - 1
-            m = SyntaxErrorMessage(filename, loc(lineno, col + col_offset), msg, text)
+            msg = e.args[0]
+            col = e.offset - 1
+            row = e.lineno - 1
+            m = SyntaxErrorMessage(e.filename, loc(e.lineno, col + col_offset), msg, e.text)
 
             endcol = col
             # Highlight the whole line

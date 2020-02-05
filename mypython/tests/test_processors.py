@@ -129,6 +129,11 @@ a
     assert warnings[2][:2] == (1, 2)
 
     for w in warnings:
-        assert w[2] == "SyntaxError: invalid token"
+        assert w[2] in [
+            "SyntaxError: invalid token",
+            "SyntaxError: leading zeros in decimal integer literals are not permitted; use an 0o prefix for octal integers",
+            ]
         assert isinstance(w[3], SyntaxErrorMessage)
-        assert w[3].text == '01\n'
+        # The text is None in Python 3.8. We
+        # don't presently use it so it doesn't matter.
+        assert w[3].text in ['01\n', None]
