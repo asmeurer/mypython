@@ -1,4 +1,4 @@
-from pyflakes.messages import UndefinedName, UnusedVariable
+from pyflakes.messages import UndefinedName, UnusedVariable, DuplicateArgument
 
 from ..processors import get_pyflakes_warnings, SyntaxErrorMessage
 
@@ -157,6 +157,21 @@ a
         # The text is None in Python 3.8. We
         # don't presently use it so it doesn't matter.
         assert w[3].text in ['01\n', None]
+
+def test_get_pyflakes_warnings_other():
+    # Make sure the columns fill the whole line for errors that aren't names
+    warnings = get_pyflakes_warnings("""\
+a = 1
+def test(a, a):
+    pass
+""")
+    assert len(warnings) == 15
+    for i in range(15):
+        assert warnings[i][:2] == (1, i)
+
+    for w in warnings:
+        assert w[2] == "duplicate argument 'a' in function definition"
+        assert isinstance(w[3], DuplicateArgument)
 
 def test_get_pyflakes_warnings_skip():
     warnings = get_pyflakes_warnings("import stuff")

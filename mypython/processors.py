@@ -215,9 +215,8 @@ def get_pyflakes_warnings(code, defined_names=frozenset(),
                 endcol = col + len(m.message_args[0])
             else:
                 # Highlight the whole line
-                while endcol < len(code) and code[endcol] != '\n':
-                    endcol += 1
-
+                line = code.splitlines()[row]
+                endcol = len(line)
 
             for c in range(col + col_offset, endcol + col_offset):
                 yield (row, c, msg, m)
