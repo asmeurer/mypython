@@ -5,6 +5,7 @@ from prompt_toolkit.key_binding.bindings.basic import load_basic_bindings
 from prompt_toolkit.key_binding.bindings.emacs import load_emacs_bindings, load_emacs_search_bindings
 from prompt_toolkit.key_binding.bindings.mouse import load_mouse_bindings
 from prompt_toolkit.key_binding.bindings.cpr import load_cpr_bindings
+from prompt_toolkit.key_binding.bindings.page_navigation import load_emacs_page_navigation_bindings
 
 from prompt_toolkit.key_binding import KeyBindings, merge_key_bindings
 from prompt_toolkit.keys import Keys, ALL_KEYS
@@ -36,11 +37,13 @@ def get_key_bindings():
 
         load_emacs_bindings(),
         load_emacs_search_bindings(),
+        load_emacs_page_navigation_bindings(),
 
         load_mouse_bindings(),
         load_cpr_bindings(),
 
         custom_key_bindings,
+
     ])
 
 r = custom_key_bindings = KeyBindings()

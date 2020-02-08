@@ -78,7 +78,7 @@
 - Shift down does not work in Linux
 - Files are not flushed at exit
 - ? should fail if the input is not an expression
-- Add C-v M-v shortcuts
+- C-v M-v shortcuts that work more like emacs
 - Match indentation on paste
 - Traceback on %timeit doesn't show line of code
 - Python 3.8 test failures
