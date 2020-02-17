@@ -84,6 +84,7 @@
 - Python 3.8 test failures
 - Allow dircompletion to work with getitem
 - Bad highlighting on unclosed multiline string with newlines at the end
+- Issues with '🟠'
 
 ## 2.0 TODOs
 
