@@ -156,7 +156,7 @@ a
         assert isinstance(w[3], SyntaxErrorMessage)
         # The text is None in Python 3.8. We
         # don't presently use it so it doesn't matter.
-        assert w[3].text in ['01\n', None]
+        assert w[3].text in ['01', '01\n', None]
 
 def test_get_pyflakes_warnings_other():
     # Make sure the columns fill the whole line for errors that aren't names
