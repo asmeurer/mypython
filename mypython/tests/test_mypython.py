@@ -775,6 +775,10 @@ def test_smart_eval():
 
     def _increment_numbers(p):
         class IncrementNumbers(ast.NodeTransformer):
+            def visit_Constant(self, node):
+                return ast.copy_location(ast.Constant(node.n + 1), node)
+
+            # Needed for older Pythons, but is deprecated in newer Pythons
             def visit_Num(self, node):
                 return ast.copy_location(ast.Num(node.n + 1), node)
 
