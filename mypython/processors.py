@@ -156,29 +156,31 @@ def get_pyflakes_warnings(code, defined_names=frozenset(), skip=(UnusedImport, I
 
     skip should be a tuple of pyflakes message classes to skip.
     """
-    from .mypython import validate_text
+    from .mypython import remove_extra_syntax
     # TODO: Cache this as a generator
     margin = indentation(code)
     code = dedent(code, margin)
     col_offset = len(margin)
 
     def _get_warnings(code, defined_names):
+        magic_offset = 0
+        magic_lines = 0
         try:
-            tree = ast.parse(code)
+            # Remove extra stuff like ? and %magics
+            # TODO: validate_text raises SyntaxError if there is a magic with
+            # invalid syntax Python, so the error will always show on the
+            # %magic line.
+            valid_code = remove_extra_syntax(code)
+            if code.startswith('%'):
+                magic_offset = len(code) - len(valid_code)
+                magic_lines = len(code[:magic_offset].split('\n'))
+            tree = ast.parse(valid_code)
         except SyntaxError as e:
-            try:
-                # TODO: Check things like x? without the ?
-                validate_text(code)
-            except SyntaxError:
-                pass
-            else:
-                # Something like help? that isn't valid Python but shouldn't give warnings
-                return
-
             msg, (filename, lineno, offset, text) = e.args
             col = offset - 1
             row = lineno - 1
-            m = SyntaxErrorMessage(filename, loc(lineno, col + col_offset), msg, text)
+            magic_lines_col_offset = magic_offset if row < magic_lines else 0
+            m = SyntaxErrorMessage(filename, loc(lineno, col + col_offset + magic_lines_col_offset), msg, text)
 
             endcol = col
             # Highlight the whole line
@@ -193,13 +195,15 @@ def get_pyflakes_warnings(code, defined_names=frozenset(), skip=(UnusedImport, I
             while col > 0 and line[col] != '\n':
                 col -= 1
 
-            for c in range(col + col_offset, endcol + col_offset):
+            for c in range(col + col_offset + magic_lines_col_offset, endcol + col_offset + magic_lines_col_offset):
                 yield (row, c, m.message % m.message_args, m)
             return
 
         try:
             checker = Checker(tree, builtins=defined_names)
         except RecursionError:
+            return
+        except:
             return
         messages = checker.messages
         for m in messages:
@@ -217,8 +221,8 @@ def get_pyflakes_warnings(code, defined_names=frozenset(), skip=(UnusedImport, I
                 while endcol < len(code) and code[endcol] != '\n':
                     endcol += 1
 
-
-            for c in range(col + col_offset, endcol + col_offset):
+            magic_lines_col_offset = magic_offset if row < magic_lines else 0
+            for c in range(col + col_offset + magic_lines_col_offset, endcol + col_offset + magic_lines_col_offset):
                 yield (row, c, msg, m)
 
     return sorted(_get_warnings(code, defined_names))

@@ -210,20 +210,25 @@ def on_text_insert(buffer):
 # TODO: cache this?
 def validate_text(text):
     """
-    Return None if text is valid, or raise SyntaxError.
+    Return None if text if is valid, or raise SyntaxError.
+    """
+    compile(remove_extra_syntax(text), "<None>", 'exec')
+
+def remove_extra_syntax(text):
+    """
+    Remove any extra syntax features (%magic or ?)
     """
     if any(text == i + '?' for i in MAGICS):
-        return
+        return ''
     if text.endswith('?') and not text.endswith('???'):
         text = text.rstrip('?')
     elif any(text.startswith(i) for i in MAGICS):
-        if ' ' not in text.splitlines()[0]:
+        try:
+            magic, text = text.split(maxsplit=1)
+        except ValueError:
             text = ''
-        else:
-            magic, text = text.split(' ', 1)
-            text = text.lstrip()
 
-    compile(text, "<None>", 'exec')
+    return text
 
 class PythonSyntaxValidator(Validator):
     def validate(self, document):
