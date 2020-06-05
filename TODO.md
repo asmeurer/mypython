@@ -85,6 +85,8 @@
 - Allow dircompletion to work with getitem
 - Bad highlighting on unclosed multiline string with newlines at the end
 - Issues with '🟠'
+- Wrong highlighting for undefined variable in f-string with formatting f"{res!r}"
+- Cannot paste prompts from debuggest sessions
 
 ## 2.0 TODOs
 
