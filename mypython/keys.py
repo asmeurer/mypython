@@ -737,6 +737,10 @@ Keys.ControlQuestionmark = "<C-?>"
 ALL_KEYS.append("<C-?>")
 ANSI_SEQUENCES['\x1b[ab'] = Keys.ControlQuestionmark
 
+Keys.ControlSlash = "<C-/>"
+ALL_KEYS.append("<C-/>")
+ANSI_SEQUENCES['\x1b"5/'] = Keys.ControlSlash
+
 # This won't work until
 # https://github.com/jonathanslenders/python-prompt-toolkit/pull/484 is
 # merged.
@@ -744,6 +748,10 @@ if prompt_toolkit_version[0] != '3':
     @r.add_binding(Keys.ControlQuestionmark, save_before=lambda e: False)
     def redo(event):
         event.current_buffer.redo()
+
+    @r.add_binding(Keys.ControlSlash, save_before=lambda e: False)
+    def undo(event):
+        event.current_buffer.undo()
 
 
 # Need to escape all spaces here because of verbose (x) option below
