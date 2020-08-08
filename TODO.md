@@ -88,6 +88,7 @@
 - Wrong highlighting for undefined variable in f-string with formatting f"{res!r}"
 - Cannot paste prompts from debuggest sessions
 - Should the last statement in a with block be the Out if it is an expression?
+- Enable h5py completions
 
 ## 2.0 TODOs
 
