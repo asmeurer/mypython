@@ -38,8 +38,9 @@ from pygments.formatters import TerminalTrueColorFormatter
 from pygments.token import Token
 from pygments import highlight
 
+from prompt_toolkit import print_formatted_text
 from prompt_toolkit.buffer import Buffer
-from prompt_toolkit.shortcuts import print_formatted_text, PromptSession, CompleteStyle
+from prompt_toolkit.shortcuts import  PromptSession, CompleteStyle
 from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.layout.processors import ConditionalProcessor
 from prompt_toolkit.styles import (style_from_pygments_cls,
