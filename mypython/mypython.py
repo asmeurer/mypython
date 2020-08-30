@@ -65,6 +65,8 @@ except ImportError:
         raise
     iterm2_tools = None
 
+from setproctitle import setproctitle
+
 from .multiline import document_is_multiline_python
 from .completion import PythonCompleter
 from .theme import OneAMStyle, MyPython3Lexer, emoji
@@ -692,6 +694,8 @@ del sys
             matplotlib.interactive(True)
 
         self.builtins = builtins
+
+        setproctitle('mypython')
 
     def get_in_prompt(self):
         if iterm2_tools:
