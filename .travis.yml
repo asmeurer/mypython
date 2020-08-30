@@ -20,7 +20,7 @@ install:
   # Useful for debugging any issues with conda
   - conda info -a
 
-  - conda create -q -n test-environment python=$CONDA_PY 'prompt_toolkit<3' pygments pyflakes pytest iterm2-tools catimg matplotlib jedi sympy seaborn pudb python.app flaky
+  - conda create -q -n test-environment python=$CONDA_PY 'prompt_toolkit<3' pygments pyflakes pytest iterm2-tools catimg matplotlib jedi sympy seaborn pudb python.app flaky setproctitle
   - source activate test-environment
 
 script:
