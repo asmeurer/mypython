@@ -40,6 +40,7 @@ from pyflakes.messages import (UnusedImport, UnusedVariable, UndefinedName,
                                Message, ImportStarUsed, ImportStarUsage)
 
 from .tokenize import matching_parens, indentation, dedent
+from .magic import MAGICS
 
 import ast
 from collections import namedtuple
@@ -159,6 +160,16 @@ def get_pyflakes_warnings(code, defined_names=frozenset(),
     """
     from .mypython import validate_text
     # TODO: Cache this as a generator
+    prefix = ''
+    for i in MAGICS:
+        if code.startswith(i + ' '):
+            prefix = i + ' '
+        elif code.startswith(i + '\n'):
+            prefix = i + '\n'
+        else:
+            continue
+        code = code[len(prefix):]
+        break
     margin = indentation(code)
     code = dedent(code, margin)
     col_offset = len(margin)
@@ -194,7 +205,12 @@ def get_pyflakes_warnings(code, defined_names=frozenset(),
             while col > 0 and line[col] != '\n':
                 col -= 1
 
+            if row == 0:
+                m.col += len(prefix)
+
             for c in range(col + col_offset, endcol + col_offset):
+                if row == 0:
+                    c += len(prefix)
                 yield (row, c, m.message % m.message_args, m)
             return
 
@@ -209,6 +225,8 @@ def get_pyflakes_warnings(code, defined_names=frozenset(),
             row = m.lineno - 1
             col = m.col
             msg = m.message % m.message_args
+            if row == 0:
+                m.col += len(prefix)
 
             endcol = col
             if isinstance(m, (UndefinedName, UnusedVariable)):
@@ -219,6 +237,8 @@ def get_pyflakes_warnings(code, defined_names=frozenset(),
                 endcol = len(line)
 
             for c in range(col + col_offset, endcol + col_offset):
+                if row == 0:
+                    c += len(prefix)
                 yield (row, c, msg, m)
 
     return sorted(_get_warnings(code, defined_names))
@@ -228,7 +248,9 @@ class HighlightPyflakesErrorsProcessor(Processor):
     def apply_transformation(self, transformation_input):
         buffer_control, document, lineno, source_to_display, fragments, width, height = transformation_input.unpack()
 
-        for row, col, msg, m in get_pyflakes_warnings(document.text, frozenset(buffer_control.buffer.session._locals)):
+        text = document.text
+
+        for row, col, msg, m in get_pyflakes_warnings(text, frozenset(buffer_control.buffer.session._locals)):
             # col = source_to_display(col)
             if isinstance(m, UnusedImport):
                 continue
