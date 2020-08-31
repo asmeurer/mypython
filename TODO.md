@@ -85,8 +85,9 @@
 - Allow dircompletion to work with getitem
 - Bad highlighting on unclosed multiline string with newlines at the end
 - Issues with '🟠'
-- Wrong highlighting for undefined variable in f-string with formatting f"{res!r}"
-- Cannot paste prompts from debuggest sessions
+- Wrong highlighting for undefined variable in f-string with formatting
+  f"{res!r}" (https://github.com/PyCQA/pyflakes/issues/577)
+- Cannot paste prompts from debugger sessions
 - Should the last statement in a with block be the Out if it is an expression?
 - Enable h5py completions
 - NumPy deprecation warnings (`a[[10], 0:0]`) don't show `__main__` in doctest mode
