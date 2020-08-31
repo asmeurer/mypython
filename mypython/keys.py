@@ -21,7 +21,7 @@ from prompt_toolkit import __version__ as prompt_toolkit_version
 from .multiline import (auto_newline, tab_should_insert_whitespace,
     document_is_multiline_python)
 from .tokenize import inside_string, matching_parens
-from .theme import emoji
+from .theme import emoji, emoji_pudb
 from .processors import get_pyflakes_warnings
 
 import re
@@ -154,6 +154,7 @@ def backward_paragraph(event):
             event.current_buffer.cursor_position = len(text) - m.end(1) + 1
             return
     event.current_buffer.cursor_position = 0
+
 
 WORD = re.compile(r'([a-z0-9]+|[A-Z]{2,}|[a-zA-Z0-9][a-z0-9]*)')
 @r.add_binding(Keys.Escape, 'f')
@@ -755,7 +756,7 @@ if prompt_toolkit_version[0] != '3':
 
 
 # Need to escape all spaces here because of verbose (x) option below
-ps1_prompts = [r'>>>\ '] + [re.escape(i) + r'\[\d+\]:\ ' for i, j in emoji] + [r'In\ \[\d+\]:\ ']
+ps1_prompts = [r'>>>\ '] + [re.escape(i) + r'\[\d+\]:\ ' for i, j in emoji + [emoji_pudb]] + [r'In\ \[\d+\]:\ ']
 ps2_prompts = [r'\.\.\.\ ', '\N{CLAPPING HANDS SIGN}+\\ ?⎢\\ '] + [r'\ *\.\.\.:\ ']
 PS1_PROMPTS_RE = re.compile('|'.join(ps1_prompts))
 PS2_PROMPTS_RE = re.compile('|'.join(ps2_prompts))

@@ -87,7 +87,6 @@
 - Issues with '🟠'
 - Wrong highlighting for undefined variable in f-string with formatting
   f"{res!r}" (https://github.com/PyCQA/pyflakes/issues/577)
-- Cannot paste prompts from debugger sessions
 - Should the last statement in a with block be the Out if it is an expression?
 - Enable h5py completions
 - NumPy deprecation warnings (`a[[10], 0:0]`) don't show `__main__` in doctest mode
