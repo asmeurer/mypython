@@ -162,9 +162,74 @@ def test_get_pyflakes_warnings_pudb():
         assert isinstance(w[3], SyntaxErrorMessage)
         assert w[3].text == 'a +\n'
 
+    warnings = get_pyflakes_warnings("%ls mypython/")
+    assert warnings == []
+
 def test_get_pyflakes_warnings_help():
     warnings = get_pyflakes_warnings("f?")
+    assert len(warnings) == 1
+    assert warnings[0][:2] == (0, 0)
+    assert warnings[0][2] == "undefined name 'f'"
+    assert isinstance(warnings[0][3], UndefinedName)
+
+    warnings = get_pyflakes_warnings("f?", frozenset({"f"}))
+    assert warnings == []
+
+    warnings = get_pyflakes_warnings("f??")
+    assert len(warnings) == 1
+    assert warnings[0][:2] == (0, 0)
+    assert warnings[0][2] == "undefined name 'f'"
+    assert isinstance(warnings[0][3], UndefinedName)
+
+    warnings = get_pyflakes_warnings("f??", frozenset({"f"}))
+    assert warnings == []
+
+    warnings = get_pyflakes_warnings("(a +\nb)?")
+    assert len(warnings) == 2
+    assert warnings[0][:2] == (0, 1)
+    assert warnings[1][:2] == (1, 0)
+    assert warnings[0][2] == "undefined name 'a'"
+    assert warnings[1][2] == "undefined name 'b'"
+    assert isinstance(warnings[0][3], UndefinedName)
+
+    warnings = get_pyflakes_warnings("(a +\nb)?", frozenset({"a", "b"}))
     assert len(warnings) == 0
+
+    warnings = get_pyflakes_warnings("(a +\nb)??")
+    assert len(warnings) == 2
+    assert warnings[0][:2] == (0, 1)
+    assert warnings[1][:2] == (1, 0)
+    assert warnings[0][2] == "undefined name 'a'"
+    assert warnings[1][2] == "undefined name 'b'"
+    assert isinstance(warnings[0][3], UndefinedName)
+
+    warnings = get_pyflakes_warnings("(a +\nb)??", frozenset({"a", "b"}))
+    assert len(warnings) == 0
+
+    warnings = get_pyflakes_warnings("f???")
+    assert len(warnings) == 5
+    assert warnings[0][:2] == (0, 0)
+    assert warnings[1][:2] == (0, 1)
+    assert warnings[2][:2] == (0, 2)
+    assert warnings[3][:2] == (0, 3)
+    assert warnings[4][:2] == (0, 4)
+    for w in warnings:
+        assert w[2] == "SyntaxError: invalid syntax"
+        assert isinstance(w[3], SyntaxErrorMessage)
+        assert w[3].text == 'f???\n'
+
+    warnings = get_pyflakes_warnings("(a +\nb)???")
+    assert len(warnings) == 6
+    assert warnings[0][:2] == (1, 0)
+    assert warnings[1][:2] == (1, 1)
+    assert warnings[2][:2] == (1, 2)
+    assert warnings[3][:2] == (1, 3)
+    assert warnings[4][:2] == (1, 4)
+    assert warnings[5][:2] == (1, 5)
+    for w in warnings:
+        assert w[2] == "SyntaxError: invalid syntax"
+        assert isinstance(w[3], SyntaxErrorMessage)
+        assert w[3].text == 'b)???\n'
 
 def test_get_pyflakes_warnings_syntaxerror():
     warnings = get_pyflakes_warnings("a +")

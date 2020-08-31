@@ -40,7 +40,7 @@ from pyflakes.messages import (UnusedImport, UnusedVariable, UndefinedName,
                                Message, ImportStarUsed, ImportStarUsage)
 
 from .tokenize import matching_parens, indentation, dedent
-from .magic import MAGICS
+from .magic import MAGICS, NON_PYTHON_MAGICS
 
 import ast
 from collections import namedtuple
@@ -140,6 +140,7 @@ class SyntaxErrorMessage(Message):
         self.message_args = (msg,)
         self.text = text
 
+# TODO: Cache this as a generator
 @lru_cache()
 def get_pyflakes_warnings(code, defined_names=frozenset(),
                           skip=(UnusedImport, ImportStarUsed, ImportStarUsage)):
@@ -158,18 +159,32 @@ def get_pyflakes_warnings(code, defined_names=frozenset(),
 
     skip should be a tuple of pyflakes message classes to skip.
     """
-    from .mypython import validate_text
-    # TODO: Cache this as a generator
+    for i in NON_PYTHON_MAGICS:
+        if code.startswith(i):
+            return []
+
     prefix = ''
     for i in MAGICS:
         if code.startswith(i + ' '):
             prefix = i + ' '
         elif code.startswith(i + '\n'):
             prefix = i + '\n'
+        elif code == i:
+            prefix = i
         else:
             continue
         code = code[len(prefix):]
         break
+
+    suffix = ''
+    if code.endswith('???'):
+        pass
+    elif code.endswith('??'):
+        suffix = '??'
+    elif code.endswith('?'):
+        suffix = '?'
+    code = code[:len(code)-len(suffix)]
+
     margin = indentation(code)
     code = dedent(code, margin)
     col_offset = len(margin)
@@ -178,15 +193,6 @@ def get_pyflakes_warnings(code, defined_names=frozenset(),
         try:
             tree = ast.parse(code)
         except SyntaxError as e:
-            try:
-                # TODO: Check things like x? without the ?
-                validate_text(code)
-            except SyntaxError:
-                pass
-            else:
-                # Something like help? that isn't valid Python but shouldn't give warnings
-                return
-
             msg = e.args[0]
             col = max(e.offset - 1, 0)
             row = e.lineno - 1
