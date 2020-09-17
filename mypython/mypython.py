@@ -918,13 +918,19 @@ def execute_command(command, prompt, *, _globals=None, _locals=None):
                 return
 
             res = smart_eval(command, _globals, _locals, filename=mypython_file(prompt.prompt_number))
-            post_command(command=command, res=res, _globals=_globals,
-                _locals=_locals, prompt=prompt)
         except SystemExit:
             raise
         except BaseException:
             sys.excepthook(*sys.exc_info())
             o.set_command_status(1)
+            res = NoResult
+        try:
+            post_command(command=command, res=res, _globals=_globals,
+                         _locals=_locals, prompt=prompt)
+        except BaseException:
+            sys.excepthook(*sys.exc_info())
+            o.set_command_status(1)
+
         if not DOCTEST_MODE:
             print()
 

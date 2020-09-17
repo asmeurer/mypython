@@ -175,6 +175,22 @@ def test_test_globals():
     import builtins
     assert _test_globals['__builtins__'] is builtins
 
+def test_In(check_output):
+    check_output('1\n')
+    out, err = check_output('1/0\n')
+    assert out == '\n'
+    assert err == """\
+Traceback (most recent call last):
+  File "<mypython-2>", line 1, in <module>
+    1/0
+ZeroDivisionError: division by zero
+"""
+    assert "<mypython-2>" in err
+    check_output('0\n')
+    out, err = check_output('In\n')
+    assert out == "{1: '1\\n', 2: '1/0\\n', 3: '0\\n', 4: 'In\\n'}\n\n"
+    assert err == ''
+
 def test_local_import(check_output):
     out, err = check_output('from .tests import *\n')
     assert out == '\n'
@@ -203,17 +219,17 @@ SystemError: Parent module '' not loaded, cannot perform relative import
     assert out == '\n'
     assert err in [
 """Traceback (most recent call last):
-  File "<mypython-1>", line 1, in <module>
+  File "<mypython-2>", line 1, in <module>
     from .test import *
 ImportError: attempted relative import with no known parent package
 """,
 """Traceback (most recent call last):
-  File "<mypython-1>", line 1, in <module>
+  File "<mypython-2>", line 1, in <module>
     from .test import *
 ModuleNotFoundError: No module named '__main__.test'; '__main__' is not a package
 """,
 """Traceback (most recent call last):
-  File "<mypython-1>", line 1, in <module>
+  File "<mypython-2>", line 1, in <module>
     from .test import *
 SystemError: Parent module '' not loaded, cannot perform relative import
 """,
@@ -282,7 +298,7 @@ def test_builtin_names():
     assert err == ""
 
     # Test PROMPT_NUMBER
-    # Prompt number not incremented for error or empty commands
+    # Prompt number not incremented for empty commands
     out, err = check_output("\n")
     assert out == "\n"
     assert err == ""
@@ -291,6 +307,7 @@ def test_builtin_names():
     assert out == "\n"
     assert err == ""
 
+    i += 1
     out, err = check_output("fdjksfldj\n")
     assert out == "\n"
     assert err == """\
@@ -298,7 +315,7 @@ Traceback (most recent call last):
   File "<mypython-%d>", line 1, in <module>
     fdjksfldj
 NameError: name 'fdjksfldj' is not defined
-""" % (i + 1)
+""" % i
 
     i += 1
     out, err = check_output("PROMPT_NUMBER\n")
@@ -555,9 +572,9 @@ ValueError: error
     assert out == '\n'
     assert err == \
 r"""Traceback (most recent call last):
-  File "<mypython-21>", line 1, in <module>
+  File "<mypython-23>", line 1, in <module>
     test()
-  File "<mypython-20>", line 2, in test
+  File "<mypython-22>", line 2, in test
     raise ValueError("error")
 ValueError: error
 """
@@ -579,7 +596,7 @@ ValueError: error
     assert out == '\n'
     assert err == \
 """Traceback (most recent call last):
-  File "<mypython-22>", line 1, in <module>
+  File "<mypython-26>", line 1, in <module>
     import os;undefined
 NameError: name 'undefined' is not defined
 """
@@ -588,7 +605,7 @@ NameError: name 'undefined' is not defined
     assert out == '\n'
     assert err == \
 """Traceback (most recent call last):
-  File "<mypython-22>", line 2, in <module>
+  File "<mypython-27>", line 2, in <module>
     undefined
 NameError: name 'undefined' is not defined
 """
@@ -625,7 +642,7 @@ Exception
     assert out == '\n'
     assert err == \
 r"""Traceback (most recent call last):
-  File "<mypython-2>", line 1, in <module>
+  File "<mypython-3>", line 1, in <module>
     test()
   File "<mypython-1>", line 2, in test
     raise Exception
@@ -723,7 +740,7 @@ ValueError
     # included here because it's printed with print_tokens())
     assert re.match(
 r"""Traceback \(most recent call last\):
-  File "<mypython-1>", line \d, in <module>
+  File "<mypython-2>", line \d, in <module>
     res = _smart_eval\('raise ValueError', globals\(\), locals\(\)\)
   File "<mypython>", line 1, in <module>
 ValueError""", err), repr(err)
@@ -737,7 +754,7 @@ ValueError""", err), repr(err)
     # included here because it's printed with print_tokens())
     assert err == """\
 Traceback (most recent call last):
-  File "<mypython-1>", line 3, in __repr__
+  File "<mypython-3>", line 3, in __repr__
     raise ValueError
 ValueError
 """
