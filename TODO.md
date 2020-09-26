@@ -89,6 +89,7 @@
 - "Out" is shown when repr() raises an exception
 - Don't pyflakes partial code ending with ? inside of a string
 - Matplotlib app opens when running %timeit
+- No space after time unit for min or s
 
 ## 2.0 TODOs
 
