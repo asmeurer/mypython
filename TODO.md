@@ -88,6 +88,7 @@
 - NumPy deprecation warnings (`a[[10], 0:0]`) don't show `__main__` in doctest mode
 - "Out" is shown when repr() raises an exception
 - Don't pyflakes partial code ending with ? inside of a string
+- Matplotlib app opens when running %timeit
 
 ## 2.0 TODOs
 
