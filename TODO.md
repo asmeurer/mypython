@@ -90,6 +90,7 @@
 - Don't pyflakes partial code ending with ? inside of a string
 - Matplotlib app opens when running %timeit
 - No space after time unit for min or s
+- Error with %timeit plot when there was only 1 loop
 
 ## 2.0 TODOs
 
