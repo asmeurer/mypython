@@ -247,7 +247,7 @@ def get_pyflakes_warnings(code, defined_names=frozenset(),
                     c += len(prefix)
                 yield (row, c, msg, m)
 
-    return sorted(_get_warnings(code, defined_names))
+    return sorted(_get_warnings(code, defined_names), key=lambda x: x[:2])
 
 class HighlightPyflakesErrorsProcessor(Processor):
 
