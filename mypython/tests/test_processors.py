@@ -167,9 +167,13 @@ def test_get_pyflakes_warnings_magic():
     assert warnings[1][:2] == (1, 1)
     assert warnings[2][:2] == (1, 2)
     for w in warnings:
-        assert w[2] in ["SyntaxError: invalid token", "SyntaxError: invalid syntax"]
+        assert w[2] in [
+            "SyntaxError: invalid token",
+            "SyntaxError: invalid syntax",
+            "SyntaxError: invalid decimal literal",
+        ]
         assert isinstance(w[3], SyntaxErrorMessage)
-        assert w[3].text == '1_\n'
+        assert w[3].text in ['1_', '1_\n']
 
     warnings = get_pyflakes_warnings("%time\nabc")
     assert len(warnings) == 3
