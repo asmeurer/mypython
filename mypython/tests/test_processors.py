@@ -100,7 +100,6 @@ def test_get_pyflakes_warnings_magic():
     warnings = get_pyflakes_warnings("%debug")
     assert len(warnings) == 0
 
-def test_get_pyflakes_warnings_pudb():
     warnings = get_pyflakes_warnings("%pudb a + bc")
     assert len(warnings) == 3
     assert warnings[0][:2] == (0, 6)
@@ -161,6 +160,25 @@ def test_get_pyflakes_warnings_pudb():
         assert w[2] == "SyntaxError: invalid syntax"
         assert isinstance(w[3], SyntaxErrorMessage)
         assert w[3].text == 'a +\n'
+
+    warnings = get_pyflakes_warnings("%time\n1_")
+    assert len(warnings) == 3
+    assert warnings[0][:2] == (1, 0)
+    assert warnings[1][:2] == (1, 1)
+    assert warnings[2][:2] == (1, 2)
+    for w in warnings:
+        assert w[2] in ["SyntaxError: invalid token", "SyntaxError: invalid syntax"]
+        assert isinstance(w[3], SyntaxErrorMessage)
+        assert w[3].text == '1_\n'
+
+    warnings = get_pyflakes_warnings("%time\nabc")
+    assert len(warnings) == 3
+    assert warnings[0][:2] == (1, 0)
+    assert warnings[1][:2] == (1, 1)
+    assert warnings[2][:2] == (1, 2)
+    for w in warnings:
+        assert w[2] == "undefined name 'abc'"
+        assert isinstance(w[3], UndefinedName)
 
     warnings = get_pyflakes_warnings("%ls mypython/")
     assert warnings == []

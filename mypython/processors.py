@@ -214,8 +214,10 @@ def get_pyflakes_warnings(code, defined_names=frozenset(),
             if row == 0:
                 m.col += len(prefix)
 
+            if '\n' in prefix:
+                row += 1
             for c in range(col + col_offset, endcol + col_offset):
-                if row == 0:
+                if row == 0: # '\n' not in prefix
                     c += len(prefix)
                 yield (row, c, m.message % m.message_args, m)
             return
@@ -242,8 +244,10 @@ def get_pyflakes_warnings(code, defined_names=frozenset(),
                 line = code.splitlines()[row]
                 endcol = len(line)
 
+            if '\n' in prefix:
+                row += 1
             for c in range(col + col_offset, endcol + col_offset):
-                if row == 0:
+                if row == 0: # '\n' not in prefix
                     c += len(prefix)
                 yield (row, c, msg, m)
 
