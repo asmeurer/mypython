@@ -91,7 +91,6 @@
 - Matplotlib app opens when running %timeit
 - No space after time unit for min or s
 - Error with %timeit plot when there was only 1 loop
-- Make matplotlib import lazy
 - {a: 1, a: 2} warning highlights to the end
 
 ## 2.0 TODOs
