@@ -91,6 +91,8 @@
 - Matplotlib app opens when running %timeit
 - Error with %timeit plot when there was only 1 loop
 - {a: 1, a: 2} warning highlights to the end
+- Delete doesn't delete indentation like emacs
+- M-; doesn't insert a comment character on a blank line
 
 ## 2.0 TODOs
 
