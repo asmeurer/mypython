@@ -169,7 +169,7 @@ def format_time(timespan, precision=3):
             value = int(leftover / length)
             if value > 0:
                 leftover = leftover % length
-                time.append(u'%s%s' % (str(value), suffix))
+                time.append(u'%s %s' % (str(value), suffix))
             if leftover < 1:
                 break
         return " ".join(time)
