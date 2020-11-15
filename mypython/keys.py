@@ -897,8 +897,6 @@ def comment(event):
         start_line, start_col = document.translate_index_to_position(from_)
         end_line, end_col = document.translate_index_to_position(to - 1)
         end_line += 1
-        if document.text.endswith('\n'):
-            end_line += 1
     else:
         start_line = cursor_line
         end_line = start_line + 1
