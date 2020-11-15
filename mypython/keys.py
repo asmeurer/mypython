@@ -916,7 +916,10 @@ def comment(event):
     if min_indent == float('inf'):
         min_indent = 0
 
-    uncomment = all(not line.strip() or line[min_indent] == '#' for line in document.lines[start_line:end_line])
+    uncomment = (all(not line.strip() or line[min_indent] == '#' for line in
+                    document.lines[start_line:end_line])
+                 and ''.join(document.lines[start_line:end_line]).strip())
+
 
     lines = []
     for i, line in enumerate(document.lines):
