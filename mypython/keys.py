@@ -441,10 +441,7 @@ def delete_char_or_unindent(event):
     if buffer.document.current_line_before_cursor.isspace():
         spaces = len(buffer.document.current_line_before_cursor)
         # Delete up to the tab stop
-        if spaces % 4:
-            buffer.delete_before_cursor(count=spaces % 4)
-        else:
-            buffer.delete_before_cursor(count=4)
+        buffer.delete_before_cursor(count=4 + spaces%-4)
     else:
         backward_delete_char(event)
 
