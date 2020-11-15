@@ -934,7 +934,7 @@ def comment(event):
     new_text = '\n'.join(lines)
     # TODO: Set the cursor position correctly
     n_changed = 2*(cursor_line - start_line + 1)
-    if cursor_col <= min_indent:
+    if cursor_line >= end_line:
         n_changed -= 2
 
     if uncomment:
@@ -943,7 +943,6 @@ def comment(event):
     else:
         buffer.text = new_text
         buffer.cursor_position += n_changed
-
 
 @r.add_binding(Keys.ControlX, Keys.ControlE)
 def open_in_editor(event):
