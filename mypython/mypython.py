@@ -391,7 +391,7 @@ def getsource(command, _globals, _locals, ret=False, include_info=True):
     # Enable getting the source for code defined in the REPL.
 
     # Even though we add code defined interactively to linecache.cache in
-    # smart_eval(), we have to monkey patch linecache.getlines() because it
+    # smart_eval(), we have to monkeypatch linecache.getlines() because it
     # skips files with mtime == None (and even if it weren't None, it would
     # try to os.stat() the file and skip it when that fails). It also would
     # not be able to find classes, as those use the __main__ filename as their
