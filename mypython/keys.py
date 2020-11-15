@@ -438,9 +438,13 @@ def back_to_indentation(event):
 @r.add_binding(Keys.Backspace, save_before=if_no_repeat)
 def delete_char_or_unindent(event):
     buffer = event.app.current_buffer
-    if (buffer.document.current_line_before_cursor.isspace() and
-        len(buffer.document.current_line_before_cursor) >= 4):
-        buffer.delete_before_cursor(count=4)
+    if buffer.document.current_line_before_cursor.isspace():
+        spaces = len(buffer.document.current_line_before_cursor)
+        # Delete up to the tab stop
+        if spaces % 4:
+            buffer.delete_before_cursor(count=spaces % 4)
+        else:
+            buffer.delete_before_cursor(count=4)
     else:
         backward_delete_char(event)
 
