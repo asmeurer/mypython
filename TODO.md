@@ -96,6 +96,7 @@
 - Fix https://github.com/prompt-toolkit/python-prompt-toolkit/pull/1010
 - Import hook shows up in tracebacks
 - Multiline paste removes blank lines
+- No paren matching inside of code part of an f-string
 
 ## 2.0 TODOs
 
