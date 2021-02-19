@@ -758,7 +758,7 @@ if prompt_toolkit_version[0] != '3':
 
 # Need to escape all spaces here because of verbose (x) option below
 ps1_prompts = [r'>>>\ '] + [re.escape(i) + r'\[\d+\]:\ ' for i, j in emoji + [emoji_pudb]] + [r'In\ \[\d+\]:\ ']
-ps2_prompts = [r'\.\.\.\ ', '\N{CLAPPING HANDS SIGN}+\\ ?⎢\\ '] + [r'\ *\.\.\.:\ ']
+ps2_prompts = [r'\ *\.\.\.:\ ?', r'\.\.\.\ ?', '\N{CLAPPING HANDS SIGN}+\\ ?⎢\\ ?']
 PS1_PROMPTS_RE = re.compile('|'.join(ps1_prompts))
 PS2_PROMPTS_RE = re.compile('|'.join(ps2_prompts))
 PROMPTED_TEXT_RE = re.compile(r'''(?x) # Multiline and verbose
@@ -843,6 +843,10 @@ def split_prompts(text, indent=''):
 
     for i in range(1, len(lines)):
         lines[i] = textwrap.indent(lines[i], indent)
+
+    # Extraneous newlines at the end will be stripped by the prompt anyway.
+    # This just makes this function easier to test.
+    lines = [i.rstrip() for i in lines]
 
     return lines
 
