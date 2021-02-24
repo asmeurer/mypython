@@ -144,14 +144,14 @@ In [10]: def test():
     """
 
     assert split_prompts(mypython_prompts) == split_prompts(python_prompts) == \
-    split_prompts(ipython_prompts) == ['a = 1\n', 'a\n', 'print(a)\n',
-        'def test():\n    for i in range(10):\n        print(i)\n\n', 'b = 2\nc = 2\n\n', 'b\n', 'c\n', 'a\n', 'a\n', 'def test():\n    for i in range(10):\n        print(i)\n\n']
+    split_prompts(ipython_prompts) == ['a = 1', 'a', 'print(a)',
+        'def test():\n    for i in range(10):\n        print(i)', 'b = 2\n\nc = 2', 'b', 'c', 'a', 'a', 'def test():\n    for i in range(10):\n        print(i)']
 
     assert split_prompts(mypython_prompts, indent='    ') == \
         split_prompts(python_prompts, indent='    ') == \
         split_prompts(ipython_prompts, indent='    ') == \
-        ['a = 1\n', '    a\n', '    print(a)\n',
-        '    def test():\n        for i in range(10):\n            print(i)\n\n', '    b = 2\n    c = 2\n\n', '    b\n', '    c\n', '    a\n', '    a\n', '    def test():\n        for i in range(10):\n            print(i)\n\n']
+        ['a = 1', '    a', '    print(a)',
+        '    def test():\n        for i in range(10):\n            print(i)', '    b = 2\n\n    c = 2', '    b', '    c', '    a', '    a', '    def test():\n        for i in range(10):\n            print(i)']
 
     mypython_magic = """
 \N{SNAKE}\N{SNAKE}\N{SNAKE}[1]: %doctest
@@ -166,8 +166,8 @@ doctest mode enabled
 Integral(x, x)
     """
 
-    assert split_prompts(mypython_magic) == ['%doctest\n', '%sympy\n',
-        'Integral(x, x)\n']
+    assert split_prompts(mypython_magic) == ['%doctest', '%sympy',
+        'Integral(x, x)']
 
     syntax_error = """
 >>> def test():
@@ -187,8 +187,7 @@ a a
 
 a = 1
 
-a
-''']
+a''']
 
     # Test DARK SUNGLASSES, which has spaces between the emoji
     mypython_prompts2 = """
@@ -202,7 +201,7 @@ a
     """
 
     assert split_prompts(mypython_prompts2) == [
-        'def test():\n    pass\n\n', 'a = 1\n', 'a\n']
+        'def test():\n    pass', 'a = 1', 'a']
 
     # Test splitting only continuation (PS2) prompts
 
@@ -231,7 +230,7 @@ a
         split_prompts(python_prompts) == \
         split_prompts(ipython_prompts) == \
         split_prompts(ipython_prompts2) == \
-    ['for i in range(10):\n    print(i)\n\n']
+    ['for i in range(10):\n    print(i)']
 
 def test_do_cycle_spacing():
     text, cursor_position = 'a b', 1
