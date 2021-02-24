@@ -97,6 +97,7 @@
 - Import hook shows up in tracebacks
 - Multiline paste removes blank lines
 - No paren matching inside of code part of an f-string
+- Magic with ? shows as pyflakes syntax error
 
 ## 2.0 TODOs
 
