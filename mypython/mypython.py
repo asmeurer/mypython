@@ -216,7 +216,7 @@ def validate_text(text):
     """
     Return None if text is valid, or raise SyntaxError.
     """
-    if any(text == i + '?' for i in MAGICS):
+    if any(text in [i + '?', i + '??'] for i in MAGICS):
         return
     if text.endswith('?') and not text.endswith('???'):
         text = text.rstrip('?')
@@ -456,6 +456,16 @@ def normalize(command, _globals, _locals):
         # Too many
         return command
     elif command.endswith('??'):
+        if command.startswith('%'):
+            # Magic
+            return """\
+from mypython import getsource as _getsource, MAGICS as _MAGICS
+try:
+    _getsource("_MAGICS[%r]", globals(), locals())
+finally:
+    del _getsource
+    del _MAGICS
+""" % command[:-2]
         return """\
 from mypython import getsource as _getsource
 try:
