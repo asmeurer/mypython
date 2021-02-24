@@ -97,6 +97,7 @@
 - Import hook shows up in tracebacks
 - No paren matching inside of code part of an f-string
 - Magic with ? shows as pyflakes syntax error
+- breakpoint() doesn't work correctly if it is nested
 
 ## 2.0 TODOs
 
