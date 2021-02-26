@@ -187,6 +187,26 @@ def test_get_pyflakes_warnings_magic():
     warnings = get_pyflakes_warnings("%ls mypython/")
     assert warnings == []
 
+    warnings = get_pyflakes_warnings('%pudb?')
+    assert warnings == []
+
+    warnings = get_pyflakes_warnings('%pudb??')
+    assert warnings == []
+
+    warnings = get_pyflakes_warnings('%pudb? ')
+    assert warnings == []
+
+    warnings = get_pyflakes_warnings('%pudb???')
+    assert len(warnings) == 4
+    assert warnings[0][:2] == (0, 5)
+    assert warnings[1][:2] == (0, 6)
+    assert warnings[2][:2] == (0, 7)
+    assert warnings[3][:2] == (0, 8)
+    for w in warnings:
+        assert w[2] == "SyntaxError: invalid syntax"
+        assert isinstance(w[3], SyntaxErrorMessage)
+        assert w[3].text == '???\n'
+
 def test_get_pyflakes_warnings_help():
     warnings = get_pyflakes_warnings("f?")
     assert len(warnings) == 1

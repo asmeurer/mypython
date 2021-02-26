@@ -159,6 +159,8 @@ def get_pyflakes_warnings(code, defined_names=frozenset(),
 
     skip should be a tuple of pyflakes message classes to skip.
     """
+    code = code.rstrip()
+
     for i in NON_PYTHON_MAGICS:
         if code.startswith(i):
             return []
@@ -167,6 +169,8 @@ def get_pyflakes_warnings(code, defined_names=frozenset(),
     for i in MAGICS:
         if code.startswith(i + ' '):
             prefix = i + ' '
+        elif code.startswith(i + '?'):
+            prefix = i
         elif code.startswith(i + '\n'):
             prefix = i + '\n'
         elif code == i:
