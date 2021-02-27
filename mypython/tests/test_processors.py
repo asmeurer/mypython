@@ -285,7 +285,8 @@ def test_get_pyflakes_warnings_syntaxerror_unicode():
     for w in warnings:
         assert w[2] == "SyntaxError: (unicode error) 'unicodeescape' codec can't decode bytes in position 0-6: truncated \\UXXXXXXXX escape"
         assert isinstance(w[3], SyntaxErrorMessage)
-        assert w[3].text == None
+        # text is None prior to Python 3.9
+        assert w[3].text in [None, "'\\U1d400'\n"]
 
 def test_get_pyflakes_warnings_syntaxerror_multiline():
     warnings = get_pyflakes_warnings("""\
