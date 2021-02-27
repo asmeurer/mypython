@@ -25,4 +25,4 @@ install:
 script:
   - python -We:invalid -We::SyntaxWarning -m compileall -f -q mypython/
   - pyflakes mypython bin/mypython
-  - pythonw -m pytest -vvv --fulltrace
+  - python -m pytest -vvv --fulltrace
