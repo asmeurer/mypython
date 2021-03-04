@@ -85,6 +85,7 @@ from [conda-forge](https://conda-forge.github.io/):
 - seaborn
 - jedi
 - pyflakes
+- setproctitle
 
 # Configuration
 
