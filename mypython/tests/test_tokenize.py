@@ -1,6 +1,9 @@
 from ..tokenize import matching_parens, inside_string, is_multiline_python, nwise
 
-def test_matching_parens():
+import pytest
+
+@pytest.mark.parametrize('tokenizer', [None, 'tokenize', 'parso'])
+def test_matching_parens(tokenizer):
     def _tokenvals(matching, mismatching):
         _matching = [tuple(j.start for j in i) for i in matching]
         _mismatching = [i.start for i in mismatching]
@@ -11,7 +14,7 @@ def test_matching_parens():
     S = "(())"
     for o, c in open_close:
         s = S.replace('(', o).replace(')', c)
-        assert _tokenvals(*matching_parens(s)) == (
+        assert _tokenvals(*matching_parens(s, tokenizer=tokenizer)) == (
             [
                 ((1, 0), (1, 3)),
                 ((1, 1), (1, 2))
@@ -22,7 +25,7 @@ def test_matching_parens():
     S = "(()))"
     for o, c in open_close:
         s = S.replace('(', o).replace(')', c)
-        assert _tokenvals(*matching_parens(s)) == (
+        assert _tokenvals(*matching_parens(s, tokenizer=tokenizer)) == (
             [
                 ((1, 0), (1, 3)),
                 ((1, 1), (1, 2))
@@ -33,7 +36,7 @@ def test_matching_parens():
     S = "((())"
     for o, c in open_close:
         s = S.replace('(', o).replace(')', c)
-        assert _tokenvals(*matching_parens(s)) == (
+        assert _tokenvals(*matching_parens(s, tokenizer=tokenizer)) == (
             [
                 ((1, 1), (1, 4)),
                 ((1, 2), (1, 3))
@@ -42,19 +45,19 @@ def test_matching_parens():
         )
 
     s = "(')"
-    assert _tokenvals(*matching_parens(s)) == (
+    assert _tokenvals(*matching_parens(s, tokenizer=tokenizer)) == (
         [],
         [(1, 0)]
     )
 
     s = '(")'
-    assert _tokenvals(*matching_parens(s)) == (
+    assert _tokenvals(*matching_parens(s, tokenizer=tokenizer)) == (
         [],
         [(1, 0)]
     )
 
     s = "('()')"
-    assert _tokenvals(*matching_parens(s)) == (
+    assert _tokenvals(*matching_parens(s, tokenizer=tokenizer)) == (
         [
             ((1, 0), (1, 5))
         ],
@@ -62,13 +65,13 @@ def test_matching_parens():
     )
 
     s = "'('"
-    assert _tokenvals(*matching_parens(s)) == ([], [])
+    assert _tokenvals(*matching_parens(s, tokenizer=tokenizer)) == ([], [])
 
     s = "')'"
-    assert _tokenvals(*matching_parens(s)) == ([], [])
+    assert _tokenvals(*matching_parens(s, tokenizer=tokenizer)) == ([], [])
 
     s = "({})"
-    assert _tokenvals(*matching_parens(s)) == (
+    assert _tokenvals(*matching_parens(s, tokenizer=tokenizer)) == (
         [
             ((1, 0), (1, 3)),
             ((1, 1), (1, 2)),
@@ -77,7 +80,7 @@ def test_matching_parens():
     )
 
     s = "({)}"
-    assert _tokenvals(*matching_parens(s, allow_intermediary_mismatches=False)) == (
+    assert _tokenvals(*matching_parens(s, tokenizer=tokenizer, allow_intermediary_mismatches=False)) == (
         [],
         [
             (1, 0),
@@ -88,7 +91,7 @@ def test_matching_parens():
     )
 
     s = "({)}"
-    assert _tokenvals(*matching_parens(s, allow_intermediary_mismatches=True)) == (
+    assert _tokenvals(*matching_parens(s, tokenizer=tokenizer, allow_intermediary_mismatches=True)) == (
         [
             ((1, 1), (1, 3))
         ],
@@ -99,7 +102,7 @@ def test_matching_parens():
     )
 
     s = "({)})"
-    assert _tokenvals(*matching_parens(s, allow_intermediary_mismatches=False)) == (
+    assert _tokenvals(*matching_parens(s, tokenizer=tokenizer, allow_intermediary_mismatches=False)) == (
         [],
         [
             (1, 0),
@@ -111,7 +114,7 @@ def test_matching_parens():
     )
 
     s = "({)})"
-    assert _tokenvals(*matching_parens(s, allow_intermediary_mismatches=True)) == (
+    assert _tokenvals(*matching_parens(s, tokenizer=tokenizer, allow_intermediary_mismatches=True)) == (
         [
             ((1, 0), (1, 4)),
             ((1, 1), (1, 3)),
@@ -123,7 +126,7 @@ def test_matching_parens():
 
     # Test IndentationError
     s = 'def test():\n    if 1:\n  if 1:'
-    assert _tokenvals(*matching_parens(s)) == (
+    assert _tokenvals(*matching_parens(s, tokenizer=tokenizer)) == (
         [
             ((1, 8), (1, 9)),
         ],
