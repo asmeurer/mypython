@@ -34,7 +34,7 @@ def tokenize_string(s, tokenizer=None):
         from parso.utils import parse_version_string
         from parso.python.tokenize import tokenize as parso_tokenize
 
-        for tok in parso_tokenize(s, parse_version_string()):
+        for tok in parso_tokenize(s, version_info=parse_version_string()):
             # Make the parso tokens compatible with tokenize
             tok.start = tok.start_pos
             tok.end = tok.end_pos
