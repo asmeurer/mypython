@@ -2,7 +2,6 @@ language: generic
 
 env:
   matrix:
-    - CONDA_PY="3.5"
     - CONDA_PY="3.6"
     - CONDA_PY="3.7"
     - CONDA_PY="3.8"
@@ -19,10 +18,10 @@ install:
   # Useful for debugging any issues with conda
   - conda info -a
 
-  - conda create -q -n test-environment python=$CONDA_PY 'prompt_toolkit=2' pygments pyflakes pytest matplotlib jedi sympy seaborn pudb python.app flaky setproctitle
+  - conda create -q -n test-environment python=$CONDA_PY 'prompt_toolkit=2' pygments pyflakes pytest matplotlib jedi sympy seaborn pudb flaky setproctitle
   - source activate test-environment
 
 script:
   - python -We:invalid -We::SyntaxWarning -m compileall -f -q mypython/
   - pyflakes mypython bin/mypython
-  - pythonw -m pytest -vvv --fulltrace
+  - python -m pytest -vvv --fulltrace

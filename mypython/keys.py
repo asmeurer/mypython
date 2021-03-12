@@ -803,6 +803,8 @@ def split_prompts(text, indent=''):
 
     It is assumed that the text contains no carriage returns (\r).
 
+    Trailing whitespace and newlines is stripped from the outputs.
+
     Example:
 
     >>> split_prompts('''
@@ -815,7 +817,7 @@ def split_prompts(text, indent=''):
     ...    ...:     pass
     ...    ...:
     ... ''')
-    ['a = 1\n', 'a\n', 'def test():\n    pass\n\n']
+    ['a = 1', 'a', 'def test():\n    pass']
 
     """
     from .mypython import validate_text

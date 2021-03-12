@@ -47,13 +47,15 @@ def get_jedi_script_from_document(document, _locals, _globals, session):
         if text.startswith(magic):
             text = ' '*len(magic) + text[len(magic):]
             break
+
+    line = document.cursor_position_row + 2 + len(full_document.splitlines())
+    column = document.cursor_position_col
+
     try:
-        return jedi.Interpreter(
+        return (jedi.Interpreter(
             full_document + '\n' + text,
-            column=document.cursor_position_col,
-            line=document.cursor_position_row + 2 + len(full_document.splitlines()),
             path='<mypython>',
-            namespaces=[_locals, _globals])
+            namespaces=[_locals, _globals]), line, column)
     except Exception:
         # Workaround for many issues (see original code)
         return None
@@ -118,12 +120,12 @@ class PythonCompleter(Completer):
                 else:
                     break
 
-            script = get_jedi_script_from_document(document,
+            script, line, column = get_jedi_script_from_document(document,
                 self.get_locals(), self.get_globals(), self.session)
 
             if script:
                 try:
-                    completions = script.completions()
+                    completions = script.complete(line=line, column=column)
                 except TypeError:
                     # Issue #9: bad syntax causes completions() to fail in jedi.
                     # https://github.com/jonathanslenders/python-prompt-toolkit/issues/9

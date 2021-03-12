@@ -95,8 +95,8 @@
 - M-; doesn't insert a comment character on a blank line
 - Fix https://github.com/prompt-toolkit/python-prompt-toolkit/pull/1010
 - Import hook shows up in tracebacks
-- No paren matching inside of code part of an f-string
 - breakpoint() doesn't work correctly if it is nested
+- Add zap-to-char
 
 ## 2.0 TODOs
 

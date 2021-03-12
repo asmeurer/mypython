@@ -8,24 +8,42 @@ them at 0.
 import io
 from itertools import tee, chain
 from tokenize import tokenize, TokenError
-from tokenize import (LPAR, RPAR, LSQB, RSQB, LBRACE, RBRACE, ERRORTOKEN, STRING,
-    COLON, AT, ENDMARKER, DEDENT, NAME, NEWLINE, ENCODING)
+from tokenize import (STRING, COLON, AT, ENDMARKER, DEDENT, NAME, NEWLINE,
+                      ENCODING)
 import ast
 import re
 
 braces = {
-    LPAR: RPAR,
-    LSQB: RSQB,
-    LBRACE: RBRACE,
+    '(': ')',
+    '[': ']',
+    '{': '}',
     }
 
-def tokenize_string(s):
+def tokenize_string(s, tokenizer=None):
     """
     Generator of tokens from the string s
-    """
-    return tokenize(io.BytesIO(s.encode('utf-8')).readline)
 
-def matching_parens(s, allow_intermediary_mismatches=True):
+    tokenizer should be 'tokenize', 'parso', or None (the default, which is
+    the same as 'tokenize').
+    """
+    if tokenizer is None:
+        tokenizer = 'tokenize'
+    if tokenizer == 'tokenize':
+        yield from tokenize(io.BytesIO(s.encode('utf-8')).readline)
+    elif tokenizer == 'parso':
+        from parso.utils import parse_version_string
+        from parso.python.tokenize import tokenize as parso_tokenize
+
+        for tok in parso_tokenize(s, parse_version_string()):
+            # Make the parso tokens compatible with tokenize
+            tok.start = tok.start_pos
+            tok.end = tok.end_pos
+
+            yield tok
+    else:
+        raise ValueError("The tokenizer keyword argument should be 'tokenize' or 'parso'")
+
+def matching_parens(s, allow_intermediary_mismatches=True, tokenizer=None):
     """
     Find matching and mismatching parentheses and braces
 
@@ -105,24 +123,31 @@ def matching_parens(s, allow_intermediary_mismatches=True):
         [TokenInfo(..., string='(', ...), TokenInfo(..., string=']', ...)]
 
     """
+    if tokenizer is None:
+        tokenizer = 'parso'
+    if tokenizer == 'parso':
+        from parso.python.tokenize import ERRORTOKEN
+    else:
+        from tokenize import ERRORTOKEN
     stack = []
     matching = []
     mismatching = []
     try:
-        for tok in tokenize_string(s):
-            exact_type = tok.exact_type
-            if exact_type == ERRORTOKEN:
+        for tok in tokenize_string(s, tokenizer=tokenizer):
+            typ = tok.type
+            string = tok.string
+            if typ == ERRORTOKEN:
                 # There is an unclosed string. If we do not break here,
                 # tokenize will tokenize the stuff after the string delimiter.
                 break
-            elif exact_type in braces:
+            elif string in braces:
                 stack.append(tok)
-            elif exact_type in braces.values():
+            elif string in braces.values():
                 if not stack:
                     mismatching.append(tok)
                     continue
                 prevtok = stack.pop()
-                if braces[prevtok.exact_type] == exact_type:
+                if braces[prevtok.string] == string:
                     matching.append((prevtok, tok))
                 else:
                     if allow_intermediary_mismatches:
@@ -156,6 +181,7 @@ def inside_string(s, row, col, include_quotes=False):
     False.
 
     """
+    from tokenize import ERRORTOKEN
     def _offsets(string):
         # The offsets for the quote characters. The inside part of the
         # string will be tokval[start_margin: -end_margin]
@@ -297,6 +323,8 @@ def is_multiline_python(text):
     non-docstring literal or an indentation error.
 
     """
+    from tokenize import ERRORTOKEN
+
     # Dedent the text, otherwise, the last token will be DEDENT
     text = text.lstrip()
 
