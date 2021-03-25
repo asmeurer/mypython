@@ -83,7 +83,7 @@ class PythonCompleter(Completer):
         if ' ' not in document.text_before_cursor:
             for magic in MAGICS:
                 for m in [magic, magic[1:]]:
-                    if m.startswith(document.text):
+                    if m.startswith(document.text_before_cursor):
                         yield Completion(magic + ' ',
                             -len(document.text_before_cursor),
                             display_meta='magic')
