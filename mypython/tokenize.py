@@ -63,6 +63,19 @@ def matching_parens(s, allow_intermediary_mismatches=True, tokenizer=None):
     False, once an opening brace is closed with the wrong brace it---and any
     unclosed braces before it---cannot be matched.
 
+    tokenizer should be 'tokenize' or 'parso'. By default it is 'parso'. The
+    parso tokenizer is able to handle braces inside of f-string expressions,
+    whereas the 'tokenize' tokenizer is not.
+
+        >>> matching_parens('f"{()}"', tokenizer='parso')
+        ([(TokenInfo(type=OP, string='{', start_pos=(1, 2), prefix=''),
+           TokenInfo(type=OP, string='}', start_pos=(1, 5), prefix='')),
+          (TokenInfo(type=OP, string='(', start_pos=(1, 3), prefix=''),
+           TokenInfo(type=OP, string=')', start_pos=(1, 4), prefix=''))],
+        [])
+        >>> matching_parens('f"{()}"', tokenizer='tokenize')
+        ([], [])
+
     For example, consider '[ { ] }'. If allow_intermediary_mismatches is
     False, all the braces are considered mismatched.
 
