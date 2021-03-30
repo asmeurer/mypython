@@ -92,10 +92,10 @@ def matching_parens(s, allow_intermediary_mismatches=True, tokenizer=None):
         >>> matching, mismatching = matching_parens('[ { ] } ]',
         ... allow_intermediary_mismatches=True)
         >>> matching
-        [(TokenInfo(..., string='[', ...), TokenInfo(..., string=']', start=(1, 8), ...)),
+        [(TokenInfo(..., string='[', ...), TokenInfo(..., string=']', start_pos=(1, 8), ...)),
          (TokenInfo(..., string='{', ...), TokenInfo(..., string='}', ...))]
         >>> mismatching
-        [TokenInfo(..., string=']', start=(1, 4), ...)]
+        [TokenInfo(..., string=']', start_pos=(1, 4), ...)]
 
         >>> matching, mismatching = matching_parens('[ { ] } ]',
         ... allow_intermediary_mismatches=False)
