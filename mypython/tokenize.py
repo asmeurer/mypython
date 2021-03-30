@@ -67,7 +67,7 @@ def matching_parens(s, allow_intermediary_mismatches=True, tokenizer=None):
     False, all the braces are considered mismatched.
 
         >>> matching, mismatching = matching_parens('[ { ] }',
-        ... allow_intermediary_mismatches=False)
+        ...     allow_intermediary_mismatches=False)
         >>> matching
         []
         >>> mismatching
@@ -79,7 +79,7 @@ def matching_parens(s, allow_intermediary_mismatches=True, tokenizer=None):
     However, if it is True, the { and } are considered matching.
 
         >>> matching, mismatching = matching_parens('[ { ] }',
-        ... allow_intermediary_mismatches=True)
+        ...     allow_intermediary_mismatches=True)
         >>> matching
         [(TokenInfo(..., string='{', ...), TokenInfo(..., string='}', ...))]
         >>> mismatching
@@ -90,7 +90,7 @@ def matching_parens(s, allow_intermediary_mismatches=True, tokenizer=None):
     mismatched (with False, all would be mismatched).
 
         >>> matching, mismatching = matching_parens('[ { ] } ]',
-        ... allow_intermediary_mismatches=True)
+        ...     allow_intermediary_mismatches=True)
         >>> matching
         [(TokenInfo(..., string='[', ...), TokenInfo(..., string=']', start_pos=(1, 8), ...)),
          (TokenInfo(..., string='{', ...), TokenInfo(..., string='}', ...))]
@@ -98,7 +98,7 @@ def matching_parens(s, allow_intermediary_mismatches=True, tokenizer=None):
         [TokenInfo(..., string=']', start_pos=(1, 4), ...)]
 
         >>> matching, mismatching = matching_parens('[ { ] } ]',
-        ... allow_intermediary_mismatches=False)
+        ...     allow_intermediary_mismatches=False)
         >>> matching
         []
         >>> mismatching
