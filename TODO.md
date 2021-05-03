@@ -97,6 +97,7 @@
 - Import hook shows up in tracebacks
 - breakpoint() doesn't work correctly if it is nested
 - Add zap-to-char
+- Make it easier to navigate history from sessions from other tabs
 
 ## 2.0 TODOs
 
