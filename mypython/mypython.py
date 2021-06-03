@@ -334,10 +334,16 @@ def myhelp(item):
     else:
         name = _name(item)
         if name:
+            no_annotations = s.replace(parameters=[p.replace(annotation=inspect.Signature.empty)
+                                                   for p in s.parameters.values()],
+                                       return_annotation=inspect.Signature.empty)
             # highlight adds a newline to the end of the string
             # (https://bitbucket.org/birkenfeld/pygments-main/issues/1403/)
             help_io.write("{heading}: {name}{s}".format(heading=
-                red("Signature"), name=name, s=highlight(str(s), Python3Lexer(), TerminalTrueColorFormatter(style=OneAMStyle))))
+                red("Signature"), name=name, s=highlight(str(no_annotations), Python3Lexer(), TerminalTrueColorFormatter(style=OneAMStyle))))
+            if no_annotations != s:
+                help_io.write("{heading}: {name}{s}".format(heading=
+                    red("Full Signature"), name=name, s=highlight(str(s), Python3Lexer(), TerminalTrueColorFormatter(style=OneAMStyle))))
 
     try:
         filename = normalized_filename(inspect.getfile(item))
