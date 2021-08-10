@@ -12,6 +12,7 @@ from tokenize import (STRING, COLON, AT, ENDMARKER, DEDENT, NAME, NEWLINE,
                       ENCODING)
 import ast
 import re
+import warnings
 
 braces = {
     '(': ')',
@@ -137,7 +138,12 @@ def matching_parens(s, allow_intermediary_mismatches=True, tokenizer=None):
 
     """
     if tokenizer is None:
-        tokenizer = 'parso'
+        try:
+            import parso;parso
+            tokenizer = 'parso'
+        except ImportError:
+            warnings.warn("Could not import parso. Using tokenize for parens highlighting")
+            tokenizer = 'tokenize'
     if tokenizer == 'parso':
         from parso.python.tokenize import ERRORTOKEN, OP
     else:
