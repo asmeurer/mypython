@@ -100,6 +100,8 @@
 - Make it easier to navigate history from sessions from other tabs
 - Cannot find the source file for numpy functions (e.g., np.linalg.matrix_rank)
 - Deprecation warning from seaborn
+- matching_parens("{(}}", allow_intermediary_mismatches=True) should not
+  highlight the starting {
 
 ## 2.0 TODOs
 
