@@ -133,6 +133,9 @@ def test_matching_parens(tokenizer):
         []
     )
 
+    s = 'f"("'
+    assert _tokenvals(*matching_parens(s, tokenizer=tokenizer)) == ([], [])
+
 def test_inside_string():
     def isiq(s, row, col):
         return inside_string(s, row, col, include_quotes=True)

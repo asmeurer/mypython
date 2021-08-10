@@ -139,9 +139,9 @@ def matching_parens(s, allow_intermediary_mismatches=True, tokenizer=None):
     if tokenizer is None:
         tokenizer = 'parso'
     if tokenizer == 'parso':
-        from parso.python.tokenize import ERRORTOKEN
+        from parso.python.tokenize import ERRORTOKEN, OP
     else:
-        from tokenize import ERRORTOKEN
+        from tokenize import ERRORTOKEN, OP
     stack = []
     matching = []
     mismatching = []
@@ -153,9 +153,9 @@ def matching_parens(s, allow_intermediary_mismatches=True, tokenizer=None):
                 # There is an unclosed string. If we do not break here,
                 # tokenize will tokenize the stuff after the string delimiter.
                 break
-            elif string in braces:
+            elif typ == OP and string in braces:
                 stack.append(tok)
-            elif string in braces.values():
+            elif typ == OP and string in braces.values():
                 if not stack:
                     mismatching.append(tok)
                     continue

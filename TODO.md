@@ -99,7 +99,6 @@
 - Add zap-to-char
 - Make it easier to navigate history from sessions from other tabs
 - Cannot find the source file for numpy functions (e.g., np.linalg.matrix_rank)
-- f"(" incorrectly marks unmatched parenthesis
 - Deprecation warning from seaborn
 
 ## 2.0 TODOs
