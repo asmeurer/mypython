@@ -102,6 +102,7 @@
 - Deprecation warning from seaborn
 - matching_parens("{(}}", allow_intermediary_mismatches=True) should not
   highlight the starting {
+- Make doctest mode show >>> instead of ... where the normal interpreter would
 
 ## 2.0 TODOs
 
