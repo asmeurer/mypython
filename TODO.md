@@ -106,6 +106,9 @@
 - Handle globs in %ls
 - Stop paste execution on exception
 - Can we make %history faster?
+- Syntax highlight warnings
+- Enable all deprecation warnings
+- Cannot add newline to multiline statement when there is an unclosed string
 
 ## 2.0 TODOs
 
