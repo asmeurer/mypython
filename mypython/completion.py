@@ -30,6 +30,9 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 from prompt_toolkit.completion import Completer, Completion
+from prompt_toolkit.patch_stdout import patch_stdout
+
+import traceback
 
 from .dircompletion import DirCompleter
 from .magic import MAGICS
@@ -126,6 +129,10 @@ class PythonCompleter(Completer):
             if script:
                 try:
                     completions = script.complete(line=line, column=column)
+                except Exception:
+                    with patch_stdout():
+                        print("Error with Jedi completion:\n")
+                        traceback.print_exc()
                 except TypeError:
                     # Issue #9: bad syntax causes completions() to fail in jedi.
                     # https://github.com/jonathanslenders/python-prompt-toolkit/issues/9
