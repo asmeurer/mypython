@@ -79,10 +79,8 @@ from [conda-forge](https://conda-forge.github.io/):
 
 - prompt_toolkit
 - pygments
-- iterm2_tools
-- catimg
-- matplotlib
-- seaborn
+- iterm2_tools (on Mac)
+- parso
 - jedi
 - pyflakes
 - setproctitle
