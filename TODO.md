@@ -109,6 +109,12 @@
 - Syntax highlight warnings
 - Enable all deprecation warnings
 - Cannot add newline to multiline statement when there is an unclosed string
+- pyflakes errors with
+  ```
+  print(f"""
+  {a}""")
+  ```
+- Add GitHub Actions CI
 
 ## 2.0 TODOs
 
