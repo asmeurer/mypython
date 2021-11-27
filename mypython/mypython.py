@@ -66,8 +66,6 @@ except ImportError:
         raise
     iterm2_tools = None
 
-from setproctitle import setproctitle
-
 from .multiline import document_is_multiline_python
 from .completion import PythonCompleter
 from .theme import OneAMStyle, MyPython3Lexer, emoji
@@ -712,7 +710,13 @@ del sys
 
         self.builtins = builtins
 
-        setproctitle('mypython')
+        try:
+            from setproctitle import setproctitle
+
+            setproctitle('mypython')
+        except ImportError:
+            print("Warning: Could not set the terminal title. setproctitle not installed.",
+                  file=sys.stderr)
 
     def get_in_prompt(self):
         if iterm2_tools:
