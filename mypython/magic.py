@@ -197,6 +197,18 @@ _pydoc.pipepager('\\n'.join(_pygments.highlight(i, _MyPython3Lexer(), _pygments.
 del _pydoc, _pygments, _OneAMStyle, _MyPython3Lexer, _blue, _underline
 """
 
+def pprint_magic(rest):
+    """
+    Pretty print the result
+    """
+    if not rest.strip():
+        return error("nothing to pretty print")
+
+    return """\
+from pprint import pprint as _pprint
+_pprint({rest})
+""".format(rest=rest)
+
 def pudb_magic(rest):
     """
     Debug the code with PuDB.
