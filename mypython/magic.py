@@ -206,7 +206,7 @@ def pprint_magic(rest):
 
     return """\
 from pprint import pprint as _pprint
-_pprint({rest})
+_pprint({rest}, sort_dicts=False)
 """.format(rest=rest)
 
 def pudb_magic(rest):
