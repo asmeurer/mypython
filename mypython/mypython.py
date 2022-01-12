@@ -705,12 +705,15 @@ del sys
         sys.displayhook = mypython_displayhook
         sys.excepthook = mypython_excepthook
 
-        from .postimport import when_imported
+        # This doesn't work, and the postimport stuff leaks through on things
+        # like import errors.
 
-        @when_imported('matplotlib')
-        def matplotlib_interactive(matplotlib):
-            print("Calling matplotlib.interactive(True)")
-            matplotlib.interactive(True)
+        # from .postimport import when_imported
+
+        # @when_imported('matplotlib')
+        # def matplotlib_interactive(matplotlib):
+        #     print("Calling matplotlib.interactive(True)")
+        #     matplotlib.interactive(True)
 
         self.builtins = builtins
 
