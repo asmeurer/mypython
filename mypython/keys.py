@@ -8,7 +8,7 @@ from prompt_toolkit.key_binding.bindings.cpr import load_cpr_bindings
 from prompt_toolkit.key_binding.bindings.page_navigation import load_emacs_page_navigation_bindings
 
 from prompt_toolkit.key_binding import KeyBindings, merge_key_bindings
-from prompt_toolkit.keys import Keys, ALL_KEYS
+from prompt_toolkit.keys import Keys
 from prompt_toolkit.filters import Condition, HasSelection, is_searching
 from prompt_toolkit.selection import SelectionState
 from prompt_toolkit.clipboard import ClipboardData
@@ -404,14 +404,26 @@ def open_line(event):
     event.current_buffer.newline(copy_margin=False)
     event.current_buffer.cursor_left()
 
-# M-[ a g is set to S-Enter in iTerm2 settings
-Keys.ShiftEnter = "<Shift-Enter>"
-ALL_KEYS.append('<Shift-Enter>')
-ANSI_SEQUENCES['\x1b[ag'] = Keys.ShiftEnter
-ANSI_SEQUENCES['\x1bOM'] = Keys.ShiftEnter
 
+# In prompt-toolkit 3.0, keys are only recognized if they are on the Keys
+# Enum, which is immutable, or if they are single character strings. Since
+# there is no limit to single character strings, we simply pick one at random
+# for the key sequence. See
+# https://github.com/prompt-toolkit/python-prompt-toolkit/pull/1010.
+
+# If we wanted we could also make a more readable version work with
+
+# from prompt_toolkit.keys import KEY_ALIASES
+# KEY_ALIASES["<Shift-Enter>"] = ShiftEnter
+
+ShiftEnter = '⌤'
 if prompt_toolkit_version[0] != '3':
-    r.add_binding(Keys.ShiftEnter)(accept_line)
+    Keys.ShiftEnter = ShiftEnter
+
+# M-[ [ a g or M-[ O M is set to S-Enter in iTerm2 settings
+ANSI_SEQUENCES['\x1b[ag'] = ShiftEnter
+ANSI_SEQUENCES['\x1bOM'] = ShiftEnter
+r.add_binding(ShiftEnter)(accept_line)
 
 @r.add_binding(Keys.Tab, filter=tab_should_insert_whitespace)
 def indent(event):
@@ -734,27 +746,23 @@ def paste_from_clipboard(event):
     paste_text_future.add_done_callback(lambda future:\
         event.current_buffer.paste_clipboard_data(ClipboardData(future.result())))
 
-# M-[ a b is set to C-S-/ (C-?) in iTerm2 settings
-Keys.ControlQuestionmark = "<C-?>"
-ALL_KEYS.append("<C-?>")
-ANSI_SEQUENCES['\x1b[ab'] = Keys.ControlQuestionmark
-
-Keys.ControlSlash = "<C-/>"
-ALL_KEYS.append("<C-/>")
-ANSI_SEQUENCES['\x1b"5/'] = Keys.ControlSlash
-
-# This won't work until
-# https://github.com/jonathanslenders/python-prompt-toolkit/pull/484 is
-# merged.
+# See comment on ShiftEnter above
+ControlQuestionmark = "≟"
 if prompt_toolkit_version[0] != '3':
-    @r.add_binding(Keys.ControlQuestionmark, save_before=lambda e: False)
-    def redo(event):
-        event.current_buffer.redo()
+    Keys.ControlQuestionmark = ControlQuestionmark
+# M-[ a b is set to C-S-/ (C-?) in iTerm2 settings
+# KEY_ALIASES["<C-?>"] = ControlQuestionmark
+ANSI_SEQUENCES['\x1b[ab'] = ControlQuestionmark
 
-    @r.add_binding(Keys.ControlSlash, save_before=lambda e: False)
-    def undo(event):
-        event.current_buffer.undo()
+@r.add_binding(ControlQuestionmark, save_before=lambda e: False)
+def redo(event):
+    event.current_buffer.redo()
 
+# work around an issue that makes undo work a single character at a time.
+# https://github.com/prompt-toolkit/python-prompt-toolkit/issues/1467
+if prompt_toolkit_version[0] == '3':
+    from prompt_toolkit.key_binding.bindings.named_commands import _readline_commands
+    _readline_commands['self-insert'] = _readline_commands['self-insert'].handler
 
 # Need to escape all spaces here because of verbose (x) option below
 ps1_prompts = [r'>>>\ '] + [re.escape(i) + r'\[\d+\]:\ ' for i, j in emoji + [emoji_pudb]] + [r'In\ \[\d+\]:\ ']
