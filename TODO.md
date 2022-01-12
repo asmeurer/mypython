@@ -115,6 +115,7 @@
   {a}""")
   ```
 - Add GitHub Actions CI
+- Update matplotlib interactive plotting stuff (copy from latest IPython)
 
 ## 2.0 TODOs
 

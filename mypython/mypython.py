@@ -640,11 +640,15 @@ class Session(PromptSession):
         kwargs.setdefault('color_depth', ColorDepth.TRUE_COLOR)
         kwargs.setdefault('mouse_support', False)
 
-        # This is needed to make matplotlib plots work
-        if sys.platform == 'darwin':
-            from .inputhook import inputhook
-            if prompt_toolkit_version[0] != '3':
-                kwargs.setdefault('inputhook', inputhook)
+        # This is broken, and doesn't work at all in prompt-toolkit 3 anyway.
+        # We need to re-copy what IPython does (looks like it involves async
+        # stuff, so it might be complicated).
+
+        # # This is needed to make matplotlib plots work
+        # if sys.platform == 'darwin':
+        #     from .inputhook import inputhook
+        #     if prompt_toolkit_version[0] != '3':
+        #         kwargs.setdefault('inputhook', inputhook)
 
         self._globals = _globals
         self._locals = _locals
