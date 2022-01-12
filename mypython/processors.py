@@ -273,7 +273,7 @@ class HighlightPyflakesErrorsProcessor(Processor):
                 # TODO: handle warnings without a column
                 fragments = explode_text_fragments(fragments)
                 if col > len(fragments):
-                    print("Error with pyflakes checker", col, len(fragments))
+                    print(f"Error with pyflakes checker: {col=}, {len(fragments)=}, {row=}")
                     continue
 
                 if col == len(fragments):
