@@ -991,6 +991,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
         except KeyboardInterrupt:
             # TODO: Keep it in the history
             print("KeyboardInterrupt\n", file=sys.stderr)
+            CMD_QUEUE.clear()
             continue
         except (EOFError, SystemExit):
             break
