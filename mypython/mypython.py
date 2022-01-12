@@ -722,6 +722,8 @@ del sys
             print("Warning: Could not set the terminal title. setproctitle not installed.",
                   file=sys.stderr)
 
+        setup_keyboard_interrupt_handler()
+
     def get_in_prompt(self):
         if iterm2_tools:
             before_prompt = (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT)
@@ -884,7 +886,8 @@ class MyTracebackException(traceback.TracebackException):
                 if not mypython_error:
                     mypython_error = False
 
-        if mypython_error is None and frame.filename.startswith(mypython_dir):
+        if (mypython_error is None and frame.filename.startswith(mypython_dir)
+            and frame.name != 'keyboard_interrupt_handler'):
             mypython_error = True
 
         if remove_mypython and not mypython_error:
@@ -892,6 +895,17 @@ class MyTracebackException(traceback.TracebackException):
 
         self.mypython_error = mypython_error
 
+def keyboard_interrupt_handler(signum, frame):
+    # Clear the command queue on keyboard interrupt. This is done as a signal
+    # handler because a normal keyboard interrupt during execution would just
+    # interrupt the current command and not propogate to the main loop.
+    CMD_QUEUE.clear()
+    raise KeyboardInterrupt
+
+def setup_keyboard_interrupt_handler():
+    import signal
+
+    signal.signal(signal.SIGINT, keyboard_interrupt_handler)
 
 def mypython_excepthook(etype, value, tb):
     try:
@@ -991,7 +1005,6 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
         except KeyboardInterrupt:
             # TODO: Keep it in the history
             print("KeyboardInterrupt\n", file=sys.stderr)
-            CMD_QUEUE.clear()
             continue
         except (EOFError, SystemExit):
             break
