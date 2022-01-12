@@ -2,7 +2,7 @@ iterm2-tools
 jedi
 matplotlib
 parso
-prompt_toolkit==2.0.10
+prompt_toolkit
 pudb
 pyflakes
 pygments
