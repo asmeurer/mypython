@@ -5,14 +5,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10']
-        prompt-toolkit-version: ['2', '3']
+        python: ['python=3.7', 'python=3.8', 'python=3.9', 'python=3.10']
+        prompt-toolkit: ['prompt_toolkit=2', 'prompt_toolkit=3']
       fail-fast: false
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
       - name: Install Dependencies
         run: |
           set -x
@@ -23,7 +21,7 @@ jobs:
           conda config --add channels conda-forge
           conda update -q conda
           conda info -a
-          conda create -n test-environment python=${{ matrix.python-version }} --file requirements.txt pytest flaky prompt_toolkit=${{ matrix.prompt-toolkit-version }}
+          conda create -n test-environment ${{ matrix.python-version }} --file requirements.txt pytest flaky ${{ matrix.prompt-toolkit-version }}
           conda init
 
       - name: Run Tests
