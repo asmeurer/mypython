@@ -2,8 +2,6 @@
 
 A Python REPL the way I like it.
 
-[![Build Status](https://travis-ci.org/asmeurer/mypython.svg?branch=master)](https://travis-ci.org/asmeurer/mypython)
-
 ## What? Why?
 
 I was unsatisfied
