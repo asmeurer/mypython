@@ -85,6 +85,17 @@ from [conda-forge](https://conda-forge.github.io/):
 - pyflakes
 - setproctitle
 
+As well as some optional dependencies that are needed for some `%magic`
+commands:
+
+- pudb
+- pyinstrument
+- matplotlib
+- seaborn
+- sympy
+
+You can install them using the [requirements.txt](requirements.txt) file.
+
 # Configuration
 
 There is none. It's already configured the way I like it.
