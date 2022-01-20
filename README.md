@@ -91,6 +91,7 @@ commands:
 - matplotlib
 - seaborn
 - sympy
+- catimg
 
 You can install them using the [requirements.txt](requirements.txt) file.
 
