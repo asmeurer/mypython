@@ -26,7 +26,7 @@ def autorange(timer, callback=None):
     total_number = 0
     times = []
     # The overhead of the timer itself takes about 10 seconds for 2**22 runs
-    # (%timeit pass) on a slow machine (Travis CI).
+    # (%timeit pass) on a slow machine (CI).
     for i in range(22):
         number = 2**i
         times += timer.repeat(number, 1)
