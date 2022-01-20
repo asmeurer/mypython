@@ -56,7 +56,6 @@ from prompt_toolkit.output.color_depth import ColorDepth
 from prompt_toolkit.filters import renderer_height_is_known, is_done
 from prompt_toolkit.layout import (HSplit, ConditionalContainer, Layout,
     Window, FormattedTextControl, Dimension)
-from prompt_toolkit import __version__ as prompt_toolkit_version
 
 try:
     import iterm2_tools
