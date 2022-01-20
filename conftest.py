@@ -3,3 +3,7 @@ from mypython.tests.test_mypython import check_output; check_output
 
 def pytest_cmdline_preparse(config, args):
     args[:] = ["--no-success-flaky-report", "--no-flaky-report"] + args
+
+def pytest_report_header(config):
+    import prompt_toolkit
+    return f"project deps: prompt_toolkit-{prompt_toolkit.__version__}"
