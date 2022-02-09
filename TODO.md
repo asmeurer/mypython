@@ -116,6 +116,7 @@
   ```
 - Add GitHub Actions CI
 - Update matplotlib interactive plotting stuff (copy from latest IPython)
+- pickle.dumps does not work for classes defined in __main__
 
 ## 2.0 TODOs
 
