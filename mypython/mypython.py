@@ -19,6 +19,7 @@ import random
 import ast
 import traceback
 import textwrap
+import warnings
 from io import StringIO
 from textwrap import dedent
 from pydoc import pager, Helper
@@ -286,8 +287,37 @@ def doctest_mode(enable=None):
     if DOCTEST_MODE:
         # forces sys.getframe(1).f_code.co_filename to be __main__, which makes warnings output match the default interpreter.
         sys.argv[0] = '__main__'
+        monkeypatch_warnings()
     else:
+        monkeypatch_warnings(undo=True)
         sys.argv[0] = _sysargv0
+
+orig_WarningMessage___init__ = None
+
+def custom_WarningMessage__init__(self, message, category, filename, lineno, file=None,
+                                  line=None, source=None):
+    # This is the only bit that differs from the original
+    if filename.startswith('<mypython'):
+        filename = '<stdin>'
+
+    self.message = message
+    self.category = category
+    self.filename = filename
+    self.lineno = lineno
+    self.file = file
+    self.line = line
+    self.source = source
+    self._category_name = category.__name__ if category else None
+
+def monkeypatch_warnings(undo=False):
+    global orig_WarningMessage___init__
+    if orig_WarningMessage___init__ is None:
+        orig_WarningMessage___init__ = warnings.WarningMessage.__init__
+
+    if undo:
+        warnings.WarningMessage.__init__ = orig_WarningMessage___init__
+    else:
+        warnings.WarningMessage.__init__ = custom_WarningMessage__init__
 
 def mypython_file(prompt_number=None):
     if prompt_number is not None:
