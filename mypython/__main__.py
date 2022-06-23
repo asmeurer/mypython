@@ -41,7 +41,7 @@ def main():
         print("mypython debugging mode enabled")
 
     if args.doctest_mode:
-        mypython.DOCTEST_MODE = True
+        mypython.doctest_mode()
 
     if args.isympy:
         args.cmd.append('%sympy')
