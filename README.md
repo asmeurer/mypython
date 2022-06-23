@@ -53,6 +53,8 @@ without any additional work (unlike REPLs based on readline).
 - `%sympy` magic (works like `sympy.init_session()`.
 - `%pyinstrument` magic to run code with
   [pyinstrument](https://github.com/joerick/pyinstrument).
+- `%line_profiler` magic to run code with
+  [line_profiler](https://github.com/pyutils/line_profiler).
 - `%pudb` magic to run code in [PuDB](https://documen.tician.de/pudb/).
 - Debugging functions defined interactively works.
 - Integration as a custom shell for PuDB.
