@@ -1,5 +1,6 @@
 iterm2-tools
 jedi
+line_profiler
 matplotlib
 parso
 prompt_toolkit
