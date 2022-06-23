@@ -296,6 +296,18 @@ finally:
 """
     return res.format(rest=textwrap.indent(rest, ' '*8))
 
+def line_profiler_magic(rest):
+    """
+    Profile the code with line_profiler
+    """
+    res = f"""
+from mypython.line_profiler import run_line_profiler as _run_line_profiler
+_line_profile_result = _run_line_profiler({rest!r}, globals(), locals())
+print(_line_profile_result)
+del _run_line_profiler, _line_profile_result
+"""
+    return res
+
 @nonpython
 def ls_magic(rest):
     """
