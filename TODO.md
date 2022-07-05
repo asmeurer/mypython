@@ -117,6 +117,7 @@
 - Add GitHub Actions CI
 - Update matplotlib interactive plotting stuff (copy from latest IPython)
 - pickle.dumps does not work for classes defined in __main__
+- C-n/C-p don't work when the input is indented
 
 ## 2.0 TODOs
 
