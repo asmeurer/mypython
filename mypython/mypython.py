@@ -382,7 +382,7 @@ def myhelp(item):
 
     item_type_name = _name(type(item))
     if item_type_name:
-        heading = red("Metaclass") if inspect.isclass(item) else red("Type")
+        heading = red("Type/Metaclass") if inspect.isclass(item) else red("Type")
         help_io.write("{heading}: {type_name}\n".format(heading=heading, type_name=item_type_name))
 
     if inspect.isclass(item):
