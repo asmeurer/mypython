@@ -16,7 +16,12 @@ import copy
 import shlex
 import subprocess
 import platform
+import os
+import re
+import sys
 from functools import wraps
+
+from prompt_toolkit.history import FileHistory
 
 def magic(command):
     """
@@ -186,6 +191,45 @@ print(%r)
 """ % (textwrap.indent(sympy_start, '    '), sympy_start)
 
 isympy_magic = sympy_magic
+
+def get_history(file=None, this_history=None):
+    """
+    Return the list of history strings corresponding to a given history
+    file
+
+    `this_history` should be _PROMPT.history for the current prompt session.
+    If the history file corresponds to this session, the live history list
+    will be returned. Otherwise, a static list is returned and this function
+    will need to be called again to update the strings.
+
+    Strings are ordered with the most recent history items first.
+
+    """
+    history = None
+    history_base = "~/.mypython/history/"
+    tty_name = os.path.basename(os.ttyname(sys.stdout.fileno()))
+    if file is None:
+        file = tty_name
+    if isinstance(file, int):
+        file = "%03i" % file
+    if isinstance(file, str):
+        for f in [file,
+                  os.path.join(history_base, file),
+                  os.path.join(history_base, "%s_history" % file),
+                  os.path.join(history_base, "%s_history" % re.sub(r"\d+", file, tty_name))
+                  ]:
+            f = os.path.expanduser(f)
+            if this_history and f == this_history.filename:
+                return this_history._loaded_strings
+            if os.path.exists(f):
+                file = FileHistory(f)
+                break
+    if isinstance(file, FileHistory):
+        history = file
+
+    if history is None:
+        raise RuntimeError("Could not find history from %s" % file)
+    return list(history.load_history_strings())
 
 def history_magic(rest):
     return """\
