@@ -371,19 +371,24 @@ def is_multiline_python(text):
                     if prev.type == ERRORTOKEN and prev.string == '\\':
                         return True
 
-    except TokenError:
+    except TokenError as e:
         # Uncompleted docstring or braces
         # Multiline unless there is an uncompleted non-docstring
-        if tok.type != ENCODING and toknum == ERRORTOKEN and tokval == '\\':
+        if ("multi-line statement" in e.args[0]
+            or tok.type != ENCODING and toknum == ERRORTOKEN and tokval == '\\'):
             return True
         return not error
     except IndentationError:
-        return False
-    if error:
+        # IndentationError only occurs if the indentation cannot possibly be correct
         return False
 
+    # Newline means it is multiline, even if there is an unclosed string
     if '\n' in text:
         return True
+
+    # Unclosed string with no newlines
+    if error:
+        return False
 
     return prev.exact_type == COLON or (prev.exact_type == NEWLINE and prevprev.exact_type == COLON)
 

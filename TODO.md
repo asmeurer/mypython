@@ -108,7 +108,6 @@
 - Can we make %history faster?
 - Syntax highlight warnings
 - Enable all deprecation warnings
-- Cannot add newline to multiline statement when there is an unclosed string
 - pyflakes errors with
   ```
   print(f"""
