@@ -695,6 +695,8 @@ def test_is_multiline_python():
         "('1 + \\",
         "{1: 2,",
         "[1, ",
+        '("a',
+        '["',
         # Anything with a newline is multiline, unless it has an unfinished
         # single quoted string
         "def test():\n    pass",
@@ -703,6 +705,14 @@ def test_is_multiline_python():
         'def test():\n    """',
         'def test():\n    "\\',
         'def test():\n    "\\\n1"',
+
+        # Newline take precedence over unclosed single quoted string
+        '["\n',
+        '["\n]',
+        'def test():\n    "',
+        'def test():\n    "\\\n1',
+        'def test():\n    "\n',
+        'def test():\n    "\n1',
     ]
 
     notmultiline = [
@@ -718,13 +728,8 @@ def test_is_multiline_python():
         '  1 + 1',
         '1 + ',
         '  1 + ',
-        '("a',
         '\'"""',
         "\"'''",
-        'def test():\n    "',
-        'def test():\n    "\\\n1',
-        'def test():\n    "\n',
-        'def test():\n    "\n1',
         'def test():\n    if 1:\n  if 1:',
     ]
 
