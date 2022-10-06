@@ -59,6 +59,9 @@ from prompt_toolkit.layout import (HSplit, ConditionalContainer, Layout,
     Window, FormattedTextControl, Dimension)
 from prompt_toolkit import __version__ as prompt_toolkit_version
 
+if prompt_toolkit_version.startswith('2'):
+    sys.exit("Error: prompt-toolkit version 2 is no longer supported in mypython. Please install prompt-toolkit version 3.")
+
 try:
     import iterm2_tools
 except ImportError:

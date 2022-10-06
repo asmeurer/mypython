@@ -6,7 +6,6 @@ jobs:
     strategy:
       matrix:
         python: ['python=3.7', 'python=3.8', 'python=3.9', 'python=3.10']
-        prompt-toolkit: ['prompt_toolkit=2', 'prompt_toolkit=3']
       fail-fast: false
     steps:
       - uses: actions/checkout@v2
@@ -21,7 +20,7 @@ jobs:
           conda config --add channels conda-forge
           conda update -q conda
           conda info -a
-          conda create -n test-environment ${{ matrix.python }} pytest flaky sympy ${{ matrix.prompt-toolkit }} --file requirements.txt
+          conda create -n test-environment ${{ matrix.python }} pytest flaky sympy --file requirements.txt
           conda init
 
       - name: Run Tests
