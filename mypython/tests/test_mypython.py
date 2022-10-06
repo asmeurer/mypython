@@ -62,22 +62,23 @@ TERMINAL_SEQUENCE = re.compile(r'(\x1b.*?\x07)|(\x1b\[.*?m)')
 
 @fixture
 def check_output(pytestconfig):
-    return _get_check_output()
+    with create_pipe_input() as _input:
+        yield _get_check_output(_input=_input)
 
-def _build_test_session(_input=None):
+def _build_test_session(_input):
     _globals = _test_globals.copy()
     _locals = _globals
-    _input = _input or create_pipe_input()
+    _input = _input
     _output = _TestOutput()
     session = Session(_globals=_globals, _locals=_locals, history=_history(),
         input=_input, output=_output, quiet=True)
     return session
 
-def _get_check_output(session=None):
+def _get_check_output(session=None, _input=None):
     """
     Fixture to generate a check_output() function with a persistent session.
     """
-    session = session or _build_test_session()
+    session = session or _build_test_session(_input)
 
     def _test_output(text, *, doctest_mode=False, remove_terminal_sequences=True):
         """
@@ -117,15 +118,17 @@ def _get_check_output(session=None):
     return _test_output
 
 def test_run_session_with_text():
-    session = _build_test_session()
-    assert _run_session_with_text(session, '1 + 1\n') == '1 + 1'
-    assert _run_session_with_text(session, ' 1\n') == '1'
+    with create_pipe_input() as _input:
+        session = _build_test_session(_input)
+        assert _run_session_with_text(session, '1 + 1\n') == '1 + 1'
+        assert _run_session_with_text(session, ' 1\n') == '1'
 
 def test_autoindent():
-    session = _build_test_session()
+    with create_pipe_input() as _input:
+        session = _build_test_session(_input)
 
-    # Test all the indent rules
-    result = _run_session_with_text(session, """\
+        # Test all the indent rules
+        result = _run_session_with_text(session, """\
     def test():
 while True:
 if 1:
@@ -136,7 +139,7 @@ pass
 return
 
 """)
-    assert result == """\
+        assert result == """\
 def test():
     while True:
         if 1:
@@ -146,24 +149,25 @@ def test():
         pass
     return"""
 
-    result = _run_session_with_text(session, """\
+        result = _run_session_with_text(session, """\
 (
 \t123)
 
 """)
-    assert result == """\
+        assert result == """\
 (
     123)"""
 
 def test_startup():
-    session = _build_test_session()
-    session._globals = session._locals = {}
-    session.startup()
-    # TODO: Test things printed with quiet=False
+    with create_pipe_input() as _input:
+        session = _build_test_session(_input)
+        session._globals = session._locals = {}
+        session.startup()
+        # TODO: Test things printed with quiet=False
 
-    assert session._globals.keys() == session._locals.keys() == {'__builtins__', 'In', 'Out', 'PROMPT_NUMBER', '_PROMPT'}
-    assert session.builtins.keys() == {'In', 'Out', 'PROMPT_NUMBER', '_PROMPT'}
-    assert session._globals['PROMPT_NUMBER'] == 1
+        assert session._globals.keys() == session._locals.keys() == {'__builtins__', 'In', 'Out', 'PROMPT_NUMBER', '_PROMPT'}
+        assert session.builtins.keys() == {'In', 'Out', 'PROMPT_NUMBER', '_PROMPT'}
+        assert session._globals['PROMPT_NUMBER'] == 1
 
 # Not called test_globals to avoid confusion with _test_globals
 def test_test_globals():
@@ -236,150 +240,151 @@ SystemError: Parent module '' not loaded, cannot perform relative import
     ]
 
 def test_builtin_names():
-    session = _build_test_session()
-    check_output = _get_check_output(session)
+    with create_pipe_input() as _input:
+        session = _build_test_session(_input)
+        check_output = _get_check_output(session)
 
-    i = 1
-    out, err = check_output("In\n")
-    assert out == "{1: 'In\\n'}\n\n"
-    assert not err
-    i += 1
-    out, err = check_output("Out\n")
-    assert out == "{1: {1: 'In\\n', 2: 'Out\\n'}, 2: {...}}\n\n"
-    assert not err
-
-    # If a name is deleted, it is restored, but if it is reassigned, the
-    # reassigned name is used.
-    for name in ["In", "Out", "_", "__", "___", "PROMPT_NUMBER", "_PROMPT"]:
-        assert name in session._globals
-        assert session._globals[name] is session.builtins[name]
-
+        i = 1
+        out, err = check_output("In\n")
+        assert out == "{1: 'In\\n'}\n\n"
+        assert not err
         i += 1
-        out, err = check_output("del {name}\n".format(name=name))
+        out, err = check_output("Out\n")
+        assert out == "{1: {1: 'In\\n', 2: 'Out\\n'}, 2: {...}}\n\n"
+        assert not err
+
+        # If a name is deleted, it is restored, but if it is reassigned, the
+        # reassigned name is used.
+        for name in ["In", "Out", "_", "__", "___", "PROMPT_NUMBER", "_PROMPT"]:
+            assert name in session._globals
+            assert session._globals[name] is session.builtins[name]
+
+            i += 1
+            out, err = check_output("del {name}\n".format(name=name))
+            assert out == "\n"
+            assert err == ""
+
+            i += 1
+            out, err = check_output("{name}\n".format(name=name))
+            # The prompt number is incremented in the post_command, so it will be
+            # one more in the _globals after the command is executed.
+            res = session.builtins[name] - 1 if name == 'PROMPT_NUMBER' else session.builtins[name]
+            assert session._globals[name] is session.builtins[name]
+            assert out == repr(res) + "\n\n", name
+            assert err == ""
+
+            # _ name and PROMPT_NUMBER are always updated (we don't attempt to
+            # detect if they were changed manually).
+            if '_' not in name:
+                i += 1
+                out, err = check_output("{name} = 1\n".format(name=name))
+                assert out == '\n'
+                assert err == ''
+
+                i += 1
+                out, err = check_output("{name}\n".format(name=name))
+                assert out == '1\n\n'
+                assert err == ''
+
+                i += 1
+                out, err = check_output("del {name}\n".format(name=name))
+                assert out == '\n'
+                assert err == ''
+
+                i += 1
+                out, err = check_output("{name}\n".format(name=name))
+                assert out == repr(session._globals[name]) + "\n\n"
+                assert err == ""
+
+        # Test _PROMPT
+        i += 1
+        out, err = check_output("_PROMPT\n")
+        assert re.match(r'<mypython\.mypython\.Session object at 0x[a-f0-9]+>\n\n', out), out
+        assert err == ""
+
+        # Test PROMPT_NUMBER
+        # Prompt number not incremented for empty commands
+        out, err = check_output("\n")
+        assert out == "\n"
+        assert err == ""
+
+        out, err = check_output("     \n")
         assert out == "\n"
         assert err == ""
 
         i += 1
-        out, err = check_output("{name}\n".format(name=name))
-        # The prompt number is incremented in the post_command, so it will be
-        # one more in the _globals after the command is executed.
-        res = session.builtins[name] - 1 if name == 'PROMPT_NUMBER' else session.builtins[name]
-        assert session._globals[name] is session.builtins[name]
-        assert out == repr(res) + "\n\n", name
-        assert err == ""
-
-        # _ name and PROMPT_NUMBER are always updated (we don't attempt to
-        # detect if they were changed manually).
-        if '_' not in name:
-            i += 1
-            out, err = check_output("{name} = 1\n".format(name=name))
-            assert out == '\n'
-            assert err == ''
-
-            i += 1
-            out, err = check_output("{name}\n".format(name=name))
-            assert out == '1\n\n'
-            assert err == ''
-
-            i += 1
-            out, err = check_output("del {name}\n".format(name=name))
-            assert out == '\n'
-            assert err == ''
-
-            i += 1
-            out, err = check_output("{name}\n".format(name=name))
-            assert out == repr(session._globals[name]) + "\n\n"
-            assert err == ""
-
-    # Test _PROMPT
-    i += 1
-    out, err = check_output("_PROMPT\n")
-    assert re.match(r'<mypython\.mypython\.Session object at 0x[a-f0-9]+>\n\n', out), out
-    assert err == ""
-
-    # Test PROMPT_NUMBER
-    # Prompt number not incremented for empty commands
-    out, err = check_output("\n")
-    assert out == "\n"
-    assert err == ""
-
-    out, err = check_output("     \n")
-    assert out == "\n"
-    assert err == ""
-
-    i += 1
-    out, err = check_output("fdjksfldj\n")
-    assert out == "\n"
-    assert err == """\
+        out, err = check_output("fdjksfldj\n")
+        assert out == "\n"
+        assert err == """\
 Traceback (most recent call last):
   File "<mypython-%d>", line 1, in <module>
     fdjksfldj
 NameError: name 'fdjksfldj' is not defined
 """ % i
 
-    i += 1
-    out, err = check_output("PROMPT_NUMBER\n")
-    assert out == str(i) + '\n\n'
-    assert err == ''
+        i += 1
+        out, err = check_output("PROMPT_NUMBER\n")
+        assert out == str(i) + '\n\n'
+        assert err == ''
 
-    i += 1
-    out, err = check_output("del PROMPT_NUMBER\n")
-    assert out == '\n'
-    assert err == ''
+        i += 1
+        out, err = check_output("del PROMPT_NUMBER\n")
+        assert out == '\n'
+        assert err == ''
 
-    i += 1
-    out, err = check_output("PROMPT_NUMBER\n")
-    assert out == str(i) + '\n\n'
-    assert err == ''
+        i += 1
+        out, err = check_output("PROMPT_NUMBER\n")
+        assert out == str(i) + '\n\n'
+        assert err == ''
 
-    i += 1
-    out, err = check_output("PROMPT_NUMBER = 0\n")
-    assert out == '\n'
-    assert err == ''
+        i += 1
+        out, err = check_output("PROMPT_NUMBER = 0\n")
+        assert out == '\n'
+        assert err == ''
 
-    i += 1
-    out, err = check_output("PROMPT_NUMBER\n")
-    assert out == str(i) + '\n\n'
-    assert err == ''
+        i += 1
+        out, err = check_output("PROMPT_NUMBER\n")
+        assert out == str(i) + '\n\n'
+        assert err == ''
 
-    # Test _
-    i += 1
-    check_output("1\n")
-    i += 1
-    check_output("2\n")
-    i += 1
-    check_output("3\n")
-    i += 1
-    out, err = check_output("_\n")
-    assert out == "3\n\n"
-    assert not err
+        # Test _
+        i += 1
+        check_output("1\n")
+        i += 1
+        check_output("2\n")
+        i += 1
+        check_output("3\n")
+        i += 1
+        out, err = check_output("_\n")
+        assert out == "3\n\n"
+        assert not err
 
-    i += 1
-    check_output("1\n")
-    i += 1
-    check_output("2\n")
-    i += 1
-    check_output("3\n")
-    i += 1
-    out, err = check_output("__\n")
-    assert out == "2\n\n"
-    assert not err
+        i += 1
+        check_output("1\n")
+        i += 1
+        check_output("2\n")
+        i += 1
+        check_output("3\n")
+        i += 1
+        out, err = check_output("__\n")
+        assert out == "2\n\n"
+        assert not err
 
-    i += 1
-    check_output("1\n")
-    i += 1
-    check_output("2\n")
-    i += 1
-    check_output("3\n")
-    i += 1
-    out, err = check_output("___\n")
-    assert out == "1\n\n"
-    assert not err
+        i += 1
+        check_output("1\n")
+        i += 1
+        check_output("2\n")
+        i += 1
+        check_output("3\n")
+        i += 1
+        out, err = check_output("___\n")
+        assert out == "1\n\n"
+        assert not err
 
-    i += 1
-    out, err = check_output("_%d\n" % (i-1))
-    assert out == "1\n\n"
-    assert not err
+        i += 1
+        out, err = check_output("_%d\n" % (i-1))
+        assert out == "1\n\n"
+        assert not err
 
 
 def test_normalize(capsys):
@@ -476,34 +481,35 @@ def test_syntax_validator():
     doesntvalidate('%timeit  a b?')
 
 def test_getsource():
-    session = _build_test_session()
-    check_output = _get_check_output(session)
-    _globals = session._globals
+    with create_pipe_input() as _input:
+        session = _build_test_session(_input)
+        check_output = _get_check_output(session)
+        _globals = session._globals
 
-    out, err = check_output('def test():\nraise ValueError("error")\n\n')
+        out, err = check_output('def test():\nraise ValueError("error")\n\n')
 
-    assert getsource('test', _globals, _globals, ret=True, include_info=False) == """\
+        assert getsource('test', _globals, _globals, ret=True, include_info=False) == """\
 def test():
     raise ValueError("error")
 """
 
-    out, err = check_output('class Test:\npass\n\n')
-    assert getsource('Test', _globals, _globals, ret=True, include_info=False) == \
+        out, err = check_output('class Test:\npass\n\n')
+        assert getsource('Test', _globals, _globals, ret=True, include_info=False) == \
         getsource('Test', _globals, _globals, ret=True, include_info=False) == """\
 class Test:
     pass
 """
 
-    # Redefine a function
-    out, err = check_output('def test():\nreturn 1\n\n')
-    assert getsource('test', _globals, _globals, ret=True, include_info=False) == """\
+        # Redefine a function
+        out, err = check_output('def test():\nreturn 1\n\n')
+        assert getsource('test', _globals, _globals, ret=True, include_info=False) == """\
 def test():
     return 1
 """
 
-    # Redefine a function
-    out, err = check_output('class Test:\na = 1\n\n')
-    assert getsource('Test', _globals, _globals, ret=True, include_info=False) == """\
+        # Redefine a function
+        out, err = check_output('class Test:\na = 1\n\n')
+        assert getsource('Test', _globals, _globals, ret=True, include_info=False) == """\
 class Test:
     a = 1
 """

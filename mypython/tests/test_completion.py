@@ -19,10 +19,10 @@ def _input_with_tabs(text, _input, sleep_time=0.8):
 
     This should be run in a separate thread, like
 
-        _input = create_pipe_input()
-        session = _build_test_session(_input=_input)
-        threading.Thread(target=lambda: _input_with_tabs(text, _input))
-        result = _run_session_with_text(session, '', close=True)
+        with create_pipe_input() as _input:
+            session = _build_test_session(_input=_input)
+            threading.Thread(target=lambda: _input_with_tabs(text, _input))
+            result = _run_session_with_text(session, '', close=True)
 
     If the test fails because the completion didn't happen, you may need to
     increase the sleep_time.
@@ -46,13 +46,13 @@ def _test_completion(text, min_time=0.1, max_time=2, runs=3):
     for t in range(runs):
         # Increase sleep time linearly until success
         sleep_time = min_time + (max_time - min_time)*t/(runs - 1)
-        _input = create_pipe_input()
-        session = _build_test_session(_input=_input)
-        t = threading.Thread(target=lambda: _input_with_tabs(text, _input, sleep_time=sleep_time))
-        t.start()
-        result = _run_session_with_text(session, '', close=True)
-        if result != text.rstrip():
-            break
+        with create_pipe_input() as _input:
+            session = _build_test_session(_input=_input)
+            t = threading.Thread(target=lambda: _input_with_tabs(text, _input, sleep_time=sleep_time))
+            t.start()
+            result = _run_session_with_text(session, '', close=True)
+            if result != text.rstrip():
+                break
     return result
 
 @retry
