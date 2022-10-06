@@ -21,7 +21,7 @@ jobs:
           conda config --add channels conda-forge
           conda update -q conda
           conda info -a
-          conda create -n test-environment ${{ matrix.python-version }} pytest flaky ${{ matrix.prompt-toolkit-version }} --file requirements.txt
+          conda create -n test-environment ${{ matrix.python-version }} pytest flaky sympy ${{ matrix.prompt-toolkit-version }} --file requirements.txt
           conda init
 
       - name: Run Tests
