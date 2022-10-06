@@ -520,7 +520,7 @@ def test_main_loop(check_output):
     assert check_output('None\n') == ('None\n\n', '')
     assert check_output('a = 1\n') == ('\n', '')
 
-    if sys.platform == 'darwin':
+    if sys.platform == 'darwin' or mypython.iterm2_tools:
         assert check_output('\n', remove_terminal_sequences=False) == ('\x1b]133;C\x07\n\x1b]133;D;0\x07', '')
         assert check_output('1 + 1\n', remove_terminal_sequences=False) == ('\x1b]133;C\x072\n\n\x1b]133;D;0\x07', '')
 

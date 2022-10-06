@@ -57,8 +57,8 @@ def test_timeit_max(check_output):
     out, err = check_output('%timeit pass\n')
     assert time.perf_counter() - t < 20
     assert re.match(r"""4194303 loops, [\.\d]+ ns average
-Minimum time: [\.\d]+ ns
-Maximum time: [\.\d]+ [nmµu]s
+Minimum time: [\.\d]+ [nmµu]?s
+Maximum time: [\.\d]+ [nmµu]?s
 
 
 """, out), out
