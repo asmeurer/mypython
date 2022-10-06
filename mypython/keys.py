@@ -22,7 +22,7 @@ from .multiline import (auto_newline, tab_should_insert_whitespace,
     document_is_multiline_python)
 from .tokenize import inside_string, matching_parens
 from .theme import emoji, emoji_pudb
-from .processors import get_pyflakes_warnings
+from .processors import get_pyflakes_warnings, SyntaxErrorMessage
 
 import re
 import subprocess
@@ -55,7 +55,7 @@ def warning_positions(event):
     for (row, col, msg, m) in warnings:
         # Handle SyntaxErrorMessage which is the same warning for the whole
         # line.
-        if m.col != col:
+        if isinstance(m, SyntaxErrorMessage) and m.col != col:
             continue
         pos = document.translate_row_col_to_index(row, col)
         positions.append(pos)
