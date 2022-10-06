@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: ['python=3.7', 'python=3.8', 'python=3.9', 'python=3.10']
+        python: ['python=3.8', 'python=3.9', 'python=3.10']
       fail-fast: false
     steps:
       - uses: actions/checkout@v2
