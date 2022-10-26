@@ -116,6 +116,8 @@
 - Add GitHub Actions CI
 - Update matplotlib interactive plotting stuff (copy from latest IPython)
 - pickle.dumps does not work for classes defined in __main__
+- Things break in weird ways when jedi is not installed
+- Better support for Python 3.11 error messages
 
 ## 2.0 TODOs
 
