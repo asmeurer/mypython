@@ -118,6 +118,7 @@
 - pickle.dumps does not work for classes defined in __main__
 - Things break in weird ways when jedi is not installed
 - Better support for Python 3.11 error messages
+- sympy.init_printing() breaks printing
 
 ## 2.0 TODOs
 
