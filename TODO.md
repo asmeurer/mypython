@@ -119,6 +119,7 @@
 - Things break in weird ways when jedi is not installed
 - Better support for Python 3.11 error messages
 - sympy.init_printing() breaks printing
+- Prevent rogue SystemExit (e.g., from pdb) from killing mypython
 
 ## 2.0 TODOs
 
