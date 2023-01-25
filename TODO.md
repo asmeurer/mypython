@@ -120,6 +120,9 @@
 - Better support for Python 3.11 error messages
 - sympy.init_printing() breaks printing
 - Prevent rogue SystemExit (e.g., from pdb) from killing mypython
+- Multiline statement that is larger than screen jumps to top when there is a
+  syntax error
+- Cmd-Shift-A in iTerm2 selects prompt
 
 ## 2.0 TODOs
 
