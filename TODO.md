@@ -123,6 +123,7 @@
 - Multiline statement that is larger than screen jumps to top when there is a
   syntax error
 - Cmd-Shift-A in iTerm2 selects prompt
+- Exceptions notes aren't shown
 
 ## 2.0 TODOs
 
