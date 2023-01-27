@@ -628,6 +628,28 @@ r"""Traceback (most recent call last):
 ValueError: error
 """
 
+def test_traceback_notes(check_output):
+    out, err = check_output('e = ValueError("msg"); e.__notes__ = ["Note 1", "Note 2"]; raise e\n\n')
+    assert out == '\n'
+    # Note: this test doesn't actually test it correctly in < 3.11 because
+    # pytest uses the exceptiongroup module which monkeypatches traceback
+    assert err in [
+r"""Traceback (most recent call last):
+  File "<mypython-1>", line 1, in <module>
+    e = ValueError("msg"); e.__notes__ = ["Note 1", "Note 2"]; raise e
+                                                               ^^^^^^^
+ValueError: msg
+Note 1
+Note 2
+""",
+r"""Traceback (most recent call last):
+  File "<mypython-1>", line 1, in <module>
+    e = ValueError("msg"); e.__notes__ = ["Note 1", "Note 2"]; raise e
+ValueError: msg
+Note 1
+Note 2
+"""]
+
 def test_doctest_tracebacks(check_output):
     # Test that doctest mode tracebacks use <stdin>, and also test that
     # functions defined in doctest mode have a <mypython> filename.

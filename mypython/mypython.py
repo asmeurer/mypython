@@ -20,6 +20,7 @@ import ast
 import traceback
 import textwrap
 import warnings
+import collections
 from io import StringIO
 from textwrap import dedent
 from pydoc import pager, Helper
@@ -905,6 +906,9 @@ class MyTracebackException(traceback.TracebackException):
 
         super().__init__(exc_type, exc_value, exc_traceback, **kwargs)
 
+        if sys.version_info < (3, 11):
+            self.__notes__ = getattr(exc_value, '__notes__', None)
+
         new_stack = traceback.StackSummary()
         mypython_error = None
         for frame in self.stack[:]:
@@ -930,6 +934,26 @@ class MyTracebackException(traceback.TracebackException):
             self.stack = new_stack
 
         self.mypython_error = mypython_error
+
+    def format_exception_only(self):
+        # Code taken from Python 3.11 traceback.py
+        def _safe_string(value, what, func=str):
+            try:
+                return func(value)
+            except:
+                return f'<{what} {func.__name__}() failed>'
+
+        yield from super().format_exception_only()
+
+        # exceptiongroup monkeypatches traceback to already do this (it is
+        # used by pytest)
+        if sys.version_info < (3, 11) and 'exceptiongroup' not in sys.modules:
+            if isinstance(self.__notes__, collections.abc.Sequence):
+                for note in self.__notes__:
+                    note = _safe_string(note, 'note')
+                    yield from [l + '\n' for l in note.split('\n')]
+            elif self.__notes__ is not None:
+                yield _safe_string(self.__notes__, '__notes__', func=repr)
 
 def keyboard_interrupt_handler(signum, frame):
     # Clear the command queue on keyboard interrupt. This is done as a signal
