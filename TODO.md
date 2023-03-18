@@ -18,7 +18,6 @@
 - Deleting selected text messes up indentation (https://github.com/jonathanslenders/python-prompt-toolkit/issues/324)
 - pudb inside mypython doesn't work
 - Cursor position with M-;
-- Load the cat asynchronously
 - If pudb crashes mypython crashes
 - Magics at end of multiline?
 - Python 3.6

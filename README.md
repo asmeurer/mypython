@@ -61,7 +61,6 @@ without any additional work (unlike REPLs based on readline).
 - SymPy objects automatically pretty print.
 - [Shell integration](https://www.iterm2.com/documentation-shell-integration.html) with iTerm2.
 - GUI Matplotlib plots on macOS work correctly.
-- If you use the `--cat` option, at startup you get a [cat](https://github.com/asmeurer/catimg).
 
 And some [other stuff](TODO.md) that I haven't implemented yet.
 
@@ -93,7 +92,6 @@ commands:
 - matplotlib
 - seaborn
 - sympy
-- catimg
 
 You can install them using the [requirements.txt](requirements.txt) file.
 

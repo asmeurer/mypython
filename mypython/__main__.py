@@ -22,8 +22,6 @@ def main():
         help="""Enable doctest mode. Mimics the default Python prompt.""")
     parser.add_argument("--history-file", metavar="HISTORY_FILE", default=None,
         action="store", help="""Use a give file for the command history.""")
-    parser.add_argument("--cat", action="store_true",
-        help="""Print an image of a cat at startup. Requires catimg to be installed.""")
     parser.add_argument("--debug", "-D", action="store_true",
         help="""Enable debug mode. The same as -c '%%debug'.""")
     parser.add_argument('--exit', action='store_true', help="""Exit after
@@ -46,8 +44,8 @@ def main():
     if args.isympy:
         args.cmd.append('%sympy')
 
-    return run_shell(quiet=args.quiet, cmd=args.cmd, cat=args.cat,
-        _exit=args.exit, history_file=args.history_file)
+    return run_shell(quiet=args.quiet, cmd=args.cmd, _exit=args.exit,
+                     history_file=args.history_file)
 
 if __name__ == '__main__':
     main()

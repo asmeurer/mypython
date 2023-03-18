@@ -641,7 +641,7 @@ def post_command(*, command, res, _globals, _locals, prompt):
 class Session(PromptSession):
     def __init__(self, *args, _globals, _locals, message=None,
         key_bindings=None, history_file=None, IN_OUT=None, builtins=None,
-        quiet=False, cat=False, **kwargs):
+        quiet=False, **kwargs):
 
         if not history_file:
             try:
@@ -696,7 +696,6 @@ class Session(PromptSession):
         self._globals = _globals
         self._locals = _locals
         self.quiet = quiet
-        self.cat = cat
 
         self.startup(builtins=builtins)
         if not IN_OUT:
@@ -730,20 +729,6 @@ del sys
                 (Token.Welcome, "Welcome to mypython.\n%s (Python %s, prompt_toolkit %s)\n" %
                  (sys.executable, python_version, prompt_toolkit_version))
             ]))
-            if self.cat:
-                try:
-                    import catimg
-                except ImportError:
-                    image = None
-                else:
-                    image = catimg.get_random_image()
-                if image:
-                    if not iterm2_tools:
-                        print("Cannot display a cat: iterm2_tools not installed.", file=sys.stderr)
-                    else:
-                        print_formatted_text(MyPygmentsTokens([(Token.Welcome, "Here is a cat:")]))
-                        iterm2_tools.display_image_file(image)
-                        print()
 
         sys.displayhook = mypython_displayhook
         sys.excepthook = mypython_excepthook
@@ -1022,7 +1007,7 @@ def execute_command(command, prompt, *, _globals=None, _locals=None):
 CMD_QUEUE = deque()
 
 def run_shell(_globals=_default_globals, _locals=_default_locals, *,
-    quiet=False, cmd=None, history_file=None, cat=False, _exit=False,
+    quiet=False, cmd=None, history_file=None, _exit=False,
     IN_OUT=None):
     if cmd:
         if isinstance(cmd, str):
@@ -1030,7 +1015,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
         CMD_QUEUE.extend(cmd)
 
     prompt = Session(_globals=_globals, _locals=_locals, quiet=quiet,
-        cat=cat, history_file=history_file, IN_OUT=IN_OUT)
+        history_file=history_file, IN_OUT=IN_OUT)
 
     while True:
         try:
