@@ -286,6 +286,7 @@ style_extra = {
     Token.PyflakesError.Column: "underline fg:#ff8700",
     Token.PyflakesSyntaxErrorToolbar: "fg:#ansiwhite bg:#550000", # same as the prompt-toolkit validation-toolbar style
     Token.PyflakesWarningToolbar: "reverse",
+    Token.Welcome: "#ansicyan",
     Token.InternalError: "#ansired",
 }
 
@@ -736,7 +737,8 @@ del sys
             else:
                 python_version = '.'.join(map(str, sys.version_info))
             print_formatted_text(MyPygmentsTokens([
-                (Token.Welcome, "Welcome to mypython.\n%s (Python %s, prompt_toolkit %s)\n" %
+                (Token.Welcome, "Welcome to mypython.\n"),
+                (Token.WelcomeInfo, "%s (Python %s, prompt_toolkit %s)\n" %
                  (sys.executable, python_version, prompt_toolkit_version))
             ]))
 
