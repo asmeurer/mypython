@@ -40,7 +40,6 @@ from pygments.formatters import TerminalTrueColorFormatter
 from pygments.token import Token
 from pygments import highlight
 
-from prompt_toolkit import print_formatted_text
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.shortcuts import  PromptSession, CompleteStyle
 from prompt_toolkit.lexers import PygmentsLexer
@@ -89,6 +88,15 @@ from .processors import (MyHighlightMatchingBracketProcessor,
                          get_pyflakes_warnings, SyntaxErrorMessage)
 from .magic import magic, MAGICS, NON_PYTHON_MAGICS
 from .printing import mypython_displayhook
+
+def print_formatted_text(*args, style=None, **kwargs):
+    from prompt_toolkit import print_formatted_text as _print_formatted_text
+    style = merge_styles([
+        style,
+        style_from_pygments_dict({**prompt_style}),
+        style_from_pygments_dict({**style_extra}),
+        style_from_pygments_cls(OneAMStyle),])
+    return _print_formatted_text(*args, style=style, **kwargs)
 
 class MyPygmentsTokens(PygmentsTokens):
     """
@@ -278,6 +286,7 @@ style_extra = {
     Token.PyflakesError.Column: "underline fg:#ff8700",
     Token.PyflakesSyntaxErrorToolbar: "fg:#ansiwhite bg:#550000", # same as the prompt-toolkit validation-toolbar style
     Token.PyflakesWarningToolbar: "reverse",
+    Token.InternalError: "#ansired",
 }
 
 def default_history_filename():
@@ -618,9 +627,7 @@ def post_command(*, command, res, _globals, _locals, prompt):
     builtins = prompt.builtins
 
     if res is not NoResult:
-        print_formatted_text(prompt.get_out_prompt(),
-            style=merge_styles([style_from_pygments_cls(OneAMStyle),
-                style_from_pygments_dict({**prompt_style})]), end='')
+        print_formatted_text(prompt.get_out_prompt(), end='')
 
         prompt.Out[PROMPT_NUMBER] = res
         builtins['_%s' % PROMPT_NUMBER] = res
@@ -953,14 +960,12 @@ def mypython_excepthook(etype, value, tb):
         if tbexception.mypython_error:
             print_formatted_text(MyPygmentsTokens([(Token.Newline, '\n'), (Token.InternalError,
                 "!!!!!! ERROR from mypython !!!!!!"), (Token.Newline, '\n')]),
-                style=style_from_pygments_dict({Token.InternalError: "#ansired"}),
                 file=sys.stderr)
 
     except RecursionError:
         sys.__excepthook__(*sys.exc_info())
         print_formatted_text(MyPygmentsTokens([(Token.Newline, '\n'), (Token.InternalError,
             "Warning: RecursionError from mypython_excepthook")]),
-            style=style_from_pygments_dict({Token.InternalError: "#ansired"}),
             file=sys.stderr, end='')
 
 if iterm2_tools is None:
