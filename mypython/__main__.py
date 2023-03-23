@@ -23,9 +23,9 @@ def main():
     parser.add_argument("--history-file", metavar="HISTORY_FILE", default=None,
         action="store", help="""Use a give file for the command history.""")
     parser.add_argument("--debug", "-D", action="store_true",
-        help="""Enable debug mode. The same as -c '%%debug'.""")
-    parser.add_argument('--exit', action='store_true', help="""Exit after
-        running the --cmd commands.""")
+        help="""Enable debug mode. Equivalent to -c '%%debug'.""")
+    parser.add_argument('--exit', action='store_true', help="""Exit immediately, after
+        running any --cmd commands.""")
 
     try:
         import argcomplete
