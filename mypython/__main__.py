@@ -7,7 +7,7 @@ A Python REPL the way I like it.
 
 import argparse
 
-from .mypython import run_shell
+from .mypython import default_history_filename, run_shell
 from . import mypython
 
 def main():
@@ -21,7 +21,8 @@ def main():
     parser.add_argument("--doctest-mode", "-d", action="store_true",
         help="""Enable doctest mode. Mimics the default Python prompt.""")
     parser.add_argument("--history-file", metavar="HISTORY_FILE", default=None,
-        action="store", help="""Use a give file for the command history.""")
+        action="store", help=f"""Use the given file for the command history.
+        For this terminal, this defaults to {default_history_filename()}""")
     parser.add_argument("--debug", "-D", action="store_true",
         help="""Enable debug mode. Equivalent to -c '%%debug'.""")
     parser.add_argument('--exit', action='store_true', help="""Exit immediately, after
