@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # Emacs, this is -*-python-*-
+# PYTHON_ARGCOMPLETE_OK
 
 import os
 import sys
