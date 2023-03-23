@@ -280,6 +280,13 @@ style_extra = {
     Token.PyflakesWarningToolbar: "reverse",
 }
 
+def default_history_filename():
+    try:
+        tty_name = os.path.basename(os.ttyname(sys.stdout.fileno()))
+    except OSError:
+        tty_name = 'unknown'
+    return os.path.expanduser('~/.mypython/history/%s_history' % tty_name)
+
 NO_PROMPT_MODE = False
 DOCTEST_MODE = False
 DEBUG = False
@@ -644,13 +651,9 @@ class Session(PromptSession):
         quiet=False, **kwargs):
 
         if not history_file:
-            try:
-                tty_name = os.path.basename(os.ttyname(sys.stdout.fileno()))
-            except OSError:
-                tty_name = 'unknown'
-            history_file = '~/.mypython/history/%s_history' % tty_name
+            history_file = default_history_filename()
 
-        history_file = os.path.expanduser(history_file)
+        self.history_file = history_file
 
         os.makedirs(os.path.dirname(history_file), exist_ok=True)
 
