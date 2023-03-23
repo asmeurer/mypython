@@ -15,7 +15,7 @@ def main():
     parser.add_argument("--cmd", "-c", metavar="CMD", default=[],
         action="append", help="""Execute the given command at startup.""")
     parser.add_argument("--isympy", action="store_true",
-        help="""Start isympy. Equivalent to -c '%sympy'.""")
+        help="""Start isympy. Equivalent to -c '%%sympy'.""")
     parser.add_argument("--quiet", "-q", "-Q", action="store_true", help="""Don't
         print the startup messages.""")
     parser.add_argument("--doctest-mode", "-d", action="store_true",
