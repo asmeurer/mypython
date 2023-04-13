@@ -661,11 +661,11 @@ class Session(PromptSession):
         if not history_file:
             history_file = default_history_filename()
 
-        self.history_file = history_file
+        self.history_file = os.path.expanduser(history_file)
 
-        os.makedirs(os.path.dirname(history_file), exist_ok=True)
+        os.makedirs(os.path.dirname(self.history_file), exist_ok=True)
 
-        kwargs.setdefault('history', FileHistory(history_file))
+        kwargs.setdefault('history', FileHistory(self.history_file))
         kwargs.setdefault('key_bindings', key_bindings or get_key_bindings())
         kwargs.setdefault('message', message or self.get_in_prompt)
         kwargs.setdefault('lexer', PygmentsLexer(MyPython3Lexer))
