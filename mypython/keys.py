@@ -52,13 +52,19 @@ def warning_positions(event):
     document = event.current_buffer.document
     warnings = get_pyflakes_warnings(document.text, frozenset(event.current_buffer.session._locals))
     positions = []
+    prev_m = None
     for (row, col, msg, m) in warnings:
         # Handle SyntaxErrorMessage which is the same warning for the whole
         # line.
         if isinstance(m, SyntaxErrorMessage) and m.col != col:
             continue
+        # For warnings that span multiple columns only emit the position for
+        # the first column
+        if m == prev_m:
+            continue
         pos = document.translate_row_col_to_index(row, col)
         positions.append(pos)
+        prev_m = m
     return positions
 
 @r.add_binding(Keys.Escape, 'p')
