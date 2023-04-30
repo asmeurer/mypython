@@ -150,6 +150,19 @@ def test_get_pyflakes_warnings_magic():
     for w in warnings:
         assert isinstance(w[3], UndefinedName)
 
+    warnings = get_pyflakes_warnings("  %pudb \na + bc")
+    assert len(warnings) == 3
+    assert warnings[0][:2] == (1, 0)
+    assert warnings[1][:2] == (1, 4)
+    assert warnings[2][:2] == (1, 5)
+
+    assert warnings[0][2] == "undefined name 'a'"
+    assert warnings[1][2] == "undefined name 'bc'"
+    assert warnings[2][2] == "undefined name 'bc'"
+
+    for w in warnings:
+        assert isinstance(w[3], UndefinedName)
+
     warnings = get_pyflakes_warnings("%pudb \na +")
     assert len(warnings) == 4
     assert warnings[0][:2] == (1, 0)
