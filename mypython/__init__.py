@@ -32,6 +32,10 @@ from .printing import can_print_sympy, mypython_displayhook
 
 __all__ += ['can_print_sympy', 'mypython_displayhook']
 
+from .processors import get_pyflakes_warnings
+
+__all__ += ['get_pyflakes_warnings']
+
 from .tokenize import (tokenize_string, braces, matching_parens,
     inside_string, is_multiline_python)
 
