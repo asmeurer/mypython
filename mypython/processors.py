@@ -161,24 +161,27 @@ def get_pyflakes_warnings(code, defined_names=frozenset(),
     """
     code = code.rstrip()
 
-    for i in NON_PYTHON_MAGICS:
-        if code.startswith(i):
-            return []
-
     prefix = ''
-    for i in MAGICS:
-        if code.startswith(i + ' '):
-            prefix = i + ' '
-        elif code.startswith(i + '?'):
-            prefix = i
-        elif code.startswith(i + '\n'):
-            prefix = i + '\n'
-        elif code == i:
-            prefix = i
-        else:
-            continue
-        code = code[len(prefix):]
-        break
+
+    if code.lstrip().startswith('%'):
+        code = code.lstrip()
+        for i in NON_PYTHON_MAGICS:
+            if code.startswith(i):
+                return []
+
+        for i in MAGICS:
+            if code.startswith(i + ' '):
+                prefix = i + ' '
+            elif code.startswith(i + '?'):
+                prefix = i
+            elif code.startswith(i + '\n'):
+                prefix = i + '\n'
+            elif code == i:
+                prefix = i
+            else:
+                continue
+            code = code[len(prefix):]
+            break
 
     suffix = ''
     if code.endswith('???'):
