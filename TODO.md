@@ -125,6 +125,7 @@
 - Print exception group tracebacks from exceptiongroup better
 - Make `from __future__ import annotations` work
 - distplot is deprecated message from %timeit
+- Highlight exception type in tracebacks
 
 ## 2.0 TODOs
 
