@@ -20,7 +20,6 @@ import ast
 import traceback
 import textwrap
 import warnings
-import collections
 from io import StringIO
 from textwrap import dedent
 from pydoc import pager, Helper
