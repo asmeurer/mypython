@@ -126,6 +126,7 @@
 - Make `from __future__ import annotations` work
 - distplot is deprecated message from %timeit
 - Highlight exception type in tracebacks
+- Copilot (or LLM) tab completion
 
 ## 2.0 TODOs
 
