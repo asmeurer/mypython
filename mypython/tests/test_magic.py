@@ -46,8 +46,6 @@ def test_timeit(check_output):
     assert re.match(r"""15 loops, [\.\d]+ s average
 Minimum time: [\.\d]+ s
 Maximum time: [\.\d]+ s
-
-
 """, out)
     assert not err
 
@@ -59,8 +57,6 @@ def test_timeit_max(check_output):
     assert re.match(r"""4194303 loops, [\.\d]+ ns average
 Minimum time: [\.\d]+ [nmµu]?s
 Maximum time: [\.\d]+ [nmµu]?s
-
-
 """, out), out
     assert not err
 

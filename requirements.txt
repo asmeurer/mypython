@@ -9,5 +9,4 @@ pudb
 pyflakes
 pygments
 pyinstrument
-seaborn
 setproctitle

@@ -41,6 +41,6 @@ from .tokenize import (tokenize_string, braces, matching_parens,
 
 __all__ += ['tokenize_string', 'braces', 'matching_parens', 'inside_string', 'is_multiline_python']
 
-from .timeit import (autorange, timeit_format, timeit_histogram, format_time)
+from .timeit import (autorange, timeit_format, format_time)
 
-__all__ += ['autorange', 'timeit_format', 'timeit_histogram', 'format_time']
+__all__ += ['autorange', 'timeit_format', 'format_time']
