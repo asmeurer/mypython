@@ -123,7 +123,6 @@
 - Cmd-Shift-A in iTerm2 selects prompt
 - Print exception group tracebacks from exceptiongroup better
 - Make `from __future__ import annotations` work
-- Highlight exception type in tracebacks
 - Copilot (or LLM) tab completion
 
 ## 2.0 TODOs

@@ -3,7 +3,7 @@ Based on https://github.com/asmeurer/dotfiles/blob/master/.emacs.d/themes/1am-th
 
 Translated from http://raebear.net/comp/emacscolors.html
 """
-from pygments.token import Keyword, Name, Comment, String, Operator
+from pygments.token import Keyword, Name, Comment, String, Operator, Generic
 from pygments.style import Style
 from pygments.lexers import Python3Lexer
 
@@ -67,6 +67,8 @@ class OneAMStyle(Style):
         # Doesn't work
         Name.Variable:       "#a0522d", # sienna
 
+        # Used for the exception in tracebacks
+        Generic.Error:       "#ff0000", # red
     }
 
 # Uncomment this to register the style with pygments
