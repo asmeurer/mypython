@@ -123,7 +123,6 @@
 - Cmd-Shift-A in iTerm2 selects prompt
 - Print exception group tracebacks from exceptiongroup better
 - Make `from __future__ import annotations` work
-- distplot is deprecated message from %timeit
 - Highlight exception type in tracebacks
 - Copilot (or LLM) tab completion
 
