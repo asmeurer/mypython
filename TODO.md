@@ -124,6 +124,7 @@
 - Print exception group tracebacks from exceptiongroup better
 - Make `from __future__ import annotations` work
 - Copilot (or LLM) tab completion
+- Case sensitive tab completion when prefix contains capital characters
 
 ## 2.0 TODOs
 
