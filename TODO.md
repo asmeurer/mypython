@@ -123,6 +123,7 @@
 - Print exception group tracebacks from exceptiongroup better
 - Make `from __future__ import annotations` work
 - Copilot (or LLM) tab completion
+- Miscoloring of RecursionError tracebacks
 
 ## 2.0 TODOs
 
