@@ -97,7 +97,7 @@ def timeit_format(times, expr):
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-def format_time(timespan, precision=3):
+def format_time(timespan, precision=3, return_tuple=False):
     """Formats the timespan in a human readable form"""
 
     if timespan >= 60.0:
@@ -110,9 +110,12 @@ def format_time(timespan, precision=3):
             value = int(leftover / length)
             if value > 0:
                 leftover = leftover % length
-                time.append(u'%s %s' % (str(value), suffix))
+                time.append(str(value))
+                time.append(suffix)
             if leftover < 1:
                 break
+        if return_tuple:
+            return time
         return " ".join(time)
 
 
@@ -134,4 +137,6 @@ def format_time(timespan, precision=3):
         order = min(-int(math.floor(math.log10(timespan)) // 3), 3)
     else:
         order = 0
+    if return_tuple:
+        return ("%.*g" % (precision, timespan * scaling[order]), units[order])
     return u"%.*g %s" % (precision, timespan * scaling[order], units[order])

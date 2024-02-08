@@ -377,6 +377,29 @@ def echo_magic(rest):
     """
     return "print(%r)" % rest
 
+def timings_magic(rest):
+    """
+    Show timings for the code.
+
+    Note that the prompt itself has an overhead of about 90 microseconds.
+
+    """
+    rest = rest.strip()
+    if rest:
+        try:
+            rest = int(rest)
+        except ValueError:
+            return error("argument must be an integer")
+
+    return f"""\
+from mypython.timeit import format_time as _format_time
+if {rest!r}:
+    print(_format_time(TIMINGS[int({rest})]))
+else:
+    for _i in range(1, PROMPT_NUMBER):
+        print(f'{{_i:2d}} {{_format_time(TIMINGS[_i])}}')
+"""
+
 MAGICS = {}
 
 for name in dir():

@@ -18,6 +18,7 @@ import linecache
 import random
 import ast
 import traceback
+import time
 import textwrap
 import warnings
 from io import StringIO
@@ -621,8 +622,12 @@ def smart_eval(stmt, _globals, _locals, filename=None, *, ast_transformer=None):
 
     return res
 
+def pre_command(*, command, _globals, _locals, prompt):
+    prompt.timings[prompt.prompt_number] = time.perf_counter()
+
 def post_command(*, command, res, _globals, _locals, prompt):
     PROMPT_NUMBER = prompt.prompt_number
+    prompt.timings[PROMPT_NUMBER] = time.perf_counter() - prompt.timings[PROMPT_NUMBER]
     prompt.In[PROMPT_NUMBER] = command
     builtins = prompt.builtins
 
@@ -725,6 +730,7 @@ del sys
 
         self.In = builtins['In'] = {}
         self.Out = builtins['Out'] = {}
+        self.timings = builtins['TIMINGS'] = {}
         self.prompt_number = builtins['PROMPT_NUMBER'] = 1
         builtins['_PROMPT'] = self
 
@@ -989,6 +995,8 @@ def execute_command(command, prompt, *, _globals=None, _locals=None):
     with Output() as o:
         try:
             command = normalize(command, _globals, _locals)
+            pre_command(command=command, _globals=_globals,
+                         _locals=_locals, prompt=prompt)
 
             if not command:
                 if not DOCTEST_MODE:

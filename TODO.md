@@ -26,7 +26,6 @@
 - Completion is too damn slow
 - Yanked text gets removed from kill ring too easily
 - Garbage when pasting multiple lines
-- Keep track of execution time of each prompt
 - Selection is disabled after one C-c <
 - LaTeX math
 - Clear mypython variables when leaving PuDB shell
