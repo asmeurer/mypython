@@ -124,6 +124,7 @@
 - Make `from __future__ import annotations` work
 - Copilot (or LLM) tab completion
 - Miscoloring of RecursionError tracebacks
+- Case sensitive tab completion when prefix contains capital characters
 
 ## 2.0 TODOs
 
