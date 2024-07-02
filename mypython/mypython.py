@@ -1,5 +1,7 @@
 """Mypython: a Python REPL the way I like it"""
 
+from __future__ import annotations
+
 # Define globals first so that names from this module don't get included
 _default_globals = globals().copy()
 import builtins as builtins_mod
@@ -565,7 +567,8 @@ class NoResult:
 
 mypython_dir = os.path.dirname(__file__)
 
-def smart_eval(stmt, _globals, _locals, filename=None, *, ast_transformer=None):
+def smart_eval(stmt, _globals, _locals, filename=None, *,
+               flags=annotations.compiler_flag, ast_transformer=None):
     """
     Automatically exec/eval stmt.
 
@@ -579,6 +582,9 @@ def smart_eval(stmt, _globals, _locals, filename=None, *, ast_transformer=None):
     tracebacks. Otherwise, a default filename is used and it isn't saved to the
     linecache. To work properly, "fake" filenames should start with < and end
     with >, and be unique for each stmt.
+
+    flags is a set of flags to be passed to compile(). The default is to use
+    from __future__ import annotations.
 
     Note that classes defined with this will have their module set to
     '__main__'.  To change this, set _globals['__name__'] to the desired
@@ -614,10 +620,10 @@ def smart_eval(stmt, _globals, _locals, filename=None, *, ast_transformer=None):
     res = NoResult
     if p.body and isinstance(p.body[-1], ast.Expr):
         expr = p.body.pop()
-    code = compile(p, filename, 'exec')
+    code = compile(p, filename, 'exec', flags=flags)
     exec(code, _globals, _locals)
     if expr:
-        code = compile(ast.Expression(expr.value), filename, 'eval')
+        code = compile(ast.Expression(expr.value), filename, 'eval', flags=flags)
         res = eval(code, _globals, _locals)
 
     return res
