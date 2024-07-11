@@ -126,6 +126,7 @@
 - Miscoloring of RecursionError tracebacks
 - Case sensitive tab completion when prefix contains capital characters
 - Multiline paste fails when one line has ?
+- Issue pasting after a single quote
 
 ## 2.0 TODOs
 
