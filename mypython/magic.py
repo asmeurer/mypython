@@ -23,6 +23,8 @@ from functools import wraps
 
 from prompt_toolkit.history import FileHistory
 
+from . import ai
+
 def magic(command):
     """
     You can do magic, you can have anything that you desire
@@ -399,6 +401,27 @@ else:
     for _i in range(1, PROMPT_NUMBER):
         print(f'{{_i:2d}} {{_format_time(TIMINGS[_i])}}')
 """
+
+@nonpython
+def model_magic(rest):
+    """
+    Set the current model for the completion engine.
+    """
+    rest = rest.strip()
+    if not rest:
+        return error("no model specified")
+
+    for model in ai.MODELS:
+        if rest == model:
+            break
+        if rest in ai.MODELS[model]['model_aliases']:
+            rest = model
+            break
+    else:
+        return error("model not found")
+
+    ai.CURRENT_MODEL = rest
+    return ""
 
 MAGICS = {}
 

@@ -36,6 +36,7 @@ import traceback
 
 from .dircompletion import DirCompleter
 from .magic import MAGICS
+from . import ai
 
 def get_jedi_script_from_document(document, _locals, _globals, session):
     import jedi  # We keep this import in-line, to improve start-up time.
@@ -167,9 +168,6 @@ class PythonCompleter(Completer):
                             display_meta=c.description)
 
 
-MODEL = 'deepseek-coder-v2:16b-lite-base-q4_0'
-PROMPT_TEMPLATE = "<｜fim▁begin｜>{before_cursor}<｜fim▁hole｜>{after_cursor}<｜fim▁end｜>"
-
 class OllamaCompleter(Completer):
     """
     Ollama Completer
@@ -187,8 +185,12 @@ class OllamaCompleter(Completer):
         text_before_cursor = document.text_before_cursor
         text_after_cursor = document.text_after_cursor
 
-        prompt = PROMPT_TEMPLATE.format(before_cursor=text_before_cursor, after_cursor=text_after_cursor)
-        output = ollama.generate(model=MODEL, prompt=prompt)
+        model_name = ai.CURRENT_MODEL
+        model = ai.MODELS[model_name]
+        prompt_template = model['prompt_template']
+        prompt = prompt_template.format(prefix=text_before_cursor, suffix=text_after_cursor)
+        options = model['options']
+        output = ollama.generate(model=model_name, prompt=prompt, options=options)
 
         # print(output)
         yield Completion(output['response'])
