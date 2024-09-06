@@ -165,3 +165,30 @@ class PythonCompleter(Completer):
                             len(c.complete) - len(c.name_with_symbols),
                             display=c.name_with_symbols,
                             display_meta=c.description)
+
+
+MODEL = 'deepseek-coder-v2:16b-lite-base-q4_0'
+PROMPT_TEMPLATE = "<｜fim▁begin｜>{before_cursor}<｜fim▁hole｜>{after_cursor}<｜fim▁end｜>"
+
+class OllamaCompleter(Completer):
+    """
+    Ollama Completer
+    """
+    def __init__(self):
+        super().__init__()
+
+        # self.get_globals = get_globals
+        # self.get_locals = get_locals
+        # self.session = session
+
+    def get_completions(self, document, complete_event):
+        import ollama
+
+        text_before_cursor = document.text_before_cursor
+        text_after_cursor = document.text_after_cursor
+
+        prompt = PROMPT_TEMPLATE.format(before_cursor=text_before_cursor, after_cursor=text_after_cursor)
+        output = ollama.generate(model=MODEL, prompt=prompt)
+
+        # print(output)
+        yield Completion(output['response'])
