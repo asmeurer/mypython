@@ -431,6 +431,11 @@ ANSI_SEQUENCES['\x1b[ag'] = ShiftEnter
 ANSI_SEQUENCES['\x1bOM'] = ShiftEnter
 r.add_binding(ShiftEnter)(accept_line)
 
+ControlEnter = '⌅'
+if prompt_toolkit_version[0] != '3':
+    Keys.ControlEnter = ControlEnter
+ANSI_SEQUENCES['\x1b"5r'] = ControlEnter
+
 @r.add_binding(Keys.Tab, filter=tab_should_insert_whitespace)
 def indent(event):
     """
