@@ -682,7 +682,7 @@ class Session(PromptSession):
         kwargs.setdefault('lexer', PygmentsLexer(MyPython3Lexer))
         kwargs.setdefault('multiline', True)
         kwargs.setdefault('prompt_continuation', self.get_prompt_continuation)
-        kwargs.setdefault('complete_style', CompleteStyle.COLUMN)
+        kwargs.setdefault('complete_style', CompleteStyle.MULTI_COLUMN)
         kwargs.setdefault('input_processors', [
             ConditionalProcessor(
                 # 20000 is ~most characters that fit on screen even with
