@@ -30,6 +30,8 @@ import sys
 import textwrap
 import platform
 
+WORD = re.compile(r'([a-z0-9]+|[A-Z]{2,}|[a-zA-Z0-9][a-z0-9]*)')
+
 def get_key_bindings():
     # Based on prompt_toolkit.key_binding.defaults.load_key_bindings()
     return merge_key_bindings([
@@ -161,8 +163,6 @@ def backward_paragraph(event):
             return
     event.current_buffer.cursor_position = 0
 
-
-WORD = re.compile(r'([a-z0-9]+|[A-Z]{2,}|[a-zA-Z0-9][a-z0-9]*)')
 @r.add_binding(Keys.Escape, 'f')
 @r.add_binding(Keys.Escape, Keys.Right)
 def forward_word(event):
@@ -446,6 +446,16 @@ if prompt_toolkit_version[0] != '3':
     Keys.ControlDown = ControlDown
 ANSI_SEQUENCES["\x1b[1;5B"] = ControlDown
 
+ControlRight = '→'
+if prompt_toolkit_version[0] != '3':
+    Keys.ControlRight = ControlRight
+ANSI_SEQUENCES["\x1b[1;5C"] = ControlRight
+
+ControlLeft = '←'
+if prompt_toolkit_version[0] != '3':
+    Keys.ControlLeft = ControlLeft
+ANSI_SEQUENCES["\x1b[1;5D"] = ControlLeft
+
 @r.add_binding(Keys.Tab, filter=tab_should_insert_whitespace)
 def indent(event):
     """
@@ -481,6 +491,39 @@ def next_ai_completion(event):
 
     if b.ai_suggestion_index < len(b.ai_suggestions) - 1:
         b.ai_suggestion_index += 1
+
+@r.add_binding(ControlRight)
+def insert_ai_completion_by_word(event):
+    b = event.current_buffer
+    if not b.ai_suggestions:
+        return
+
+    idx = b.ai_suggestion_index
+
+    cur_suggestion = b.ai_suggestions[idx]
+    m = next(WORD.finditer(cur_suggestion))
+    if m is None:
+        b.insert_text(b.ai_suggestions[idx])
+        return
+
+    pos = m.end(0)
+    prefix = cur_suggestion[:pos]
+
+    new_suggestions = []
+    new_idx = idx
+    for i, suggestion in enumerate(b.ai_suggestions):
+        if suggestion.startswith(prefix):
+            new_suggestions.append(suggestion[pos:])
+        else:
+            if i < idx:
+                new_idx -= 1
+
+    b.insert_text(prefix)
+    b.cursor_position += pos
+
+    # Maintain this and any other matching suggestions
+    b.ai_suggestions[:] = new_suggestions
+    b.ai_suggestion_index = new_idx
 
 LEADING_WHITESPACE = re.compile(r'( *)[^ ]?')
 @r.add_binding(Keys.Escape, 'm')
