@@ -36,6 +36,7 @@ import traceback
 
 from .dircompletion import DirCompleter
 from .magic import MAGICS
+from . import ai
 
 def get_jedi_script_from_document(document, _locals, _globals, session):
     import jedi  # We keep this import in-line, to improve start-up time.
@@ -165,3 +166,31 @@ class PythonCompleter(Completer):
                             len(c.complete) - len(c.name_with_symbols),
                             display=c.name_with_symbols,
                             display_meta=c.description)
+
+
+class OllamaCompleter(Completer):
+    """
+    Ollama Completer
+    """
+    def __init__(self):
+        super().__init__()
+
+        # self.get_globals = get_globals
+        # self.get_locals = get_locals
+        # self.session = session
+
+    def get_completions(self, document, complete_event):
+        import ollama
+
+        text_before_cursor = document.text_before_cursor
+        text_after_cursor = document.text_after_cursor
+
+        model_name = ai.CURRENT_MODEL
+        model = ai.MODELS[model_name]
+        prompt_template = model['prompt_template']
+        prompt = prompt_template.format(prefix=text_before_cursor, suffix=text_after_cursor)
+        options = model['options']
+        output = ollama.generate(model=model_name, prompt=prompt, options=options)
+
+        # print(output)
+        yield Completion(output['response'])

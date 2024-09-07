@@ -302,30 +302,3 @@ class HighlightPyflakesErrorsProcessor(Processor):
                     fragments[col] = (style, char)
 
         return Transformation(fragments)
-
-class AppendAIAutoSuggestion(Processor):
-    """
-    Based on prompt_toolkit.layout.processors.AppendAutoSuggest but is not
-    limited to just inserting the suggestion at the end.
-    """
-
-    def __init__(self, style: str = "class:auto-suggestion") -> None:
-        self.style = style
-
-    def apply_transformation(self, ti):
-        buffer = ti.buffer_control.buffer
-
-        source_to_display = ti.source_to_display
-        if buffer.ai_suggestion:
-            suggestion = buffer.ai_suggestion.text
-        else:
-            suggestion = ""
-
-        column = source_to_display(buffer.document.cursor_position_col)
-        column = -1
-
-        fragments = list(ti.fragments)
-        if ti.lineno == buffer.document.cursor_position_row:
-            fragments.insert(column, (self.style, suggestion))
-
-        return Transformation(fragments=fragments)
