@@ -50,7 +50,7 @@ MODELS = {
     },
 }
 
-@lru_cache(1024)
+# @lru_cache(1024)
 def get_ai_completion(prefix, suffix, model_name):
     import ollama
 
@@ -85,4 +85,4 @@ class OllamaSuggester(AutoSuggest):
 
         model_name = CURRENT_MODEL
         completion = get_ai_completion(text_before_cursor, text_after_cursor, model_name)
-        return Suggestion(completion)
+        return completion

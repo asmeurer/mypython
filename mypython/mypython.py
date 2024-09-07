@@ -42,7 +42,7 @@ from pygments.formatters import TerminalTrueColorFormatter
 from pygments.token import Token
 from pygments import highlight
 
-from prompt_toolkit.buffer import Buffer
+from prompt_toolkit.buffer import Buffer, _only_one_at_a_time, _Retry
 from prompt_toolkit.shortcuts import  PromptSession, CompleteStyle
 from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.layout.processors import ConditionalProcessor
@@ -55,7 +55,6 @@ from prompt_toolkit.filters import Condition, IsDone
 from prompt_toolkit.formatted_text import PygmentsTokens
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.completion import DynamicCompleter, ThreadedCompleter
-from prompt_toolkit.auto_suggest import ThreadedAutoSuggest
 from prompt_toolkit.output.color_depth import ColorDepth
 from prompt_toolkit.filters import renderer_height_is_known, is_done
 from prompt_toolkit.layout import (HSplit, ConditionalContainer, Layout,
@@ -130,7 +129,43 @@ class MyBuffer(Buffer):
         self.session = session
         self._show_syntax_warning = False
         self._append_history = True
-        self.ai_suggestion = None
+
+        self.ai_suggestions = []
+        self.ai_suggestion_index = 0
+        self.ai_auto_suggest = kwargs.get('ai_auto_suggest', OllamaSuggester())
+        self._async_ai_suggester = self._create_ai_auto_suggest_coroutine()
+
+
+    def _create_ai_auto_suggest_coroutine(self):
+        """
+        Create function for asynchronous auto suggestion.
+        (This can be in another thread.)
+        """
+        # Based on Buffer._create_auto_suggest_coroutine, but we use a
+        # separate system from auto_suggest because we want the suggestions to
+        # only fire on specific conditions (like when we press a keyboard
+        # shortcut).
+        @_only_one_at_a_time
+        async def async_suggestor(regenerate=False) -> None:
+            document = self.document
+
+            # Don't suggest when we already have a suggestion.
+            if self.ai_suggestions and not regenerate:
+                return
+
+            suggestion = await self.ai_auto_suggest.get_suggestion_async(self, document)
+
+            # Set suggestion only if the text was not yet changed.
+            if self.document == document:
+                # Set suggestion and redraw interface.
+                if suggestion and suggestion not in self.ai_suggestions:
+                    self.ai_suggestions.append(suggestion)
+                    # self.on_suggestion_set.fire()
+            else:
+                # Otherwise, restart thread.
+                raise _Retry
+
+        return async_suggestor
 
     def delete_before_cursor(self, count=1):
         self.multiline_history_search_index = None
@@ -236,13 +271,8 @@ class MyBuffer(Buffer):
 def on_text_changed(buffer):
     buffer.multiline_history_search_index = None
     buffer._show_syntax_warning = False
-    buffer.ai_suggestion = None
-
-def on_suggestion_set(buffer):
-    # We have to store the ai suggestion separately because we cannot easily
-    # remove the default auto suggestion input processor
-    buffer.ai_suggestion = buffer.suggestion
-    buffer.suggestion = None
+    buffer.ai_suggestion_index = 0
+    buffer.ai_suggestions.clear()
 
 # TODO: cache this?
 def validate_text(text):
@@ -716,7 +746,6 @@ class Session(PromptSession):
         kwargs.setdefault('include_default_pygments_style', False)
         kwargs.setdefault('completer', PythonCompleter(lambda: self._globals,
             lambda: self._locals, self))
-        kwargs.setdefault('auto_suggest', OllamaSuggester())
         kwargs.setdefault('complete_in_thread', True)
         kwargs.setdefault('color_depth', ColorDepth.TRUE_COLOR)
         kwargs.setdefault('mouse_support', False)
@@ -878,13 +907,11 @@ del sys
                 ThreadedCompleter(self.completer)
                 if self.complete_in_thread and self.completer
                 else self.completer),
-            auto_suggest=ThreadedAutoSuggest(self.auto_suggest),
             # Needs to be False until
             # https://github.com/jonathanslenders/python-prompt-toolkit/issues/472
             # is fixed.
             complete_while_typing=False,
             on_text_changed=on_text_changed,
-            on_suggestion_set=on_suggestion_set,
             tempfile_suffix='.py',
             accept_handler=accept,
             session=self,

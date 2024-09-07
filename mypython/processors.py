@@ -316,8 +316,8 @@ class AppendAIAutoSuggestion(Processor):
         buffer = ti.buffer_control.buffer
 
         source_to_display = ti.source_to_display
-        if buffer.ai_suggestion:
-            suggestion = buffer.ai_suggestion.text
+        if buffer.ai_suggestions:
+            suggestion = buffer.ai_suggestions[buffer.ai_suggestion_index]
         else:
             suggestion = ""
 

@@ -436,6 +436,16 @@ if prompt_toolkit_version[0] != '3':
     Keys.ControlEnter = ControlEnter
 ANSI_SEQUENCES['\x1b"5r'] = ControlEnter
 
+ControlUp = '⌃'
+if prompt_toolkit_version[0] != '3':
+    Keys.ControlUp = ControlUp
+ANSI_SEQUENCES["\x1b[1;5A"] = ControlUp
+
+ControlDown = '⌄'
+if prompt_toolkit_version[0] != '3':
+    Keys.ControlDown = ControlDown
+ANSI_SEQUENCES["\x1b[1;5B"] = ControlDown
+
 @r.add_binding(Keys.Tab, filter=tab_should_insert_whitespace)
 def indent(event):
     """
@@ -450,8 +460,27 @@ def indent(event):
 def ai_complete(event):
     b = event.current_buffer
 
-    if b.ai_suggestion:
-        b.insert_text(b.ai_suggestion.text)
+    event.app.create_background_task(b._async_ai_suggester())
+
+    if b.ai_suggestions:
+        b.insert_text(b.ai_suggestions[b.ai_suggestion_index])
+
+@r.add_binding(ControlUp)
+def previous_ai_completion(event):
+    b = event.current_buffer
+
+    if b.ai_suggestion_index >= 0:
+        b.ai_suggestion_index -= 1
+
+@r.add_binding(ControlDown)
+def next_ai_completion(event):
+    b = event.current_buffer
+
+    if b.ai_suggestion_index == len(b.ai_suggestions) - 1:
+        event.app.create_background_task(b._async_ai_suggester(regenerate=True))
+
+    if b.ai_suggestion_index < len(b.ai_suggestions) - 1:
+        b.ai_suggestion_index += 1
 
 LEADING_WHITESPACE = re.compile(r'( *)[^ ]?')
 @r.add_binding(Keys.Escape, 'm')
