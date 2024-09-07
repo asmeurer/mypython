@@ -82,7 +82,7 @@ except ImportError:
     iterm2_tools = None
 
 from .multiline import document_is_multiline_python
-from .completion import PythonCompleter
+from .completion import PythonCompleter, OllamaCompleter
 from .theme import OneAMStyle, MyPython3Lexer, emoji
 from .keys import get_key_bindings, LEADING_WHITESPACE
 from .processors import (MyHighlightMatchingBracketProcessor,
@@ -127,6 +127,7 @@ class MyBuffer(Buffer):
         self.session = session
         self._show_syntax_warning = False
         self._append_history = True
+        self._complete_ai = False
 
     def delete_before_cursor(self, count=1):
         self.multiline_history_search_index = None
@@ -681,7 +682,7 @@ class Session(PromptSession):
         kwargs.setdefault('lexer', PygmentsLexer(MyPython3Lexer))
         kwargs.setdefault('multiline', True)
         kwargs.setdefault('prompt_continuation', self.get_prompt_continuation)
-        kwargs.setdefault('complete_style', CompleteStyle.MULTI_COLUMN)
+        kwargs.setdefault('complete_style', CompleteStyle.COLUMN)
         kwargs.setdefault('input_processors', [
             ConditionalProcessor(
                 # 20000 is ~most characters that fit on screen even with
@@ -722,6 +723,7 @@ class Session(PromptSession):
         if not IN_OUT:
             IN_OUT = random.choice(emoji)
         self.IN, self.OUT = IN_OUT
+        self.ai_completer = kwargs.get('ai_completer', OllamaCompleter())
 
         super().__init__(*args, **kwargs)
 
@@ -850,6 +852,17 @@ del sys
         def is_buffer_multiline():
             return document_is_multiline_python(buffer.document)
 
+        def get_completer():
+            if buffer._complete_ai:
+                completer = self.ai_completer
+            else:
+                completer = self.completer
+
+            if completer and self.complete_in_thread:
+                completer = ThreadedCompleter(completer)
+
+            return completer
+
         multiline = Condition(is_buffer_multiline)
         buffer = MyBuffer(
             name=DEFAULT_BUFFER,
@@ -857,10 +870,7 @@ del sys
             multiline=multiline,
             validator=PythonSyntaxValidator(),
             history=self.history,
-            completer=DynamicCompleter(lambda:
-                ThreadedCompleter(self.completer)
-                if self.complete_in_thread and self.completer
-                else self.completer),
+            completer=DynamicCompleter(get_completer),
             # Needs to be False until
             # https://github.com/jonathanslenders/python-prompt-toolkit/issues/472
             # is fixed.
