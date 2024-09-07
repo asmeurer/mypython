@@ -446,27 +446,12 @@ def indent(event):
     before_cursor = event.app.current_buffer.document.current_line_before_cursor
     event.app.current_buffer.insert_text(' '*(4 - len(before_cursor)%4))
 
-@r.add_binding(Keys.Tab, filter=~tab_should_insert_whitespace)
-def tab_complete(event):
-    # Based on prompt_toolkit.key_binding.binding.generate_completions
-    b = event.current_buffer
-    b._complete_ai = False
-
-    # When already navigating through completions, select the next one.
-    if b.complete_state:
-        b.complete_next()
-    else:
-        b.start_completion(insert_common_part=True)
-
 @r.add_binding(ControlEnter)
 def ai_complete(event):
     b = event.current_buffer
-    b._complete_ai = True
 
-    if b.complete_state:
-        b.complete_next()
-    else:
-        b.start_completion(insert_common_part=False)
+    if b.ai_suggestion:
+        b.insert_text(b.ai_suggestion.text)
 
 LEADING_WHITESPACE = re.compile(r'( *)[^ ]?')
 @r.add_binding(Keys.Escape, 'm')

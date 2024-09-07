@@ -55,6 +55,7 @@ from prompt_toolkit.filters import Condition, IsDone
 from prompt_toolkit.formatted_text import PygmentsTokens
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.completion import DynamicCompleter, ThreadedCompleter
+from prompt_toolkit.auto_suggest import ThreadedAutoSuggest
 from prompt_toolkit.output.color_depth import ColorDepth
 from prompt_toolkit.filters import renderer_height_is_known, is_done
 from prompt_toolkit.layout import (HSplit, ConditionalContainer, Layout,
@@ -82,11 +83,13 @@ except ImportError:
     iterm2_tools = None
 
 from .multiline import document_is_multiline_python
-from .completion import PythonCompleter, OllamaCompleter
+from .completion import PythonCompleter
+from .ai import OllamaSuggester
 from .theme import OneAMStyle, MyPython3Lexer, emoji
 from .keys import get_key_bindings, LEADING_WHITESPACE
 from .processors import (MyHighlightMatchingBracketProcessor,
                          HighlightPyflakesErrorsProcessor,
+                         AppendAIAutoSuggestion,
                          get_pyflakes_warnings, SyntaxErrorMessage)
 from .magic import magic, MAGICS, NON_PYTHON_MAGICS
 from .printing import mypython_displayhook
@@ -127,7 +130,7 @@ class MyBuffer(Buffer):
         self.session = session
         self._show_syntax_warning = False
         self._append_history = True
-        self._complete_ai = False
+        self.ai_suggestion = None
 
     def delete_before_cursor(self, count=1):
         self.multiline_history_search_index = None
@@ -230,9 +233,16 @@ class MyBuffer(Buffer):
         finally:
             self._append_history = old_append_history
 
-def on_text_insert(buffer):
+def on_text_changed(buffer):
     buffer.multiline_history_search_index = None
     buffer._show_syntax_warning = False
+    buffer.ai_suggestion = None
+
+def on_suggestion_set(buffer):
+    # We have to store the ai suggestion separately because we cannot easily
+    # remove the default auto suggestion input processor
+    buffer.ai_suggestion = buffer.suggestion
+    buffer.suggestion = None
 
 # TODO: cache this?
 def validate_text(text):
@@ -694,6 +704,11 @@ class Session(PromptSession):
                 processor=HighlightPyflakesErrorsProcessor(),
                 filter=~IsDone(),
                 ),
+            ConditionalProcessor(
+                processor=AppendAIAutoSuggestion(),
+                filter=~IsDone() # has_focus(self.default_buffer)
+            ),
+
         ])
         kwargs.setdefault('search_ignore_case', True)
         kwargs.setdefault('style', merge_styles([style_from_pygments_cls(OneAMStyle),
@@ -701,6 +716,7 @@ class Session(PromptSession):
         kwargs.setdefault('include_default_pygments_style', False)
         kwargs.setdefault('completer', PythonCompleter(lambda: self._globals,
             lambda: self._locals, self))
+        kwargs.setdefault('auto_suggest', OllamaSuggester())
         kwargs.setdefault('complete_in_thread', True)
         kwargs.setdefault('color_depth', ColorDepth.TRUE_COLOR)
         kwargs.setdefault('mouse_support', False)
@@ -723,7 +739,6 @@ class Session(PromptSession):
         if not IN_OUT:
             IN_OUT = random.choice(emoji)
         self.IN, self.OUT = IN_OUT
-        self.ai_completer = kwargs.get('ai_completer', OllamaCompleter())
 
         super().__init__(*args, **kwargs)
 
@@ -852,17 +867,6 @@ del sys
         def is_buffer_multiline():
             return document_is_multiline_python(buffer.document)
 
-        def get_completer():
-            if buffer._complete_ai:
-                completer = self.ai_completer
-            else:
-                completer = self.completer
-
-            if completer and self.complete_in_thread:
-                completer = ThreadedCompleter(completer)
-
-            return completer
-
         multiline = Condition(is_buffer_multiline)
         buffer = MyBuffer(
             name=DEFAULT_BUFFER,
@@ -870,12 +874,17 @@ del sys
             multiline=multiline,
             validator=PythonSyntaxValidator(),
             history=self.history,
-            completer=DynamicCompleter(get_completer),
+            completer=DynamicCompleter(lambda:
+                ThreadedCompleter(self.completer)
+                if self.complete_in_thread and self.completer
+                else self.completer),
+            auto_suggest=ThreadedAutoSuggest(self.auto_suggest),
             # Needs to be False until
             # https://github.com/jonathanslenders/python-prompt-toolkit/issues/472
             # is fixed.
             complete_while_typing=False,
-            on_text_insert=on_text_insert,
+            on_text_changed=on_text_changed,
+            on_suggestion_set=on_suggestion_set,
             tempfile_suffix='.py',
             accept_handler=accept,
             session=self,

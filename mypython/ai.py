@@ -1,3 +1,7 @@
+from functools import lru_cache
+
+from prompt_toolkit.auto_suggest import AutoSuggest, Suggestion
+
 DEFAULT_MODEL = "deepseek-coder-v2:16b-lite-base-fp16"
 
 CURRENT_MODEL = DEFAULT_MODEL
@@ -45,3 +49,40 @@ MODELS = {
         "model_aliases": [],
     },
 }
+
+@lru_cache(1024)
+def get_ai_completion(prefix, suffix, model_name):
+    import ollama
+
+    model = MODELS[model_name]
+    prompt_template = model['prompt_template']
+    prompt = prompt_template.format(prefix=prefix, suffix=suffix)
+    options = model['options']
+    output = ollama.generate(model=model_name, prompt=prompt, options=options)
+
+    # normalize
+    out = output['response']
+    out = out.rstrip()
+    out = out.replace('\r\n', '\n')
+
+    return out
+
+class OllamaSuggester(AutoSuggest):
+    """
+    Ollama Completer
+    """
+    def __init__(self):
+        super().__init__()
+
+        # self.get_globals = get_globals
+        # self.get_locals = get_locals
+        # self.session = session
+
+    def get_suggestion(self, buffer, document):
+
+        text_before_cursor = document.text_before_cursor
+        text_after_cursor = document.text_after_cursor
+
+        model_name = CURRENT_MODEL
+        completion = get_ai_completion(text_before_cursor, text_after_cursor, model_name)
+        return Suggestion(completion)
