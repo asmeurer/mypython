@@ -749,8 +749,8 @@ del sys
                 python_version = '.'.join(map(str, sys.version_info))
             print_formatted_text(MyPygmentsTokens([
                 (Token.Welcome, "Welcome to mypython.\n"),
-                (Token.WelcomeInfo, "%s (Python %s, prompt_toolkit %s)\n" %
-                 (sys.executable, python_version, prompt_toolkit_version))
+                (Token.WelcomeInfo, "%s (Python %s, prompt_toolkit %s) History file: %s\n" %
+                 (sys.executable, python_version, prompt_toolkit_version, self.history_file)),
             ]))
 
         sys.displayhook = mypython_displayhook
