@@ -44,11 +44,30 @@ MODELS = {
                 "<fim_middle>",
                 "<file_sep>",
                 "<|endoftext|>",
+                "<|end_of_text|>",
             ],
         },
         "model_aliases": [],
     },
 }
+
+CONTEXT_PREFIX = """\
+#/usr/bin/python3
+
+# Coding conventions:
+#
+# - Always include a space after a comma
+# - Never put a space between a function call and its parentheses
+# - Never end a line in a semicolon
+# - Do not add extraneous comments
+"""
+
+
+CONTEXT_SUFFIX = """\
+
+
+if __name__ == '__main__':
+"""
 
 # @lru_cache(1024)
 def get_ai_completion(prefix, suffix, model_name):
@@ -56,7 +75,8 @@ def get_ai_completion(prefix, suffix, model_name):
 
     model = MODELS[model_name]
     prompt_template = model['prompt_template']
-    prompt = prompt_template.format(prefix=prefix, suffix=suffix)
+    prompt = prompt_template.format(prefix=CONTEXT_PREFIX + prefix,
+                                    suffix=suffix + CONTEXT_SUFFIX)
     options = model['options']
     output = ollama.generate(model=model_name, prompt=prompt, options=options)
 
