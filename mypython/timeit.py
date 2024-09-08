@@ -1,6 +1,5 @@
 import sys
 import math
-from io import BytesIO
 import platform
 
 try:
