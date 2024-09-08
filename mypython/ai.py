@@ -59,6 +59,7 @@ CONTEXT_PREFIX = """\
 # - Always include a space after a comma
 # - Never put a space between a function call and its parentheses
 # - Never end a line in a semicolon
+# - Use four spaces for indentation
 # - Do not add extraneous comments
 """
 
@@ -84,6 +85,7 @@ def get_ai_completion(prefix, suffix, model_name):
     out = output['response']
     out = out.rstrip()
     out = out.replace('\r\n', '\n')
+    out = out.replace('\t', '    ')
 
     return out
 
