@@ -59,6 +59,8 @@ CONTEXT_PREFIX = """\
 # - Never end a line in a semicolon
 # - Use four spaces for indentation
 # - Do not add extraneous comments
+
+
 """
 
 
@@ -66,16 +68,19 @@ CONTEXT_SUFFIX = """\
 
 
 if __name__ == '__main__':
+    def main():
 """
 
 # @lru_cache(1024)
-def get_ai_completion(prefix, suffix, model_name):
+def get_ai_completion(prefix, suffix, model_name, context=()):
     import ollama
 
     model = MODELS[model_name]
     prompt_template = model['prompt_template']
-    prompt = prompt_template.format(prefix=CONTEXT_PREFIX + prefix,
-                                    suffix=suffix + CONTEXT_SUFFIX)
+    prompt = prompt_template.format(
+        # system=CONTEXT_PREFIX,
+        prefix=CONTEXT_PREFIX + context + prefix,
+        suffix=suffix + CONTEXT_SUFFIX)
     options = model['options']
     output = ollama.generate(model=model_name, prompt=prompt, options=options)
 
@@ -86,6 +91,16 @@ def get_ai_completion(prefix, suffix, model_name):
     out = out.replace('\t', '    ')
 
     return out
+
+def get_context(buffer, limit_chars=10000):
+    N = 0
+    context = list(buffer.session.In.values())
+    for i in range(len(context) - 1, -1, -1):
+        N += len(context[i])
+        if N > limit_chars:
+            i += 1
+            break
+    return '\n\n'.join(list(buffer.session.In.values()))[i:]
 
 class OllamaSuggester(AutoSuggest):
     """
@@ -104,5 +119,6 @@ class OllamaSuggester(AutoSuggest):
         text_after_cursor = document.text_after_cursor
 
         model_name = CURRENT_MODEL
-        completion = get_ai_completion(text_before_cursor, text_after_cursor, model_name)
+        completion = get_ai_completion(text_before_cursor, text_after_cursor,
+                                       model_name, context=get_context(buffer))
         return completion
