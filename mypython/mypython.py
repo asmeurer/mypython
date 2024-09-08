@@ -912,6 +912,7 @@ del sys
             # is fixed.
             complete_while_typing=False,
             on_text_changed=on_text_changed,
+            on_cursor_position_changed=on_text_changed,
             tempfile_suffix='.py',
             accept_handler=accept,
             session=self,
