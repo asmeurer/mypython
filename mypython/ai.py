@@ -1,6 +1,4 @@
-from functools import lru_cache
-
-from prompt_toolkit.auto_suggest import AutoSuggest, Suggestion
+from prompt_toolkit.auto_suggest import AutoSuggest
 
 DEFAULT_MODEL = "deepseek-coder-v2:16b-lite-base-fp16"
 
