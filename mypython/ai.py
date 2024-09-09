@@ -47,6 +47,11 @@ MODELS = {
         },
         "model_aliases": [],
     },
+    "codellama": {
+        "prompt_template": "▁<PRE>{prefix}▁<SUF>{suffix}▁<MID>",
+        "options": {},
+        "model_aliases": [],
+    },
 }
 
 CONTEXT_PREFIX = """\
