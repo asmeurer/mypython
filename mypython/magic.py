@@ -58,6 +58,21 @@ def nonpython(f):
     NON_PYTHON_MAGICS.append('%' + f.__name__[:-len('_magic')])
     return inner
 
+MAGIC_COMPLETIONS = {}
+
+def completions(get_completions):
+    """
+    Use like
+
+    @completions(lambda: ['a', 'b', 'c'])
+    def x_magic(rest):
+        ...
+    """
+    def wrapper(f):
+        MAGIC_COMPLETIONS['%' + f.__name__[:-len('_magic')]] = get_completions
+        return f
+    return wrapper
+
 def error(message):
     return """\
 import sys as _sys
@@ -402,6 +417,12 @@ else:
         print(f'{{_i:2d}} {{_format_time(TIMINGS[_i])}}')
 """
 
+def get_ai_models():
+    yield from list(ai.MODELS)
+    for model in ai.MODELS:
+        yield from ai.MODELS[model]['model_aliases']
+
+@completions(get_ai_models)
 @nonpython
 def model_magic(rest):
     """
@@ -409,7 +430,7 @@ def model_magic(rest):
     """
     rest = rest.strip()
     if not rest:
-        return error("no model specified")
+        return error("no model specified: available models are %s" % ', '.join(ai.MODELS))
 
     for model in ai.MODELS:
         if rest == model:

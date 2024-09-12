@@ -35,7 +35,7 @@ from prompt_toolkit.patch_stdout import patch_stdout
 import traceback
 
 from .dircompletion import DirCompleter
-from .magic import MAGICS
+from .magic import MAGICS, MAGIC_COMPLETIONS
 
 def get_jedi_script_from_document(document, _locals, _globals, session):
     import jedi  # We keep this import in-line, to improve start-up time.
@@ -99,6 +99,11 @@ class PythonCompleter(Completer):
         for magic in MAGICS:
             if text_before_cursor.startswith(magic + ' '):
                 text_before_cursor = text_before_cursor[len(magic) + 1:]
+                if magic in MAGIC_COMPLETIONS:
+                    for completion in MAGIC_COMPLETIONS[magic]():
+                        yield Completion(completion,
+                                         -len(document.text_before_cursor), display_meta=magic)
+                    return
                 break
 
         if complete_event.completion_requested or self._complete_python_while_typing(document):
