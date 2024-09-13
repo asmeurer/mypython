@@ -101,6 +101,7 @@ async def get_ai_completion(prefix, suffix, model_name, context=()):
 def get_context(buffer, limit_chars=10000):
     N = 0
     context = list(buffer.session.In.values())
+    i = None
     for i in range(len(context) - 1, -1, -1):
         N += len(context[i])
         if N > limit_chars:
