@@ -76,6 +76,10 @@ if __name__ == '__main__':
     def main():
 """
 
+def load_model(model):
+    import ollama
+    ollama.generate(model, '', options={'num_predict': 0})
+
 # @lru_cache(1024)
 async def get_ai_completion(prefix, suffix, model_name, context=()):
     import ollama

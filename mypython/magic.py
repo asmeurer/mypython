@@ -10,6 +10,7 @@ The magic should return the source that gets run, and not execute any code
 itself.
 """
 
+import threading
 import textwrap
 import ast
 import copy
@@ -442,6 +443,8 @@ def model_magic(rest):
         return error("model not found")
 
     ai.CURRENT_MODEL = rest
+    # Asynchronously Load the model into memory
+    threading.Thread(target=ai.load_model, args=(rest,), daemon=True).start()
     return ""
 
 MAGICS = {}
