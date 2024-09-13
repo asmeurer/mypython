@@ -102,7 +102,7 @@ class PythonCompleter(Completer):
                 if magic in MAGIC_COMPLETIONS:
                     for completion in MAGIC_COMPLETIONS[magic]():
                         yield Completion(completion,
-                                         -len(document.text_before_cursor), display_meta=magic)
+                                         -len(text_before_cursor), display_meta=magic)
                     return
                 break
 
