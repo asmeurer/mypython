@@ -77,7 +77,7 @@ if __name__ == '__main__':
 """
 
 # @lru_cache(1024)
-def get_ai_completion(prefix, suffix, model_name, context=()):
+async def get_ai_completion(prefix, suffix, model_name, context=()):
     import ollama
 
     model = MODELS[model_name]
@@ -87,7 +87,8 @@ def get_ai_completion(prefix, suffix, model_name, context=()):
         prefix=CONTEXT_PREFIX + context + prefix,
         suffix=suffix + CONTEXT_SUFFIX)
     options = model['options']
-    output = ollama.generate(model=model_name, prompt=prompt, options=options)
+    client = ollama.AsyncClient()
+    output = await client.generate(model=model_name, prompt=prompt, options=options)
 
     # normalize
     out = output['response']
@@ -107,23 +108,16 @@ def get_context(buffer, limit_chars=10000):
             break
     return '\n\n'.join(list(buffer.session.In.values()))[i:]
 
-class OllamaSuggester(AutoSuggest):
+class OllamaSuggester:
     """
     Ollama Completer
     """
-    def __init__(self):
-        super().__init__()
-
-        # self.get_globals = get_globals
-        # self.get_locals = get_locals
-        # self.session = session
-
-    def get_suggestion(self, buffer, document):
+    async def get_suggestion_async(self, buffer, document):
 
         text_before_cursor = document.text_before_cursor
         text_after_cursor = document.text_after_cursor
 
         model_name = CURRENT_MODEL
-        completion = get_ai_completion(text_before_cursor, text_after_cursor,
+        completion = await get_ai_completion(text_before_cursor, text_after_cursor,
                                        model_name, context=get_context(buffer))
         return completion

@@ -160,7 +160,7 @@ class MyBuffer(Buffer):
                 # Set suggestion and redraw interface.
                 if suggestion and suggestion not in self.ai_suggestions:
                     self.ai_suggestions.append(suggestion)
-                    # self.on_suggestion_set.fire()
+                    self.on_suggestion_set.fire()
             else:
                 # Otherwise, restart thread.
                 raise _Retry
@@ -736,7 +736,7 @@ class Session(PromptSession):
                 ),
             ConditionalProcessor(
                 processor=AppendAIAutoSuggestion(),
-                filter=~IsDone() # has_focus(self.default_buffer)
+                filter=~IsDone() # & has_focus(self.default_buffer)
             ),
 
         ])
