@@ -47,11 +47,29 @@ MODELS = {
         },
         "model_aliases": [],
     },
+
     "codellama": {
         "prompt_template": "▁<PRE>{prefix}▁<SUF>{suffix}▁<MID>",
         "options": {},
         "model_aliases": [],
     },
+
+    "codeqwen:7b-code-v1.5-fp16": {
+        "prompt_template": "<fim_prefix>{prefix}<fim_suffix>{suffix}<fim_middle>",
+        "options": {
+            "stop": [
+                "<fim_prefix>",
+                "<fim_suffix>",
+                "<fim_middle>",
+                "<file_sep>",
+                "<|endoftext|>",
+                "</fim_middle>",
+                "</code>",
+            ],
+        },
+        "model_aliases": ["codeqwen", "codeqwen1.5"],
+    },
+
 }
 
 CONTEXT_PREFIX = """\
