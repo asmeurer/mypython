@@ -16,7 +16,7 @@ MODELS = {
                 "<｜end▁of▁sentence｜>",
             ],
         },
-        "model_aliases": ["deepseek-coder-v2"],
+        "model_aliases": ["deepseek-coder-v2", "deepseek-coder", "deepseek"],
     },
 
     "deepseek-coder-v2:16b-lite-base-q4_0": {
