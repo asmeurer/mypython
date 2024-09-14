@@ -118,6 +118,10 @@ async def get_ai_completion(prefix, suffix, model_name, context=()):
     out = out.replace('\r\n', '\n')
     out = out.replace('\t', '    ')
 
+    if model_name == "codeqwen:7b-code-v1.5-fp16" and out.startswith(' '):
+        # codeqwen always adds a spaces before the generation for some reason
+        out = out[1:]
+
     return out
 
 def get_context(buffer, limit_chars=10000):
