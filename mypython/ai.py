@@ -1,6 +1,6 @@
 from prompt_toolkit.auto_suggest import AutoSuggest
 
-DEFAULT_MODEL = "deepseek-coder-v2:16b-lite-base-fp16"
+DEFAULT_MODEL = "deepseek-coder-v2:16b-lite-base-q4_0"
 
 CURRENT_MODEL = DEFAULT_MODEL
 
@@ -68,6 +68,45 @@ MODELS = {
             ],
         },
         "model_aliases": ["codeqwen", "codeqwen1.5"],
+    },
+
+    "qwen2.5-coder:1.5b-base-q4_K_M": {
+        "prompt_template": "<|fim_prefix|>{prefix}<|fim_suffix|>{suffix}<|fim_middle|>",
+        "options": {
+            "stop": [
+                "<|endoftext|>",
+                "<fim_prefix>",
+                "<fim_suffix>",
+                "<fim_middle>",
+            ],
+        },
+        "model_aliases": [],
+    },
+
+    "qwen2.5-coder:1.5b-base-fp16": {
+        "prompt_template": "<|fim_prefix|>{prefix}<|fim_suffix|>{suffix}<|fim_middle|>",
+        "options": {
+            "stop": [
+                "<|endoftext|>",
+                "<fim_prefix>",
+                "<fim_suffix>",
+                "<fim_middle>",
+            ],
+        },
+        "model_aliases": ["qwen2.5-coder:1.5b-base", "qwen2.5-coder:1.5b"],
+    },
+
+    "qwen2.5-coder:7b-base-q4_K_M": {
+        "prompt_template": "<|fim_prefix|>{prefix}<|fim_suffix|>{suffix}<|fim_middle|>",
+        "options": {
+            "stop": [
+                "<|endoftext|>",
+                "<fim_prefix>",
+                "<fim_suffix>",
+                "<fim_middle>",
+            ],
+        },
+        "model_aliases": ["qwen2.5-coder:7b-base", "qwen2.5-coder:7b"],
     },
 
 }
