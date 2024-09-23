@@ -101,8 +101,9 @@ class PythonCompleter(Completer):
                 text_before_cursor = text_before_cursor[len(magic) + 1:]
                 if magic in MAGIC_COMPLETIONS:
                     for completion in MAGIC_COMPLETIONS[magic]():
-                        yield Completion(completion,
-                                         -len(text_before_cursor), display_meta=magic)
+                        if completion.startswith(text_before_cursor):
+                            yield Completion(completion,
+                                             -len(text_before_cursor), display_meta=magic)
                     return
                 break
 
