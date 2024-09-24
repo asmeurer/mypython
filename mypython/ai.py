@@ -84,27 +84,27 @@ MODELS = {
     },
 
     "qwen2.5-coder:1.5b-base-fp16": {
-        "prompt_template": "<|fim_prefix|>{prefix}<|fim_suffix|>{suffix}<|fim_middle|>",
+        "prompt_template": (qwen_template := "<|fim_prefix|>{prefix}<|fim_suffix|>{suffix}<|fim_middle|>"),
         "options": {
-            "stop": [
+            "stop": (qwen_stop := [
                 "<|endoftext|>",
-                "<fim_prefix>",
-                "<fim_suffix>",
-                "<fim_middle>",
-            ],
+                "<|fim_prefix|>",
+                "<|fim_middle|>",
+                "<|fim_suffix|>",
+                "<|fim_pad|>",
+                "<|repo_name|>",
+                "<|file_sep|>",
+                "<|im_start|>",
+                "<|im_end|>",
+            ]),
         },
         "model_aliases": ["qwen2.5-coder:1.5b-base", "qwen2.5-coder:1.5b"],
     },
 
     "qwen2.5-coder:7b-base-q4_K_M": {
-        "prompt_template": "<|fim_prefix|>{prefix}<|fim_suffix|>{suffix}<|fim_middle|>",
+        "prompt_template": qwen_template,
         "options": {
-            "stop": [
-                "<|endoftext|>",
-                "<fim_prefix>",
-                "<fim_suffix>",
-                "<fim_middle>",
-            ],
+            "stop": qwen_stop,
         },
         "model_aliases": ["qwen2.5-coder:7b-base", "qwen2.5-coder:7b"],
     },
