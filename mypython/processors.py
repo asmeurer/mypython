@@ -34,6 +34,7 @@ from prompt_toolkit.layout.processors import (Transformation,
     HighlightMatchingBracketProcessor, Processor)
 from prompt_toolkit.layout.utils import explode_text_fragments
 from prompt_toolkit.application import get_app
+from prompt_toolkit.formatted_text import fragment_list_width, to_formatted_text
 
 from pyflakes.checker import Checker
 from pyflakes.messages import (UnusedImport, UnusedVariable, UndefinedName,
@@ -305,26 +306,49 @@ class HighlightPyflakesErrorsProcessor(Processor):
 
 class AppendAIAutoSuggestion(Processor):
     """
-    Based on prompt_toolkit.layout.processors.AppendAutoSuggest but is not
+    Based on prompt_toolkit.layout.processors.Autosuggestion but is not
     limited to just inserting the suggestion at the end.
     """
 
     def __init__(self, style: str = "class:auto-suggestion") -> None:
         self.style = style
 
-    def apply_transformation(self, ti):
-        buffer = ti.buffer_control.buffer
+    def apply_transformation(self, transformation_input):
+        buffer = transformation_input.buffer_control.buffer
+        app = get_app()
 
-        source_to_display = ti.source_to_display
+        source_to_display = transformation_input.source_to_display
+        column = source_to_display(buffer.document.cursor_position_col)
+        text_before_cursor = buffer.document.text_before_cursor
         if buffer.ai_suggestions:
             suggestion = buffer.ai_suggestions[buffer.ai_suggestion_index]
+
+            terminal_size = app.output.get_size().columns
+            wrap_width = terminal_size - prompt_width(buffer)
+            suggestion = replace_newlines_with_spaces(text_before_cursor + suggestion, wrap_width)[column:]
         else:
             suggestion = ""
 
-        column = source_to_display(buffer.document.cursor_position_col)
-
-        fragments = list(ti.fragments)
-        if ti.lineno == buffer.document.cursor_position_row:
+        fragments = list(transformation_input.fragments)
+        if transformation_input.lineno == buffer.document.cursor_position_row:
             fragments.insert(column, (self.style, suggestion))
 
         return Transformation(fragments=fragments)
+
+def prompt_width(buffer):
+    return fragment_list_width(to_formatted_text(buffer.session.message))
+
+def replace_newlines_with_spaces(text, column_width):
+    lines = text.split('\n')
+    result = ''
+    for i, line in enumerate(lines):
+        line_length = len(line)
+        # Calculate padding to reach the next multiple of column_width
+        if not line:
+            padding = column_width
+        else:
+            padding = (column_width - (line_length % column_width)) % column_width
+        result += line
+        if i != len(lines) - 1:  # Avoid adding padding after the last line
+            result += ' ' * padding
+    return result
