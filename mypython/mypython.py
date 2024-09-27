@@ -160,6 +160,8 @@ class MyBuffer(Buffer):
                 # Set suggestion and redraw interface.
                 if suggestion and suggestion not in self.ai_suggestions:
                     self.ai_suggestions.append(suggestion)
+                    if regenerate:
+                        self.ai_suggestion_index = len(self.ai_suggestions) - 1
                     self.on_suggestion_set.fire()
             else:
                 # Otherwise, restart thread.
