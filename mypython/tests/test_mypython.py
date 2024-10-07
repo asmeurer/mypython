@@ -165,8 +165,8 @@ def test_startup():
         session.startup()
         # TODO: Test things printed with quiet=False
 
-        assert session._globals.keys() == session._locals.keys() == {'__builtins__', 'In', 'Out', 'PROMPT_NUMBER', '_PROMPT'}
-        assert session.builtins.keys() == {'In', 'Out', 'PROMPT_NUMBER', '_PROMPT'}
+        assert session._globals.keys() == session._locals.keys() == {'__builtins__', 'In', 'Out', 'PROMPT_NUMBER', '_PROMPT', 'TIMINGS'}
+        assert session.builtins.keys() == {'In', 'Out', 'PROMPT_NUMBER', '_PROMPT', 'TIMINGS'}
         assert session._globals['PROMPT_NUMBER'] == 1
 
 # Not called test_globals to avoid confusion with _test_globals
