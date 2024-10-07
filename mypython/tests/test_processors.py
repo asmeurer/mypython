@@ -1,6 +1,7 @@
 from pyflakes.messages import UndefinedName, UnusedVariable, DuplicateArgument
 
-from ..processors import get_pyflakes_warnings, SyntaxErrorMessage
+from ..processors import (get_pyflakes_warnings, SyntaxErrorMessage,
+                          replace_newlines_with_spaces)
 
 def test_get_pyflakes_warnings():
     warnings = get_pyflakes_warnings("""\
@@ -368,3 +369,75 @@ from stuff import *
 a + b
 """)
     assert warnings == []
+
+def test_replace_newlines_with_spaces():
+    # Test that an empty string returns an empty string.
+    assert replace_newlines_with_spaces('', 10) == ''
+
+    # Test that a single line without newlines remains unchanged.
+    text = "This is a single line."
+    assert replace_newlines_with_spaces(text, 10) == text
+
+    # Test multiple lines with varying lengths.
+    text = "Line one\nLine two is longer\nShort"
+    column_width = 15
+    expected = (
+        #         111111111
+        #123456789012345678
+        "Line one" + ' ' * 7 +  # Padding to reach next multiple of 15
+        "Line two is longer" + ' ' * 12 +  # Padding to reach next multiple
+        "Short"
+    )
+    result = replace_newlines_with_spaces(text, column_width)
+    assert result == expected
+
+    # Test lines where length is a multiple of column width.
+    text = "12345\n67890"
+    column_width = 5
+    expected = "12345" + "67890"
+    result = replace_newlines_with_spaces(text, column_width)
+    assert result == expected
+
+    # Test with very long lines to ensure correct padding.
+    text = "A" * 23 + "\n" + "B" * 17
+    column_width = 20
+    expected = (
+        "A" * 23 + ' ' * 17 +  # Padding to reach next multiple of 20
+        "B" * 17
+    )
+    result = replace_newlines_with_spaces(text, column_width)
+    # Strip is used here to remove any unintended trailing spaces
+    assert result.strip() == expected.strip()
+
+    # Test with column width of 1.
+    text = "A\nB\nC"
+    column_width = 1
+    expected = "ABC"
+    result = replace_newlines_with_spaces(text, column_width)
+    assert result == expected
+
+    # Test text with no newlines to ensure it remains unchanged.
+    text = "Continuous text without newlines."
+    column_width = 10
+    assert replace_newlines_with_spaces(text, column_width) == text
+
+    # Test text that ends with a newline character.
+    text = "Line one\nLine two\n"
+    column_width = 10
+    expected = (
+        "Line one" + ' ' * 2 +
+        "Line two" + ' ' * 2
+    )
+    result = replace_newlines_with_spaces(text, column_width)
+    assert result == expected
+
+    # Test text with multiple consecutive newline characters.
+    text = "Line one\n\nLine three"
+    column_width = 10
+    expected = (
+        "Line one" + ' ' * 2 +
+        "" + ' ' * 10 +  # Empty line with padding
+        "Line three"
+    )
+    result = replace_newlines_with_spaces(text, column_width)
+    assert result == expected
