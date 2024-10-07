@@ -7,7 +7,7 @@ A Python REPL the way I like it.
 import argparse
 
 from .mypython import default_history_filename, run_shell
-from . import mypython
+from . import mypython, ai
 
 def main():
     parser = argparse.ArgumentParser(__doc__)
@@ -24,6 +24,13 @@ def main():
         For this terminal, this defaults to {default_history_filename()}""")
     parser.add_argument("--debug", "-D", action="store_true",
         help="""Enable debug mode. Equivalent to -c '%%debug'.""")
+    parser.add_argument('--model', metavar='MODEL', default=None,
+                        action='store', help=f"""
+                        Use the given model for the ollama AI
+                        completion engine. The default model is
+                        {ai.DEFAULT_MODEL}. The model must already be pulled
+                        and the ollama server must be running. Supported models are: {', '.join(sorted(ai.get_ai_models(include_aliases=False)))}
+                        """, choices=sorted(ai.get_ai_models(include_aliases=True)))
     parser.add_argument('--exit', action='store_true', help="""Exit immediately, after
         running any --cmd commands.""")
 
@@ -43,6 +50,9 @@ def main():
 
     if args.isympy:
         args.cmd.append('%sympy')
+
+    if args.model:
+        ai.set_current_model(args.model)
 
     return run_shell(quiet=args.quiet, cmd=args.cmd, _exit=args.exit,
                      history_file=args.history_file)
