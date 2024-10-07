@@ -222,4 +222,4 @@ def set_current_model(model):
     CURRENT_MODEL = model
 
     # Asynchronously Load the model into memory
-    threading.Thread(target=ai.load_model, args=(rest,), daemon=True).start()
+    threading.Thread(target=load_model, args=(model,), daemon=True).start()
