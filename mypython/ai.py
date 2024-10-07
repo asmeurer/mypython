@@ -1,3 +1,5 @@
+import threading
+
 DEFAULT_MODEL = "deepseek-coder-v2:16b-lite-base-q4_0"
 
 CURRENT_MODEL = DEFAULT_MODEL
@@ -198,3 +200,26 @@ class OllamaSuggester:
         completion = await self.get_ai_completion(text_before_cursor, text_after_cursor,
                                        model_name, context=get_context(buffer))
         return completion
+
+def get_ai_models(include_aliases=True):
+    yield from list(MODELS)
+    if include_aliases:
+        for model in MODELS:
+            yield from MODELS[model]['model_aliases']
+
+def set_current_model(model):
+    global CURRENT_MODEL
+
+    for m in MODELS:
+        if model == m:
+            break
+        if model in MODELS[m]['model_aliases']:
+            model = m
+            break
+    else:
+        raise ValueError(f"Model {model} not found")
+
+    CURRENT_MODEL = model
+
+    # Asynchronously Load the model into memory
+    threading.Thread(target=ai.load_model, args=(rest,), daemon=True).start()

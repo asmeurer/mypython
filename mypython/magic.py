@@ -418,12 +418,7 @@ else:
         print(f'{{_i:2d}} {{_format_time(TIMINGS[_i])}}')
 """
 
-def get_ai_models():
-    yield from list(ai.MODELS)
-    for model in ai.MODELS:
-        yield from ai.MODELS[model]['model_aliases']
-
-@completions(get_ai_models)
+@completions(ai.get_ai_models)
 @nonpython
 def model_magic(rest):
     """
@@ -433,18 +428,10 @@ def model_magic(rest):
     if not rest:
         return error("no model specified: available models are %s" % ', '.join(ai.MODELS))
 
-    for model in ai.MODELS:
-        if rest == model:
-            break
-        if rest in ai.MODELS[model]['model_aliases']:
-            rest = model
-            break
-    else:
-        return error("model not found")
-
-    ai.CURRENT_MODEL = rest
-    # Asynchronously Load the model into memory
-    threading.Thread(target=ai.load_model, args=(rest,), daemon=True).start()
+    try:
+        ai.set_current_model(rest)
+    except ValueError as e:
+        return error(str(e))
     return ""
 
 MAGICS = {}
