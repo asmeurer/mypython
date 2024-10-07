@@ -677,7 +677,10 @@ def pre_command(*, command, _globals, _locals, prompt):
 
 def post_command(*, command, res, _globals, _locals, prompt):
     PROMPT_NUMBER = prompt.prompt_number
-    prompt.timings[PROMPT_NUMBER] = time.perf_counter() - prompt.timings[PROMPT_NUMBER]
+    if PROMPT_NUMBER not in prompt.timings:
+        prompt.timings[PROMPT_NUMBER] = float('nan')
+    else:
+        prompt.timings[PROMPT_NUMBER] = time.perf_counter() - prompt.timings[PROMPT_NUMBER]
     prompt.In[PROMPT_NUMBER] = command
     builtins = prompt.builtins
 
