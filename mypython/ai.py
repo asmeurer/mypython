@@ -46,10 +46,12 @@ MODELS = {
         "model_aliases": [],
     },
 
-    "codellama": {
-        "prompt_template": "▁<PRE>{prefix}▁<SUF>{suffix}▁<MID>",
-        "options": {},
-        "model_aliases": [],
+    "codellama:7b-code": {
+        "prompt_template": "<PRE> {prefix} <SUF>{suffix} <MID>",
+        "options": {
+            "stop": ["<PRE>", "<SUF>", "<MID>", "<EOT>"],
+        },
+        "model_aliases": ['codellama', 'codellama:7b'],
     },
 
     "codeqwen:7b-code-v1.5-fp16": {
