@@ -54,6 +54,14 @@ MODELS = {
         "model_aliases": ['codellama', 'codellama:7b'],
     },
 
+    "codellama:13b-code": {
+        "prompt_template": "<PRE> {prefix} <SUF>{suffix} <MID>",
+        "options": {
+            "stop": ["<PRE>", "<SUF>", "<MID>", "<EOT>"],
+        },
+        "model_aliases": ['codellama:13b'],
+    },
+
     "codeqwen:7b-code-v1.5-fp16": {
         "prompt_template": "<fim_prefix>{prefix}<fim_suffix>{suffix}<fim_middle>",
         "options": {
