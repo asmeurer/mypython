@@ -848,3 +848,12 @@ def test_smart_eval():
         ast_transformer=_increment_numbers)
     assert d['a'] == 2
     assert res == 4
+
+def test_timings(check_output):
+    out, err = check_output('1\n')
+    out, err = check_output('import time;time.sleep(1)\n')
+    out, err = check_output('%error\n')
+
+    out, err = check_output('TIMINGS\n')
+    assert re.match(r"{1: \d\.\d+e-\d+, 2: 1\.?\d+, 3: nan, 4: \d\.\d+e-\d+}\n\n", out)
+    assert err == ''

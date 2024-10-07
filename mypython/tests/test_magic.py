@@ -178,3 +178,16 @@ None
 
 """
     assert err == ''
+
+def test_timings(check_output):
+    out, err = check_output('1\n')
+    out, err = check_output('import time;time.sleep(1)\n')
+    out, err = check_output('%error\n')
+
+    out, err = check_output('%timings\n')
+    assert re.match(r""" 1 \d+(\.\d+)? [µu]s
+ 2 1(\.\d+)? s
+ 3 nan s
+
+""", out)
+    assert err == ''
