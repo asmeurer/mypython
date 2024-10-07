@@ -183,12 +183,19 @@ def test_In(check_output):
     check_output('1\n')
     out, err = check_output('1/0\n')
     assert out == '\n'
-    assert err == """\
+    assert err in ["""\
 Traceback (most recent call last):
   File "<mypython-2>", line 1, in <module>
     1/0
 ZeroDivisionError: division by zero
-"""
+""",
+"""\
+Traceback (most recent call last):
+  File "<mypython-2>", line 1, in <module>
+    1/0
+    ~^~
+ZeroDivisionError: division by zero
+"""]
     assert "<mypython-2>" in err
     check_output('0\n')
     out, err = check_output('In\n')
@@ -600,12 +607,19 @@ ValueError: error
     # Non-eval syntax + last line expr
     out, err = check_output('import os;undefined\n')
     assert out == '\n'
-    assert err == \
+    assert err in [
 """Traceback (most recent call last):
   File "<mypython-26>", line 1, in <module>
     import os;undefined
 NameError: name 'undefined' is not defined
-"""
+""",
+"""Traceback (most recent call last):
+  File "<mypython-26>", line 1, in <module>
+    import os;undefined
+              ^^^^^^^^^
+NameError: name 'undefined' is not defined
+"""]
+
     # \x1b\n == M-Enter
     out, err = check_output('import os\x1b\nundefined\n\n')
     assert out == '\n'
@@ -735,11 +749,11 @@ def test_error_magic(check_output):
     assert re.match(
 r"""Traceback \(most recent call last\):
   File\ ".*/mypython/mypython\.py", line \d+, in execute_command
-    command = normalize\(command, _globals, _locals\)
+    command = normalize\(command, _globals, _locals\)(\n              \^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^)?
   File ".*/mypython/mypython\.py", line \d+, in normalize
-    return magic\(command\)
+    return magic\(command\)(\n           \^\^\^\^\^\^\^\^\^\^\^\^\^\^)?
   File ".*/mypython/magic\.py", line \d+, in magic
-    result = MAGICS\[magic_command\]\(rest\)
+    result = MAGICS\[magic_command\]\(rest\)(\n             \^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^)?
   File ".*/mypython/magic\.py", line \d+, in error_magic
     raise RuntimeError\("Error magic"\)
 RuntimeError: Error magic
@@ -769,7 +783,7 @@ ValueError
     assert re.match(
 r"""Traceback \(most recent call last\):
   File "<mypython-2>", line \d, in <module>
-    res = _smart_eval\('raise ValueError', globals\(\), locals\(\)\)
+    res = _smart_eval\('raise ValueError', globals\(\), locals\(\)\)(\n          \^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^\^)?
   File "<mypython>", line 1, in <module>
 ValueError""", err), repr(err)
 
