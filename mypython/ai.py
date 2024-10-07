@@ -165,15 +165,14 @@ async def get_ai_completion(prefix, suffix, model_name, context=()):
 
 def get_context(buffer, limit_chars=10000):
     N = 0
-    history_lines = buffer.session.history.load_history_strings()
-
-    context = []
-    for line in history_lines:
-        N += len(line)
+    context = list(buffer.session.In.values())
+    i = None
+    for i in range(len(context) - 1, -1, -1):
+        N += len(context[i])
         if N > limit_chars:
+            i += 1
             break
-        context.append(line)
-    return '\n\n'.join(reversed(context))
+    return '\n\n'.join(list(buffer.session.In.values()))[i:]
 
 class OllamaSuggester:
     """
