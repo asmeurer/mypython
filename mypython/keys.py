@@ -1038,7 +1038,7 @@ def comment(event):
     new_text = '\n'.join(lines)
     # TODO: Set the cursor position correctly
     n_changed = 2*(cursor_line - start_line + 1)
-    if cursor_line >= end_line - 1:
+    if cursor_line > end_line - 1:
         n_changed -= 2
 
     if uncomment:
