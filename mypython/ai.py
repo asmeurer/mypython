@@ -1,5 +1,3 @@
-from prompt_toolkit.auto_suggest import AutoSuggest
-
 DEFAULT_MODEL = "deepseek-coder-v2:16b-lite-base-q4_0"
 
 CURRENT_MODEL = DEFAULT_MODEL
