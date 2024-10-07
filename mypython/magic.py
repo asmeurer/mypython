@@ -426,7 +426,9 @@ def model_magic(rest):
     """
     rest = rest.strip()
     if not rest:
-        return error("no model specified: available models are %s" % ', '.join(ai.MODELS))
+        return error(f"""No model specified: available models are {', '.join(ai.MODELS)}
+
+The current model is {ai.CURRENT_MODEL}""")
 
     try:
         ai.set_current_model(rest)
