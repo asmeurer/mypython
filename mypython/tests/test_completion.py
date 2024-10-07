@@ -69,7 +69,8 @@ def test_completions():
     assert _test_completion("tru\t\n") == 'True'
 
     # Test magic completion
-    assert _test_completion("%ti\t\n") == "%time"
+    # completes from ['%time', '%timeit', '%timings']
+    assert _test_completion("%ti\t\t\n") == "%time"
     # The extra space at the end is removed by the validator
     assert _test_completion("%sy\t\n") == "%sympy"
     # Completion without %
