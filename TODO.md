@@ -121,7 +121,6 @@
 - Cmd-Shift-A in iTerm2 selects prompt
 - Print exception group tracebacks from exceptiongroup better
 - Make `from __future__ import annotations` work
-- Copilot (or LLM) tab completion
 - Miscoloring of RecursionError tracebacks
 - Case sensitive tab completion when prefix contains capital characters
 - Multiline paste fails when one line has ?
