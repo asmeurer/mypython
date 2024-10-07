@@ -124,7 +124,7 @@ class MyBuffer(Buffer):
     """
     Subclass of buffer that fixes some broken behavior of Buffer
     """
-    def __init__(self, *args, session=None, **kwargs):
+    def __init__(self, *args, session=None, ai_auto_suggest=None, **kwargs):
         super().__init__(*args, **kwargs)
         self._multiline_history_search_index = None
         self.session = session
@@ -133,7 +133,7 @@ class MyBuffer(Buffer):
 
         self.ai_suggestions = []
         self.ai_suggestion_index = 0
-        self.ai_auto_suggest = kwargs.get('ai_auto_suggest', OllamaSuggester())
+        self.ai_auto_suggest = ai_auto_suggest
         self._async_ai_suggester = self._create_ai_auto_suggest_coroutine()
 
 
@@ -713,7 +713,7 @@ def post_command(*, command, res, _globals, _locals, prompt):
 class Session(PromptSession):
     def __init__(self, *args, _globals, _locals, message=None,
         key_bindings=None, history_file=None, IN_OUT=None, builtins=None,
-        quiet=False, **kwargs):
+        quiet=False, ai_auto_suggest=None, **kwargs):
 
         if not history_file:
             history_file = default_history_filename()
@@ -775,6 +775,7 @@ class Session(PromptSession):
             IN_OUT = random.choice(emoji)
         self.IN, self.OUT = IN_OUT
 
+        self.ai_auto_suggest = ai_auto_suggest or OllamaSuggester()
         super().__init__(*args, **kwargs)
 
     def startup(self, builtins=None):
@@ -922,6 +923,7 @@ del sys
             tempfile_suffix='.py',
             accept_handler=accept,
             session=self,
+            ai_auto_suggest=self.ai_auto_suggest,
         )
         return buffer
 

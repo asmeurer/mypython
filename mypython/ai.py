@@ -186,12 +186,15 @@ class OllamaSuggester:
     """
     Ollama Completer
     """
+    def __init__(self, get_ai_completion=get_ai_completion):
+        self.get_ai_completion = get_ai_completion
+
     async def get_suggestion_async(self, buffer, document):
 
         text_before_cursor = document.text_before_cursor
         text_after_cursor = document.text_after_cursor
 
         model_name = CURRENT_MODEL
-        completion = await get_ai_completion(text_before_cursor, text_after_cursor,
+        completion = await self.get_ai_completion(text_before_cursor, text_after_cursor,
                                        model_name, context=get_context(buffer))
         return completion
