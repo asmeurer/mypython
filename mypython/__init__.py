@@ -6,6 +6,12 @@ __all__ = ['validate_text', 'PythonSyntaxValidator', 'prompt_style',
     'NoResult', 'smart_eval', 'normalize', 'execute_command',
     'run_shell', 'myhelp', 'getsource', 'Session']
 
+from .ai import (DEFAULT_MODEL, MODELS, load_model, get_ai_models,
+                 set_current_model, get_ai_completion, OllamaSuggester)
+
+__all__ += ['DEFAULT_MODEL', 'MODELS', 'load_model', 'get_ai_models',
+            'set_current_model', 'get_ai_completion', 'OllamaSuggester']
+
 from .keys import get_key_bindings, custom_key_bindings, split_prompts
 
 __all__ += ['get_key_bindings', 'custom_key_bindings', 'split_prompts']
