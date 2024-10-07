@@ -11,6 +11,7 @@ _default_globals['__spec__'] = None
 _default_globals['__package__'] = None
 _default_globals['__cached__'] = None
 _default_globals['__builtins__'] = builtins_mod
+del _default_globals['annotations']
 _default_locals = _default_globals
 
 import os
