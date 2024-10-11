@@ -116,7 +116,8 @@ MODELS = {
         "options": {
             "stop": qwen_stop,
         },
-        "model_aliases": ["qwen2.5-coder:7b-base", "qwen2.5-coder:7b"],
+        "model_aliases": ["qwen2.5-coder:7b-base", "qwen2.5-coder:7b",
+                          'qwen2.5-coder', 'qwen2.5'],
     },
 
 }
