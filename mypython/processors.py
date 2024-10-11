@@ -319,13 +319,13 @@ class AppendAIAutoSuggestion(Processor):
 
         source_to_display = transformation_input.source_to_display
         column = source_to_display(buffer.document.cursor_position_col)
-        text_before_cursor = buffer.document.text_before_cursor
+        current_line_before_cursor = buffer.document.current_line_before_cursor
         if buffer.ai_suggestions:
             suggestion = buffer.ai_suggestions[buffer.ai_suggestion_index]
 
             terminal_size = app.output.get_size().columns
             wrap_width = terminal_size - prompt_width(buffer)
-            suggestion = replace_newlines_with_spaces(text_before_cursor + suggestion, wrap_width)[column:]
+            suggestion = replace_newlines_with_spaces(current_line_before_cursor + suggestion, wrap_width)[column:]
         else:
             suggestion = ""
 
