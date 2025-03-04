@@ -429,6 +429,7 @@ if prompt_toolkit_version[0] != '3':
 # M-[ [ a g or M-[ O M is set to S-Enter in iTerm2 settings
 ANSI_SEQUENCES['\x1b[ag'] = ShiftEnter
 ANSI_SEQUENCES['\x1bOM'] = ShiftEnter
+ANSI_SEQUENCES['\n'] = ShiftEnter
 r.add_binding(ShiftEnter)(accept_line)
 
 ControlEnter = '⌅'
