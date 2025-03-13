@@ -120,6 +120,14 @@ MODELS = {
                           'qwen2.5-coder', 'qwen2.5'],
     },
 
+    "qwen2.5-coder:32b-base-q4_K_M": {
+        "prompt_template": qwen_template,
+        "options": {
+            "stop": qwen_stop,
+        },
+        "model_aliases": ["qwen2.5-coder:32b-base", "qwen2.5-coder:32b"],
+    },
+
 }
 
 CONTEXT_PREFIX = """\
