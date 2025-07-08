@@ -1053,6 +1053,7 @@ def execute_command(command, prompt, *, _globals=None, _locals=None):
     _globals = _globals or _default_globals
     _locals = _locals or _default_locals
 
+    status = True
     with Output() as o:
         try:
             command = normalize(command, _globals, _locals)
@@ -1062,12 +1063,13 @@ def execute_command(command, prompt, *, _globals=None, _locals=None):
             if not command:
                 if not DOCTEST_MODE:
                     print()
-                return
+                return status
 
             res = smart_eval(command, _globals, _locals, filename=mypython_file(prompt.prompt_number))
         except SystemExit:
             raise
         except BaseException:
+            status = False
             sys.excepthook(*sys.exc_info())
             o.set_command_status(1)
             res = NoResult
@@ -1075,49 +1077,54 @@ def execute_command(command, prompt, *, _globals=None, _locals=None):
             post_command(command=command, res=res, _globals=_globals,
                          _locals=_locals, prompt=prompt)
         except BaseException:
+            status = False
             sys.excepthook(*sys.exc_info())
             o.set_command_status(1)
 
         if not DOCTEST_MODE:
             print()
 
+    return status
 
 CMD_QUEUE = deque()
 
 def run_shell(_globals=_default_globals, _locals=_default_locals, *,
     quiet=False, cmd=None, history_file=None, _exit=False,
     IN_OUT=None):
-    if cmd:
-        if isinstance(cmd, str):
-            cmd = [cmd]
-        CMD_QUEUE.extend(cmd)
 
     prompt = Session(_globals=_globals, _locals=_locals, quiet=quiet,
         history_file=history_file, IN_OUT=IN_OUT)
 
+    if cmd:
+        if isinstance(cmd, str):
+            cmd = [cmd]
+        CMD_QUEUE.extend(cmd)
+        context = prompt.default_buffer.disable_history
+    else:
+        context = nullcontext
+
+    exitcode = 0
     while True:
         try:
             default = ''
             if CMD_QUEUE:
                 default = CMD_QUEUE.popleft()
             elif _exit:
-                break
+                return exitcode
 
-            # TODO: Should we use patch_stdout()?
-            if cmd:
-                context = prompt.default_buffer.disable_history()
-                cmd = None
-            else:
-                context = nullcontext()
-            with context:
+            with context():
                 command = prompt.prompt(default=default, accept_default=default)
         except KeyboardInterrupt:
             # TODO: Keep it in the history
             print("KeyboardInterrupt\n", file=sys.stderr)
             continue
-        except (EOFError, SystemExit):
-            break
+        except EOFError:
+            return exitcode
+        except SystemExit as e:
+            e.args[0]
         except:
             sys.excepthook(*sys.exc_info())
 
-        execute_command(command, prompt, _globals=_globals, _locals=_locals)
+        res = execute_command(command, prompt, _globals=_globals, _locals=_locals)
+        if cmd:
+            exitcode |= res

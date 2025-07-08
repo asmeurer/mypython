@@ -125,7 +125,6 @@
 - Case sensitive tab completion when prefix contains capital characters
 - Multiline paste fails when one line has ?
 - Issue pasting after a single quote
-- Make -c --exit give an exit code
 
 ## 2.0 TODOs
 

@@ -5,6 +5,7 @@ A Python REPL the way I like it.
 """
 
 import argparse
+import sys
 
 from .mypython import default_history_filename, run_shell
 from . import mypython, ai
@@ -58,4 +59,4 @@ def main():
                      history_file=args.history_file)
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
