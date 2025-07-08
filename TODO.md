@@ -101,7 +101,6 @@
 - Make doctest mode show >>> instead of ... where the normal interpreter would
 - Handle globs in %ls
 - Stop paste execution on exception
-- Can we make %history faster?
 - Syntax highlight warnings
 - Enable all deprecation warnings
 - pyflakes errors with
