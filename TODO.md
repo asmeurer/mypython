@@ -124,6 +124,7 @@
 - Case sensitive tab completion when prefix contains capital characters
 - Multiline paste fails when one line has ?
 - Issue pasting after a single quote
+- SymPy pretty printer used for ints when sympy is imported
 
 ## 2.0 TODOs
 
