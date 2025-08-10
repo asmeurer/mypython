@@ -10,7 +10,6 @@ The magic should return the source that gets run, and not execute any code
 itself.
 """
 
-import threading
 import textwrap
 import ast
 import copy
