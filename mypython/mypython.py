@@ -1099,20 +1099,22 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
         if isinstance(cmd, str):
             cmd = [cmd]
         CMD_QUEUE.extend(cmd)
-        context = prompt.default_buffer.disable_history
-    else:
-        context = nullcontext
 
     exitcode = 0
     while True:
         try:
             default = ''
+            is_cmd_command = False
             if CMD_QUEUE:
                 default = CMD_QUEUE.popleft()
+                is_cmd_command = True
             elif _exit:
                 return exitcode
 
-            with context():
+            if is_cmd_command:
+                with prompt.default_buffer.disable_history():
+                    command = prompt.prompt(default=default, accept_default=default)
+            else:
                 command = prompt.prompt(default=default, accept_default=default)
         except KeyboardInterrupt:
             # TODO: Keep it in the history
