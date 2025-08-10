@@ -75,7 +75,7 @@ def can_print_sympy(o):
         elif isinstance(o, (Basic, MatrixBase, Vector, Dyadic, NDimArray)):
             return True
         elif isinstance(o, (int, float)):
-            return True
+            return False
         return False
     except RecursionError:
         return False
