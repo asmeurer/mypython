@@ -1107,7 +1107,8 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
             is_cmd_command = False
             if CMD_QUEUE:
                 default = CMD_QUEUE.popleft()
-                is_cmd_command = True
+                is_cmd_command = cmd
+                cmd = None
             elif _exit:
                 return exitcode
 
