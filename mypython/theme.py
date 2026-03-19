@@ -71,6 +71,17 @@ class OneAMStyle(Style):
         Generic.Error:       "#ff0000", # red
     }
 
+# Style for inline highlighting of traceback code ranges (Python 3.11+ carets).
+# Options: 'underline', 'bold', 'reverse', 'background'
+TRACEBACK_HIGHLIGHT_STYLE = 'background'
+
+TRACEBACK_HIGHLIGHT_STYLES = {
+    'underline': ('\033[4m', '\033[24m'),
+    'bold': ('\033[1m', '\033[22m'),
+    'reverse': ('\033[7m', '\033[27m'),
+    'background': ('\033[48;2;80;0;0m', '\033[49m'),
+}
+
 # Uncomment this to register the style with pygments
 #
 # from pygments.styles import STYLE_MAP

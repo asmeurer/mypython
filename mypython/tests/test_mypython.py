@@ -11,8 +11,11 @@ from prompt_toolkit.document import Document
 from prompt_toolkit.validation import ValidationError
 
 from ..mypython import (_default_globals, Session, normalize, magic,
-    PythonSyntaxValidator, execute_command, getsource, smart_eval, NoResult)
+    PythonSyntaxValidator, execute_command, getsource, smart_eval, NoResult,
+    add_ansi_at_columns, MyStackSummary, MyTracebackException,
+    _apply_inline_highlights)
 from .. import mypython
+from ..theme import TRACEBACK_HIGHLIGHT_STYLES
 
 from pytest import raises, skip, fixture
 import pytest
@@ -857,3 +860,129 @@ def test_timings(check_output):
     out, err = check_output('TIMINGS\n')
     assert re.match(r"{1: \d\.\d+e-\d+, 2: 1\.?\d+, 3: nan, 4: \d\.\d+e-\d+}\n\n", out)
     assert err == ''
+
+# --- Traceback inline highlighting tests ---
+
+def test_add_ansi_at_columns():
+    # Plain text
+    assert add_ansi_at_columns('    hello world', 4, 9, '<S>', '<E>') == '    <S>hello<E> world'
+
+    # With existing ANSI codes
+    line = '\033[31m    hello world\033[0m'
+    result = add_ansi_at_columns(line, 4, 9, '<S>', '<E>')
+    assert '<S>' in result
+    assert '<E>' in result
+    # Visible text should still be the same length
+    visible = re.sub(r'\033\[[^m]*m', '', result).replace('<S>', '').replace('<E>', '')
+    assert visible == '    hello world'
+
+    # ANSI code in the middle of the highlight range
+    line = '\033[31mhel\033[32mlo\033[0m world'
+    result = add_ansi_at_columns(line, 0, 5, '<S>', '<E>')
+    assert result == '\033[31m<S>hel\033[32mlo<E>\033[0m world'
+
+    # Highlight at the very end of the line
+    assert add_ansi_at_columns('abc', 2, 3, '<S>', '<E>') == 'ab<S>c<E>'
+
+def test_apply_inline_highlights():
+    # Basic case
+    ansi = '    x = 1/0'
+    ranges = [('x = 1/0', 4, 7)]
+    result = _apply_inline_highlights(ansi, ranges)
+    start, end = TRACEBACK_HIGHLIGHT_STYLES['background']
+    assert start in result
+    assert end in result
+
+    # No ranges = no change
+    assert _apply_inline_highlights(ansi, []) == ansi
+
+    # Multiple lines, only matching line gets highlighted
+    ansi = 'Traceback:\n  File "test.py"\n    x = 1/0\nError'
+    ranges = [('x = 1/0', 4, 7)]
+    result = _apply_inline_highlights(ansi, ranges)
+    lines = result.split('\n')
+    assert start not in lines[0]
+    assert start not in lines[1]
+    assert start in lines[2]
+    assert start not in lines[3]
+
+    # Duplicate code lines: each match consumes one range
+    ansi = '    1/0\n    1/0'
+    ranges = [('1/0', 0, 3), ('1/0', 0, 3)]
+    result = _apply_inline_highlights(ansi, ranges)
+    assert result.count(start) == 2
+
+@pytest.mark.skipif(sys.version_info < (3, 11),
+    reason="colno/end_colno requires Python 3.11+")
+def test_my_stack_summary_highlight_ranges():
+    import tempfile, os
+
+    tf = tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False)
+    tf.write('x = 1/0\n')
+    tf.close()
+    try:
+        exec(compile(open(tf.name).read(), tf.name, 'exec'))
+    except:
+        tbexc = MyTracebackException(*sys.exc_info(), remove_mypython=False)
+        tb_str = ''.join(tbexc.format(chain=True))
+
+        # Caret line should be removed
+        assert '~^~' not in tb_str
+        assert 'x = 1/0' in tb_str
+
+        # Highlight range should be recorded for the error line
+        ranges = tbexc.collect_all_highlight_ranges()
+        error_ranges = [(t, s, e) for t, s, e in ranges if t == 'x = 1/0']
+        assert len(error_ranges) == 1
+        text, start, end = error_ranges[0]
+        assert start == 4
+        assert end == 7
+    finally:
+        os.unlink(tf.name)
+
+@pytest.mark.skipif(sys.version_info < (3, 11),
+    reason="colno/end_colno requires Python 3.11+")
+def test_my_stack_summary_chained_exceptions():
+    import tempfile, os
+
+    tf = tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False)
+    tf.write('try:\n    1/0\nexcept:\n    raise ValueError("bad")\n')
+    tf.close()
+    try:
+        exec(compile(open(tf.name).read(), tf.name, 'exec'))
+    except:
+        tbexc = MyTracebackException(*sys.exc_info(), remove_mypython=False)
+        tb_str = ''.join(tbexc.format(chain=True))
+
+        # Should have ranges from both the cause and the raising frame
+        ranges = tbexc.collect_all_highlight_ranges()
+        texts = [r[0] for r in ranges]
+        assert 'raise ValueError("bad")' in texts
+        assert '1/0' in texts
+    finally:
+        os.unlink(tf.name)
+
+@pytest.mark.skipif(sys.version_info < (3, 11),
+    reason="SyntaxError offset requires Python 3.11+")
+def test_syntax_error_highlight_ranges():
+    try:
+        compile('x = 1 +\n', '<test>', 'exec')
+    except SyntaxError:
+        tbexc = MyTracebackException(*sys.exc_info(), remove_mypython=False)
+        tb_str = ''.join(tbexc.format(chain=True))
+
+        # Caret line should be removed
+        assert '    ^' not in tb_str
+        assert 'x = 1 +' in tb_str
+
+        ranges = tbexc.collect_all_highlight_ranges()
+        syntax_ranges = [(t, s, e) for t, s, e in ranges if t == 'x = 1 +']
+        assert len(syntax_ranges) == 1
+        text, start, end = syntax_ranges[0]
+        assert start == 7
+        assert end == 8
+
+def test_traceback_no_carets(check_output):
+    out, err = check_output('1/0\n')
+    assert '~^~' not in err
+    assert 'ZeroDivisionError' in err

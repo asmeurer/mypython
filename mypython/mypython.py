@@ -85,7 +85,8 @@ except ImportError:
 from .multiline import document_is_multiline_python
 from .completion import PythonCompleter
 from .ai import OllamaSuggester
-from .theme import OneAMStyle, MyPython3Lexer, emoji
+from .theme import (OneAMStyle, MyPython3Lexer, emoji,
+    TRACEBACK_HIGHLIGHT_STYLE, TRACEBACK_HIGHLIGHT_STYLES)
 from .keys import get_key_bindings, LEADING_WHITESPACE
 from .processors import (MyHighlightMatchingBracketProcessor,
                          HighlightPyflakesErrorsProcessor,
@@ -972,13 +973,113 @@ del sys
         new_layout = HSplit(layout.container.children + [bottom_toolbar])
         return Layout(new_layout)
 
+def add_ansi_at_columns(ansi_line, start_col, end_col, start_code, end_code):
+    """Insert ANSI escape codes at visible-column positions in an ANSI-formatted line.
+
+    Walks the line character by character, tracking visible column position
+    (skipping ANSI escape sequences), and inserts start_code before start_col
+    and end_code after end_col.
+    """
+    result = []
+    visible_col = 0
+    i = 0
+    started = False
+    ended = False
+
+    while i < len(ansi_line):
+        # Check for ANSI escape sequence
+        if ansi_line[i] == '\033' and i + 1 < len(ansi_line) and ansi_line[i + 1] == '[':
+            # Find the end of the escape sequence
+            j = i + 2
+            while j < len(ansi_line) and ansi_line[j] != 'm':
+                j += 1
+            j += 1  # include the 'm'
+            result.append(ansi_line[i:j])
+            i = j
+            continue
+
+        # Regular visible character
+        if not started and visible_col == start_col:
+            result.append(start_code)
+            started = True
+
+        result.append(ansi_line[i])
+        visible_col += 1
+
+        if started and not ended and visible_col == end_col:
+            result.append(end_code)
+            ended = True
+
+        i += 1
+
+    return ''.join(result)
+
+class MyStackSummary(traceback.StackSummary):
+    def __init__(self):
+        super().__init__()
+        # List of (stripped_line_text, start_visible_col, end_visible_col)
+        self.highlight_ranges = []
+
+    def format_frame_summary(self, frame_summary):
+        """Format a frame summary without caret lines, recording highlight ranges instead."""
+        row = []
+        row.append('  File "{}", line {}, in {}\n'.format(
+            frame_summary.filename, frame_summary.lineno, frame_summary.name))
+        if frame_summary.line:
+            stripped_line = frame_summary.line.strip()
+            row.append('    {}\n'.format(stripped_line))
+
+            # Compute highlight range from colno/end_colno (Python 3.11+)
+            if (
+                sys.version_info >= (3, 11)
+                and frame_summary.colno is not None
+                and frame_summary.end_colno is not None
+            ):
+                line = frame_summary._original_line
+                orig_line_len = len(line)
+                frame_line_len = len(frame_summary.line.lstrip())
+                stripped_characters = orig_line_len - frame_line_len
+
+                start_offset = traceback._byte_offset_to_character_offset(
+                    line, frame_summary.colno)
+                end_offset = traceback._byte_offset_to_character_offset(
+                    line, frame_summary.end_colno)
+
+                if frame_summary.lineno != frame_summary.end_lineno:
+                    end_offset = len(line.rstrip())
+
+                dp_start_offset = traceback._display_width(line, start_offset) + 1
+                dp_end_offset = traceback._display_width(line, end_offset) + 1
+
+                # Record the highlight range (0-based visible columns within the stripped line)
+                highlight_start = dp_start_offset - stripped_characters
+                highlight_end = dp_end_offset - stripped_characters
+                if highlight_start >= 0 and highlight_end > highlight_start:
+                    self.highlight_ranges.append((stripped_line, highlight_start, highlight_end))
+
+        if frame_summary.locals:
+            for name, value in sorted(frame_summary.locals.items()):
+                row.append('    {name} = {value}\n'.format(name=name, value=value))
+
+        return ''.join(row)
+
+def _convert_chained_stacks(exc):
+    """Walk the exception chain and convert all stacks to MyStackSummary."""
+    for attr in ('__cause__', '__context__'):
+        chained = getattr(exc, attr, None)
+        if chained is not None and not isinstance(chained.stack, MyStackSummary):
+            my_stack = MyStackSummary()
+            my_stack.extend(chained.stack)
+            chained.stack = my_stack
+            _convert_chained_stacks(chained)
+
 class MyTracebackException(traceback.TracebackException):
     def __init__(self, exc_type, exc_value, exc_traceback, *,
         remove_mypython=True, **kwargs):
 
         super().__init__(exc_type, exc_value, exc_traceback, **kwargs)
 
-        new_stack = traceback.StackSummary()
+        new_stack = MyStackSummary()
         mypython_error = None
         for frame in self.stack[:]:
             if frame.filename.startswith(mypython_dir):
@@ -1001,8 +1102,71 @@ class MyTracebackException(traceback.TracebackException):
 
         if remove_mypython and not mypython_error:
             self.stack = new_stack
+        else:
+            # Still convert to MyStackSummary for highlight support
+            my_stack = MyStackSummary()
+            my_stack.extend(self.stack)
+            self.stack = my_stack
 
         self.mypython_error = mypython_error
+
+        # Also convert stacks on chained exceptions
+        _convert_chained_stacks(self)
+
+        # Collect all syntax error highlight ranges
+        self.syntax_highlight_ranges = []
+
+    def _format_syntax_error(self, stype):
+        """Format SyntaxError without caret lines, recording highlight ranges."""
+        filename_suffix = ''
+        if self.lineno is not None:
+            yield '  File "{}", line {}\n'.format(
+                self.filename or "<string>", self.lineno)
+        elif self.filename is not None:
+            filename_suffix = ' ({})'.format(self.filename)
+
+        text = self.text
+        if text is not None:
+            rtext = text.rstrip('\n')
+            ltext = rtext.lstrip(' \n\f')
+            spaces = len(rtext) - len(ltext)
+            yield '    {}\n'.format(ltext)
+
+            if self.offset is not None:
+                offset = self.offset
+                end_offset = self.end_offset if self.end_offset not in {None, 0} else offset
+                if offset == end_offset or end_offset == -1:
+                    end_offset = offset + 1
+
+                colno = offset - 1 - spaces
+                end_colno = end_offset - 1 - spaces
+                if colno >= 0:
+                    self.syntax_highlight_ranges.append((ltext, colno, end_colno))
+
+        msg = self.msg or "<no detail available>"
+        yield "{}: {}{}\n".format(stype, msg, filename_suffix)
+
+    def collect_all_highlight_ranges(self):
+        """Collect all highlight ranges from this exception and its chain."""
+        ranges = []
+        exc = self
+        seen = set()
+        while exc is not None:
+            if id(exc) in seen:
+                break
+            seen.add(id(exc))
+            if isinstance(exc.stack, MyStackSummary):
+                ranges.extend(exc.stack.highlight_ranges)
+            if hasattr(exc, 'syntax_highlight_ranges'):
+                ranges.extend(exc.syntax_highlight_ranges)
+            # Walk the chain
+            if exc.__cause__ is not None:
+                exc = exc.__cause__
+            elif exc.__context__ is not None and not exc.__suppress_context__:
+                exc = exc.__context__
+            else:
+                break
+        return ranges
 
 def keyboard_interrupt_handler(signum, frame):
     # Clear the command queue on keyboard interrupt. This is done as a signal
@@ -1016,15 +1180,72 @@ def setup_keyboard_interrupt_handler():
 
     signal.signal(signal.SIGINT, keyboard_interrupt_handler)
 
+def _apply_inline_highlights(ansi_output, highlight_ranges):
+    """Apply inline ANSI highlighting to code lines that have highlight ranges.
+
+    highlight_ranges is a list of (stripped_line_text, start_col, end_col) tuples.
+    For each line in ansi_output, if its visible text matches a highlight range's
+    stripped_line_text (with leading 4-space indent), apply the ANSI formatting.
+    """
+    if not highlight_ranges:
+        return ansi_output
+
+    style_codes = TRACEBACK_HIGHLIGHT_STYLES.get(TRACEBACK_HIGHLIGHT_STYLE, TRACEBACK_HIGHLIGHT_STYLES['background'])
+    start_code, end_code = style_codes
+
+    # Build a dict mapping stripped_line_text -> list of (start_col, end_col)
+    # Use a list because the same line text could appear multiple times
+    ranges_by_text = {}
+    for text, start, end in highlight_ranges:
+        ranges_by_text.setdefault(text, []).append((start, end))
+
+    lines = ansi_output.split('\n')
+    result = []
+    for line in lines:
+        # Extract visible text from ANSI line
+        visible = ''
+        i = 0
+        while i < len(line):
+            if line[i] == '\033' and i + 1 < len(line) and line[i + 1] == '[':
+                j = i + 2
+                while j < len(line) and line[j] != 'm':
+                    j += 1
+                i = j + 1
+                continue
+            visible += line[i]
+            i += 1
+
+        # Check if this line matches any highlight range
+        # Code lines in tracebacks are indented with 4 spaces
+        if visible.startswith('    '):
+            stripped_visible = visible[4:]
+            # Also strip trailing whitespace for matching
+            stripped_visible_rstripped = stripped_visible.rstrip()
+            if stripped_visible_rstripped in ranges_by_text and ranges_by_text[stripped_visible_rstripped]:
+                start_col, end_col = ranges_by_text[stripped_visible_rstripped].pop(0)
+                if not ranges_by_text[stripped_visible_rstripped]:
+                    del ranges_by_text[stripped_visible_rstripped]
+                # Offset by 4 for the indentation
+                line = add_ansi_at_columns(line, start_col + 4, end_col + 4, start_code, end_code)
+
+        result.append(line)
+
+    return '\n'.join(result)
+
 def mypython_excepthook(etype, value, tb):
     try:
         tbexception = MyTracebackException(type(value), value, tb, limit=None,
             remove_mypython=not DEBUG)
 
         tb_str = "".join(list(tbexception.format(chain=True)))
-        print(highlight(tb_str, Python3TracebackLexer(),
-            TerminalTrueColorFormatter(style=OneAMStyle)),
-            file=sys.stderr, end='')
+        ansi_output = highlight(tb_str, Python3TracebackLexer(),
+            TerminalTrueColorFormatter(style=OneAMStyle))
+
+        # Apply inline highlighting for caret ranges
+        highlight_ranges = tbexception.collect_all_highlight_ranges()
+        ansi_output = _apply_inline_highlights(ansi_output, highlight_ranges)
+
+        print(ansi_output, file=sys.stderr, end='')
         if tbexception.mypython_error:
             print_formatted_text(MyPygmentsTokens([(Token.Newline, '\n'), (Token.InternalError,
                 "!!!!!! ERROR from mypython !!!!!!"), (Token.Newline, '\n')]),
