@@ -974,11 +974,10 @@ del sys
         return Layout(new_layout)
 
 def add_ansi_at_columns(ansi_line, start_col, end_col, start_code, end_code):
-    """Insert ANSI escape codes at visible-column positions in an ANSI-formatted line.
+    """Insert ANSI escape codes at visible-character positions in an ANSI line.
 
-    Walks the line character by character, tracking visible column position
-    (skipping ANSI escape sequences), and inserts start_code before start_col
-    and end_code after end_col.
+    start_col and end_col are 0-based offsets into the rendered source text
+    after ANSI escape sequences are stripped.
     """
     result = []
     visible_col = 0
@@ -1017,8 +1016,12 @@ def add_ansi_at_columns(ansi_line, start_col, end_col, start_code, end_code):
 class MyStackSummary(traceback.StackSummary):
     def __init__(self):
         super().__init__()
-        # List of (stripped_line_text, start_visible_col, end_visible_col)
+        # List of (stripped_line_text, start_char_offset, end_char_offset)
         self.highlight_ranges = []
+
+    def format(self):
+        self.highlight_ranges = []
+        return super().format()
 
     def format_frame_summary(self, frame_summary):
         """Format a frame summary without caret lines, recording highlight ranges instead."""
@@ -1036,9 +1039,7 @@ class MyStackSummary(traceback.StackSummary):
                 and frame_summary.end_colno is not None
             ):
                 line = frame_summary._original_line
-                orig_line_len = len(line)
-                frame_line_len = len(frame_summary.line.lstrip())
-                stripped_characters = orig_line_len - frame_line_len
+                leading_whitespace = len(line) - len(line.lstrip())
 
                 start_offset = traceback._byte_offset_to_character_offset(
                     line, frame_summary.colno)
@@ -1046,14 +1047,10 @@ class MyStackSummary(traceback.StackSummary):
                     line, frame_summary.end_colno)
 
                 if frame_summary.lineno != frame_summary.end_lineno:
-                    end_offset = len(line.rstrip())
+                    end_offset = len(line.rstrip('\n'))
 
-                dp_start_offset = traceback._display_width(line, start_offset) + 1
-                dp_end_offset = traceback._display_width(line, end_offset) + 1
-
-                # Record the highlight range (0-based visible columns within the stripped line)
-                highlight_start = dp_start_offset - stripped_characters
-                highlight_end = dp_end_offset - stripped_characters
+                highlight_start = start_offset - leading_whitespace
+                highlight_end = end_offset - leading_whitespace
                 if highlight_start >= 0 and highlight_end > highlight_start:
                     self.highlight_ranges.append((stripped_line, highlight_start, highlight_end))
 
@@ -1063,61 +1060,82 @@ class MyStackSummary(traceback.StackSummary):
 
         return ''.join(row)
 
-def _convert_chained_stacks(exc):
-    """Walk the exception chain and convert all stacks to MyStackSummary."""
-    for attr in ('__cause__', '__context__'):
-        chained = getattr(exc, attr, None)
-        if chained is not None and not isinstance(chained.stack, MyStackSummary):
+def _convert_traceback_stack(exc, remove_mypython):
+    """Convert a traceback stack to MyStackSummary and optionally filter mypython frames."""
+    new_stack = MyStackSummary()
+    mypython_error = None
+    frame = None
+    for frame in exc.stack[:]:
+        if frame.filename.startswith(mypython_dir):
+            if mypython_error is False:
+                mypython_error = True
+        elif frame.filename.startswith('<mypython'):
+            if DOCTEST_MODE:
+                filename, lineno, name, line = frame
+                new_stack.append(traceback.FrameSummary("<stdin>", lineno, name))
+            else:
+                new_stack.append(frame)
+        else:
+            new_stack.append(frame)
+            if not mypython_error:
+                mypython_error = False
+
+    if (
+        frame is not None
+        and mypython_error is None
+        and frame.filename.startswith(mypython_dir)
+        and frame.name != 'keyboard_interrupt_handler'
+    ):
+        mypython_error = True
+
+    if remove_mypython and not mypython_error:
+        exc.stack = new_stack
+    else:
+        if isinstance(exc.stack, MyStackSummary):
+            exc.stack.highlight_ranges = []
+        else:
             my_stack = MyStackSummary()
-            my_stack.extend(chained.stack)
-            chained.stack = my_stack
-            _convert_chained_stacks(chained)
+            my_stack.extend(exc.stack)
+            exc.stack = my_stack
+
+    exc.mypython_error = mypython_error
+    exc.syntax_highlight_ranges = []
+
+def _rewrap_traceback_exceptions(exc, remove_mypython, seen=None):
+    """Convert a TracebackException graph to MyTracebackException/MyStackSummary."""
+    if exc is None:
+        return
+
+    if seen is None:
+        seen = set()
+
+    exc_id = id(exc)
+    if exc_id in seen:
+        return
+    seen.add(exc_id)
+
+    if not isinstance(exc, MyTracebackException):
+        exc.__class__ = MyTracebackException
+
+    _convert_traceback_stack(exc, remove_mypython)
+
+    for attr in ('__cause__', '__context__'):
+        _rewrap_traceback_exceptions(getattr(exc, attr, None), remove_mypython, seen)
+
+    if exc.exceptions is not None:
+        for child in exc.exceptions:
+            _rewrap_traceback_exceptions(child, remove_mypython, seen)
 
 class MyTracebackException(traceback.TracebackException):
     def __init__(self, exc_type, exc_value, exc_traceback, *,
         remove_mypython=True, **kwargs):
 
         super().__init__(exc_type, exc_value, exc_traceback, **kwargs)
-
-        new_stack = MyStackSummary()
-        mypython_error = None
-        for frame in self.stack[:]:
-            if frame.filename.startswith(mypython_dir):
-                if mypython_error is False:
-                    mypython_error = True
-            elif frame.filename.startswith('<mypython'):
-                if DOCTEST_MODE:
-                    filename, lineno, name, line = frame
-                    new_stack.append(traceback.FrameSummary("<stdin>", lineno, name))
-                else:
-                    new_stack.append(frame)
-            else:
-                new_stack.append(frame)
-                if not mypython_error:
-                    mypython_error = False
-
-        if (mypython_error is None and frame.filename.startswith(mypython_dir)
-            and frame.name != 'keyboard_interrupt_handler'):
-            mypython_error = True
-
-        if remove_mypython and not mypython_error:
-            self.stack = new_stack
-        else:
-            # Still convert to MyStackSummary for highlight support
-            my_stack = MyStackSummary()
-            my_stack.extend(self.stack)
-            self.stack = my_stack
-
-        self.mypython_error = mypython_error
-
-        # Also convert stacks on chained exceptions
-        _convert_chained_stacks(self)
-
-        # Collect all syntax error highlight ranges
-        self.syntax_highlight_ranges = []
+        _rewrap_traceback_exceptions(self, remove_mypython)
 
     def _format_syntax_error(self, stype):
         """Format SyntaxError without caret lines, recording highlight ranges."""
+        self.syntax_highlight_ranges = []
         filename_suffix = ''
         if self.lineno is not None:
             yield '  File "{}", line {}\n'.format(
@@ -1146,26 +1164,30 @@ class MyTracebackException(traceback.TracebackException):
         msg = self.msg or "<no detail available>"
         yield "{}: {}{}\n".format(stype, msg, filename_suffix)
 
-    def collect_all_highlight_ranges(self):
-        """Collect all highlight ranges from this exception and its chain."""
+    def _collect_highlight_ranges(self, ranges, chain, seen):
+        exc_id = id(self)
+        if exc_id in seen:
+            return
+        seen.add(exc_id)
+
+        if chain:
+            if self.__cause__ is not None:
+                self.__cause__._collect_highlight_ranges(ranges, chain, seen)
+            elif self.__context__ is not None and not self.__suppress_context__:
+                self.__context__._collect_highlight_ranges(ranges, chain, seen)
+
+        if isinstance(self.stack, MyStackSummary):
+            ranges.extend(self.stack.highlight_ranges)
+        ranges.extend(self.syntax_highlight_ranges)
+
+        if self.exceptions is not None:
+            for child in self.exceptions:
+                child._collect_highlight_ranges(ranges, chain, seen)
+
+    def collect_all_highlight_ranges(self, chain=True):
+        """Collect highlight ranges in the same order TracebackException.format() prints them."""
         ranges = []
-        exc = self
-        seen = set()
-        while exc is not None:
-            if id(exc) in seen:
-                break
-            seen.add(id(exc))
-            if isinstance(exc.stack, MyStackSummary):
-                ranges.extend(exc.stack.highlight_ranges)
-            if hasattr(exc, 'syntax_highlight_ranges'):
-                ranges.extend(exc.syntax_highlight_ranges)
-            # Walk the chain
-            if exc.__cause__ is not None:
-                exc = exc.__cause__
-            elif exc.__context__ is not None and not exc.__suppress_context__:
-                exc = exc.__context__
-            else:
-                break
+        self._collect_highlight_ranges(ranges, chain, set())
         return ranges
 
 def keyboard_interrupt_handler(signum, frame):

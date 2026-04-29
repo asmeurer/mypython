@@ -914,6 +914,30 @@ def test_apply_inline_highlights():
 
 @pytest.mark.skipif(sys.version_info < (3, 11),
     reason="colno/end_colno requires Python 3.11+")
+def test_my_stack_summary_highlight_ranges_wide_unicode():
+    import tempfile, os
+
+    tf = tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False)
+    tf.write('变量 = 1/0\n')
+    tf.close()
+    try:
+        exec(compile(open(tf.name).read(), tf.name, 'exec'))
+    except:
+        tbexc = MyTracebackException(*sys.exc_info(), remove_mypython=False)
+        ''.join(tbexc.format(chain=True))
+
+        ranges = tbexc.collect_all_highlight_ranges()
+        error_ranges = [(t, s, e) for t, s, e in ranges if t == '变量 = 1/0']
+        assert error_ranges == [('变量 = 1/0', 5, 8)]
+
+        start, end = TRACEBACK_HIGHLIGHT_STYLES['background']
+        result = _apply_inline_highlights('    变量 = 1/0', error_ranges)
+        assert result == f'    变量 = {start}1/0{end}'
+    finally:
+        os.unlink(tf.name)
+
+@pytest.mark.skipif(sys.version_info < (3, 11),
+    reason="colno/end_colno requires Python 3.11+")
 def test_my_stack_summary_highlight_ranges():
     import tempfile, os
 
@@ -981,6 +1005,90 @@ def test_syntax_error_highlight_ranges():
         text, start, end = syntax_ranges[0]
         assert start == 7
         assert end == 8
+
+def test_nested_syntax_error_uses_custom_formatting():
+    try:
+        try:
+            compile('x = 1 +\n', '<test>', 'exec')
+        except SyntaxError as exc:
+            raise RuntimeError("wrapped") from exc
+    except RuntimeError:
+        tbexc = MyTracebackException(*sys.exc_info(), remove_mypython=False)
+        tb_str = ''.join(tbexc.format(chain=True))
+
+        assert re.search(r'^\s*[~^]+\s*$', tb_str, re.MULTILINE) is None
+
+        ranges = tbexc.collect_all_highlight_ranges()
+        syntax_ranges = [(t, s, e) for t, s, e in ranges if t == 'x = 1 +']
+        assert syntax_ranges == [('x = 1 +', 7, 8)]
+
+@pytest.mark.skipif(sys.version_info < (3, 11),
+    reason="ExceptionGroup requires Python 3.11+")
+def test_exception_group_children_use_custom_formatting():
+    import tempfile, os
+
+    tf = tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False)
+    tf.write('def boom():\n    x = 1/0\n\n'
+             'try:\n    boom()\n'
+             'except Exception as exc:\n    raise ExceptionGroup("group", [exc]) from None\n')
+    tf.close()
+    try:
+        namespace = {}
+        exec(compile(open(tf.name).read(), tf.name, 'exec'), namespace, namespace)
+    except ExceptionGroup:
+        tbexc = MyTracebackException(*sys.exc_info(), remove_mypython=False)
+        tb_str = ''.join(tbexc.format(chain=True))
+
+        assert re.search(r'^\s*[~^]+\s*$', tb_str, re.MULTILINE) is None
+
+        ranges = tbexc.collect_all_highlight_ranges()
+        error_ranges = [(t, s, e) for t, s, e in ranges if t == 'x = 1/0']
+        assert error_ranges == [('x = 1/0', 4, 7)]
+    finally:
+        os.unlink(tf.name)
+
+@pytest.mark.skipif(sys.version_info < (3, 11),
+    reason="colno/end_colno requires Python 3.11+")
+def test_collect_all_highlight_ranges_follows_chain_format_order(monkeypatch):
+    import tempfile, os
+
+    tf = tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False)
+    tf.write(
+        'def inner():\n'
+        '    x, y = [1], []\n'
+        '    return x[0] + y[0]\n'
+        '\n'
+        'def outer():\n'
+        '    try:\n'
+        '        inner()\n'
+        '    except IndexError:\n'
+        '        x, y = [], [1]\n'
+        '        return x[0] + y[0]\n'
+        '\n'
+        'outer()\n'
+    )
+    tf.close()
+    try:
+        namespace = {}
+        exec(compile(open(tf.name).read(), tf.name, 'exec'), namespace, namespace)
+    except IndexError:
+        tbexc = MyTracebackException(*sys.exc_info(), remove_mypython=False)
+        tb_str = ''.join(tbexc.format(chain=True))
+
+        monkeypatch.setitem(
+            mypython.TRACEBACK_HIGHLIGHT_STYLES,
+            mypython.TRACEBACK_HIGHLIGHT_STYLE,
+            ('<S>', '<E>'),
+        )
+        highlighted = _apply_inline_highlights(tb_str, tbexc.collect_all_highlight_ranges())
+        matching_lines = [line for line in highlighted.splitlines()
+                          if 'return' in line and 'x[0]' in line and 'y[0]' in line]
+        assert matching_lines == [
+            '    return x[0] + <S>y[0]<E>',
+            '    return <S>x[0]<E> + y[0]',
+        ]
+    finally:
+        os.unlink(tf.name)
 
 def test_traceback_no_carets(check_output):
     out, err = check_output('1/0\n')
