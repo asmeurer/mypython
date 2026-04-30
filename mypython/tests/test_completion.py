@@ -6,7 +6,7 @@ from prompt_toolkit.input.defaults import create_pipe_input
 
 from ..dircompletion import DirCompleter
 
-from .test_mypython import _run_session_with_text, _build_test_session
+from .test_mypython import _run_session_with_text, _build_test_session, _terminal_input
 
 import flaky
 retry = flaky.flaky(max_runs=5)
@@ -32,7 +32,7 @@ def _input_with_tabs(text, _input, sleep_time=0.8):
     for t in UP_TO_TAB.findall(text):
         if not t:
             continue
-        _input.send_text(t)
+        _input.send_text(_terminal_input(t))
         time.sleep(sleep_time)
 
 def _test_completion(text, min_time=0.1, max_time=2, runs=3):

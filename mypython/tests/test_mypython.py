@@ -35,12 +35,21 @@ class _TestOutput(DummyOutput):
     def write_raw(self, data):
         self.written_raw_data += data
 
+def _terminal_input(text):
+    """
+    Convert readable test input to terminal input.
+
+    In the real key map, raw LF is Shift-Enter. Tests write commands with
+    ordinary newlines for readability, so send CR to exercise Enter.
+    """
+    return text.replace('\n', '\r')
+
 def _run_session_with_text(session, text, close=False):
     if text:
         assert text.endswith('\n')
         if '\n' in text[:-1]:
             assert text.endswith('\n\n')
-        session.input.send_text(text)
+        session.input.send_text(_terminal_input(text))
 
     try:
         # with session._auto_refresh_context():
@@ -90,8 +99,9 @@ def _get_check_output(session=None, _input=None):
         IMPORTANT: Only things printed directly to stdout/stderr are tested.
         Things printed via prompt_toolkit (e.g., print_tokens) are not caught.
 
-        For now, the input must be a single command. Use \x1b\n (M-Enter) to keep
-        multiple lines in the same input.
+        For now, the input must be a single command. Use \x1b\n to keep
+        multiple lines in the same input; _run_session_with_text() translates
+        it to the terminal's M-Enter sequence.
 
         """
         mypython.doctest_mode(doctest_mode)
