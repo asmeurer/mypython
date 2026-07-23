@@ -371,6 +371,18 @@ del _run_line_profiler, _line_profile_result
 """
     return res
 
+def memory_profiler_magic(rest):
+    """
+    Profile the code with memory_profiler
+    """
+    res = f"""
+from mypython.memory_profiler import run_memory_profiler as _run_memory_profiler
+_memory_profile_result = _run_memory_profiler({rest!r}, globals(), locals())
+print(_memory_profile_result)
+del _run_memory_profiler, _memory_profile_result
+"""
+    return res
+
 @nonpython
 def ls_magic(rest):
     """

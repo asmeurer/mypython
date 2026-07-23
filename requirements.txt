@@ -3,6 +3,7 @@ jedi
 exceptiongroup
 line_profiler
 matplotlib
+memory_profiler
 # Warning: ollama-python is the conda package, but the pip package is ollama
 # (ollama-python is also a pip package but it is not the correct one)
 ollama-python

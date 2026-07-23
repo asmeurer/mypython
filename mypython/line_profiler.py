@@ -34,6 +34,7 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+import os
 from io import StringIO
 
 def run_line_profiler(code, globals, locals, *, funcs=(), modules=(),
@@ -57,9 +58,12 @@ def run_line_profiler(code, globals, locals, *, funcs=(), modules=(),
             old_profile = None
         builtins.__dict__["profile"] = profile
 
+    from mypython.memory_profiler import register_source
+    compiled, filename = register_source(code, 'line-profiler')
+
     try:
         try:
-            profile.runctx(code, globals, locals)
+            profile.runctx(compiled, globals, locals)
             message = ""
         except SystemExit:
             message = """*** SystemExit exception caught in code being profiled."""
@@ -67,14 +71,18 @@ def run_line_profiler(code, globals, locals, *, funcs=(), modules=(),
             message = (
                 "*** KeyboardInterrupt exception caught in code being " "profiled."
             )
+
+        # Trap text output.
+        stdout_trap = StringIO()
+        profile.print_stats(stdout_trap, stripzeros=stripzeros)
+        output = stdout_trap.getvalue()
+        output = output.rstrip()
     finally:
         if add_to_builtins and had_profile:
             builtins.__dict__["profile"] = old_profile
+        os.unlink(filename)
 
-    # Trap text output.
-    stdout_trap = StringIO()
-    profile.print_stats(stdout_trap, stripzeros=stripzeros)
-    output = stdout_trap.getvalue()
-    output = output.rstrip()
+    if message:
+        output = message + "\n" + output
 
     return output
