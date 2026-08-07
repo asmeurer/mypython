@@ -34,6 +34,7 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+import builtins
 import os
 from io import StringIO
 
@@ -42,26 +43,24 @@ def run_line_profiler(code, globals, locals, *, funcs=(), modules=(),
     from line_profiler import LineProfiler
 
     profile = LineProfiler(*funcs)
-
-    for mod in modules:
-        profile.add_module(mod)
-
-    if add_to_builtins:
-        # Add the profiler to the builtins for @profile.
-        import builtins
-
-        if "profile" in builtins.__dict__:
-            had_profile = True
-            old_profile = builtins.__dict__["profile"]
-        else:
-            had_profile = False
-            old_profile = None
-        builtins.__dict__["profile"] = profile
-
-    from mypython.memory_profiler import register_source
-    compiled, filename = register_source(code, 'line-profiler')
+    filename = None
+    had_profile = False
+    old_profile = None
 
     try:
+        for mod in modules:
+            profile.add_module(mod)
+
+        if add_to_builtins:
+            # Add the profiler to the builtins for @profile.
+            if "profile" in builtins.__dict__:
+                had_profile = True
+                old_profile = builtins.__dict__["profile"]
+            builtins.__dict__["profile"] = profile
+
+        from mypython.memory_profiler import register_source
+        compiled, filename = register_source(code, 'line-profiler')
+
         try:
             profile.runctx(compiled, globals, locals)
             message = ""
@@ -78,9 +77,13 @@ def run_line_profiler(code, globals, locals, *, funcs=(), modules=(),
         output = stdout_trap.getvalue()
         output = output.rstrip()
     finally:
-        if add_to_builtins and had_profile:
-            builtins.__dict__["profile"] = old_profile
-        os.unlink(filename)
+        if add_to_builtins:
+            if had_profile:
+                builtins.__dict__["profile"] = old_profile
+            else:
+                builtins.__dict__.pop("profile", None)
+        if filename is not None:
+            os.unlink(filename)
 
     if message:
         output = message + "\n" + output

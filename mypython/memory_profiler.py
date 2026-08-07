@@ -34,6 +34,7 @@ import inspect
 import linecache
 import os
 import tempfile
+import builtins
 from io import StringIO
 
 def register_source(code, prefix):
@@ -54,41 +55,45 @@ def register_source(code, prefix):
         f.write(code)
     linecache.cache[filename] = (len(code), None, code.splitlines(True),
                                  filename)
-    return compile(code, filename, 'exec'), filename
+    try:
+        compiled = compile(code, filename, 'exec')
+    except Exception:
+        linecache.cache.pop(filename, None)
+        os.unlink(filename)
+        raise
+    return compiled, filename
 
 def run_memory_profiler(code, globals, locals, *, funcs=(), modules=(),
                         add_to_builtins=True, precision=1):
     from memory_profiler import LineProfiler, show_results
 
     profile = LineProfiler()
-
-    for func in funcs:
-        profile.add_function(func)
-
-    for mod in modules:
-        for _, member in inspect.getmembers(mod, inspect.isfunction):
-            profile.add_function(member)
-
-    if add_to_builtins:
-        # Add the profiler to the builtins for @profile.
-        import builtins
-
-        if "profile" in builtins.__dict__:
-            had_profile = True
-            old_profile = builtins.__dict__["profile"]
-        else:
-            had_profile = False
-            old_profile = None
-        builtins.__dict__["profile"] = profile
-
-    compiled, filename = register_source(code, 'memory-profiler')
-
-    # Profile the code itself, including any functions defined in it
-    # (code_map.add recursively adds nested code objects), so that @profile
-    # is not required.
-    profile.code_map.add(compiled)
+    filename = None
+    had_profile = False
+    old_profile = None
 
     try:
+        for func in funcs:
+            profile.add_function(func)
+
+        for mod in modules:
+            for _, member in inspect.getmembers(mod, inspect.isfunction):
+                profile.add_function(member)
+
+        if add_to_builtins:
+            # Add the profiler to the builtins for @profile.
+            if "profile" in builtins.__dict__:
+                had_profile = True
+                old_profile = builtins.__dict__["profile"]
+            builtins.__dict__["profile"] = profile
+
+        compiled, filename = register_source(code, 'memory-profiler')
+
+        # Profile the code itself, including any functions defined in it
+        # (code_map.add recursively adds nested code objects), so that @profile
+        # is not required.
+        profile.code_map.add(compiled)
+
         try:
             profile.runctx(compiled, globals, locals)
             message = ""
@@ -105,9 +110,13 @@ def run_memory_profiler(code, globals, locals, *, funcs=(), modules=(),
         output = stdout_trap.getvalue()
         output = output.rstrip()
     finally:
-        if add_to_builtins and had_profile:
-            builtins.__dict__["profile"] = old_profile
-        os.unlink(filename)
+        if add_to_builtins:
+            if had_profile:
+                builtins.__dict__["profile"] = old_profile
+            else:
+                builtins.__dict__.pop("profile", None)
+        if filename is not None:
+            os.unlink(filename)
 
     if message:
         output = message + "\n" + output
