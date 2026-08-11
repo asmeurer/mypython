@@ -500,6 +500,18 @@ def test_syntax_validator():
     doesntvalidate('%timeit  a b')
     doesntvalidate('%timeit  a b?')
 
+def test_syntax_validator_no_syntaxwarning():
+    # Compiling "0.is" emits "SyntaxWarning: invalid decimal literal" in
+    # addition to raising SyntaxError. The warning should be suppressed, since
+    # otherwise it would be printed into the prompt as you type.
+    import warnings
+    validator = PythonSyntaxValidator()
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter('always')
+        text = '0.is'
+        raises(ValidationError, lambda: validator.validate(Document(text, len(text))))
+    assert caught == []
+
 def test_getsource():
     with create_pipe_input() as _input:
         session = _build_test_session(_input)

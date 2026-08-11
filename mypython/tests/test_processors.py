@@ -357,6 +357,19 @@ def test(a, a):
         assert w[2] == "duplicate argument 'a' in function definition"
         assert isinstance(w[3], DuplicateArgument)
 
+def test_get_pyflakes_warnings_no_syntaxwarning():
+    # Compiling "0.is" emits "SyntaxWarning: invalid decimal literal" in
+    # addition to raising SyntaxError. The warning should be suppressed, since
+    # otherwise it would be printed into the prompt as you type.
+    import warnings as warnings_module
+    with warnings_module.catch_warnings(record=True) as caught:
+        warnings_module.simplefilter('always')
+        warnings = get_pyflakes_warnings("0.is")
+    assert warnings != []
+    for w in warnings:
+        assert isinstance(w[3], SyntaxErrorMessage)
+    assert caught == []
+
 def test_get_pyflakes_warnings_skip():
     warnings = get_pyflakes_warnings("import stuff")
     assert warnings == []

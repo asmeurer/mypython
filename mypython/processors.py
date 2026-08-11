@@ -44,6 +44,7 @@ from .tokenize import matching_parens, indentation, dedent
 from .magic import MAGICS, NON_PYTHON_MAGICS
 
 import ast
+import warnings
 from collections import namedtuple
 from functools import lru_cache
 
@@ -199,7 +200,12 @@ def get_pyflakes_warnings(code, defined_names=frozenset(),
 
     def _get_warnings(code, defined_names):
         try:
-            tree = ast.parse(code)
+            # Suppress warnings from parsing speculative text, like
+            # "SyntaxWarning: invalid decimal literal" from "0.is", which
+            # would otherwise be printed into the prompt as you type.
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')
+                tree = ast.parse(code)
         except SyntaxError as e:
             msg = e.args[0]
             col = max(e.offset - 1, 0)

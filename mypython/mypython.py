@@ -296,7 +296,12 @@ def validate_text(text):
             magic, text = text.split(' ', 1)
             text = text.lstrip()
 
-    compile(text, "<None>", 'exec')
+    # Suppress warnings from compiling speculative text, like
+    # "SyntaxWarning: invalid decimal literal" from "0.is", which would
+    # otherwise be printed into the prompt as you type.
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        compile(text, "<None>", 'exec')
 
 class PythonSyntaxValidator(Validator):
     def validate(self, document):
