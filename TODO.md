@@ -124,6 +124,7 @@
 - Case sensitive tab completion when prefix contains capital characters
 - Multiline paste fails when one line has ?
 - Issue pasting after a single quote
+- `0.is` prints warnings into the prompt
 
 ## 2.0 TODOs
 
