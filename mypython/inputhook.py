@@ -50,7 +50,6 @@ if sys.platform == 'darwin':
 
     import ctypes
     import ctypes.util
-    from threading import Event
 
     objc = ctypes.cdll.LoadLibrary(ctypes.util.find_library('objc'))
 
@@ -59,6 +58,10 @@ if sys.platform == 'darwin':
     objc.objc_getClass.restype = void_p
     objc.sel_registerName.restype = void_p
     objc.objc_msgSend.restype = void_p
+    # objc_msgSend is a variadic C function, so its argtypes must be set to
+    # match each call's actual arguments right before the call. This matters
+    # on arm64 (Apple Silicon), where variadic and fixed arguments use
+    # different registers.
     objc.objc_msgSend.argtypes = [void_p, void_p]
 
     msg = objc.objc_msgSend
@@ -84,7 +87,7 @@ if sys.platform == 'darwin':
 
     CFFileDescriptorCreate = CoreFoundation.CFFileDescriptorCreate
     CFFileDescriptorCreate.restype = void_p
-    CFFileDescriptorCreate.argtypes = [void_p, ctypes.c_int, ctypes.c_bool, void_p]
+    CFFileDescriptorCreate.argtypes = [void_p, ctypes.c_int, ctypes.c_bool, void_p, void_p]
 
     CFFileDescriptorGetNativeDescriptor = CoreFoundation.CFFileDescriptorGetNativeDescriptor
     CFFileDescriptorGetNativeDescriptor.restype = ctypes.c_int
@@ -120,12 +123,27 @@ if sys.platform == 'darwin':
 
     def _NSApp():
         """Return the global NSApplication instance (NSApp)"""
+        objc.objc_msgSend.argtypes = [void_p, void_p]
         return msg(C('NSApplication'), n('sharedApplication'))
 
 
     def _wake(NSApp):
         """Wake the Application"""
-        event = msg(C('NSEvent'),
+        objc.objc_msgSend.argtypes = [
+            void_p,
+            void_p,
+            void_p,
+            void_p,
+            void_p,
+            void_p,
+            void_p,
+            void_p,
+            void_p,
+            void_p,
+            void_p,
+        ]
+        event = msg(
+            C('NSEvent'),
             n('otherEventWithType:location:modifierFlags:'
               'timestamp:windowNumber:context:subtype:data1:data2:'),
             15, # Type
@@ -138,17 +156,23 @@ if sys.platform == 'darwin':
             0, # data1
             0, # data2
         )
+        objc.objc_msgSend.argtypes = [void_p, void_p, void_p, void_p]
         msg(NSApp, n('postEvent:atStart:'), void_p(event), True)
 
 
-    _triggered = Event()
+    # Whether _input_callback has fired for the current inputhook call. The
+    # callback runs on the main thread inside NSApp.run(), so a plain bool is
+    # safe.
+    _triggered = False
 
     def _input_callback(fdref, flags, info):
         """Callback to fire when there's input to be read"""
-        _triggered.set()
+        global _triggered
+        _triggered = True
         CFFileDescriptorInvalidate(fdref)
         CFRelease(fdref)
         NSApp = _NSApp()
+        objc.objc_msgSend.argtypes = [void_p, void_p, void_p]
         msg(NSApp, n('stop:'), NSApp)
         _wake(NSApp)
 
@@ -158,7 +182,6 @@ if sys.platform == 'darwin':
 
     def _stop_on_read(fd):
         """Register callback to stop eventloop when there's data on fd"""
-        _triggered.clear()
         fdref = CFFileDescriptorCreate(None, fd, False, _c_input_callback, None)
         CFFileDescriptorEnableCallBacks(fdref, kCFFileDescriptorReadCallBack)
         source = CFFileDescriptorCreateRunLoopSource(None, fdref, 0)
@@ -167,22 +190,49 @@ if sys.platform == 'darwin':
         CFRelease(source)
 
 
+    # Whether any window has ever existed. Once NSApp has run with a window,
+    # the process is an activated Cocoa app and its event loop must be pumped
+    # at every prompt from then on, even after all windows are closed.
+    # Otherwise, when the last matplotlib window is closed (which makes
+    # matplotlib call [NSApp stop:]), the app would be left frontmost but
+    # unresponsive: beachballing and blocking clicks back to the terminal.
+    # IPython runs the loop unconditionally for this reason (see
+    # https://github.com/ipython/ipython/issues/10137), but it only installs
+    # the inputhook after an explicit %gui/%matplotlib. mypython installs it
+    # for every session, so skip the loop entirely until a window first
+    # appears to avoid activating NSApp in sessions that never use a GUI.
+    _activated = False
+
     def inputhook(context):
         """Inputhook for Cocoa (NSApp)"""
+        global _activated, _triggered
         NSApp = _NSApp()
-        # Modified against IPython master (see
-        # https://github.com/ipython/ipython/pull/10150#issuecomment-277897126).
-        window_count = msg(
-            msg(NSApp, n('windows')),
-            n('count')
-        )
-        if not window_count:
-            return
+        if not _activated:
+            # Returning early is safe: prompt_toolkit's InputHookSelector
+            # does a blocking select() on the fd after the hook returns.
+            objc.objc_msgSend.argtypes = [void_p, void_p]
+            window_count = msg(
+                msg(NSApp, n('windows')),
+                n('count')
+            )
+            if not window_count:
+                return
+            _activated = True
+        # Per prompt_toolkit's inputhook contract, this hook must not return
+        # until input is ready. NSApp.run() can return early without input:
+        # closing the last matplotlib window makes matplotlib call
+        # [NSApp stop:]. If we returned then, prompt_toolkit would block in
+        # select() without the event loop being pumped until the next
+        # keypress, leaving an activated but unresponsive (beachballing)
+        # Cocoa app. So re-enter run() until our fd callback has fired. This
+        # deliberately diverges from modern IPython, which returns early in
+        # this case (it removed the equivalent CFRunLoopRun() fallback for
+        # ipython#9734 because a bare CFRunLoopRun can't be stopped by
+        # [NSApp stop:] and hung; re-running NSApp.run() doesn't have that
+        # defect). Exiting via the callback also means the fdref registered
+        # by _stop_on_read is normally consumed rather than leaked.
+        _triggered = False
         _stop_on_read(context.fileno())
-        msg(NSApp, n('run'))
-        if not _triggered.is_set():
-            # app closed without firing callback,
-            # probably due to last window being closed.
-            # Run the loop manually in this case,
-            # since there may be events still to process (#9734)
-            CoreFoundation.CFRunLoopRun()
+        while not _triggered and not context.input_is_ready():
+            objc.objc_msgSend.argtypes = [void_p, void_p]
+            msg(NSApp, n('run'))
