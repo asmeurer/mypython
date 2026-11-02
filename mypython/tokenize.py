@@ -7,12 +7,21 @@ them at 0.
 
 import io
 from itertools import tee, chain
+import tokenize as _tokenize
 from tokenize import tokenize, TokenError
 from tokenize import (STRING, COLON, AT, ENDMARKER, DEDENT, NAME, NEWLINE,
                       ENCODING)
 import ast
 import re
+import sys
 import warnings
+
+# Python 3.12+ (PEP 701) tokenizes f-strings, and Python 3.14+ (PEP 750)
+# t-strings, as multiple tokens instead of a single STRING.
+_INTERPOLATED_STRING_START = {getattr(_tokenize, name) for name in
+    ('FSTRING_START', 'TSTRING_START') if hasattr(_tokenize, name)}
+_INTERPOLATED_STRING_END = {getattr(_tokenize, name) for name in
+    ('FSTRING_END', 'TSTRING_END') if hasattr(_tokenize, name)}
 
 braces = {
     '(': ')',
@@ -116,7 +125,7 @@ def matching_parens(s, allow_intermediary_mismatches=True, tokenizer=None):
 
     tokenizer should be 'tokenize' or 'parso'. By default it is 'parso'. The
     parso tokenizer is able to handle braces inside of f-string expressions,
-    whereas the 'tokenize' tokenizer is not.
+    whereas the 'tokenize' tokenizer is not before Python 3.12.
 
         >>> matching_parens('f"{()}"', tokenizer='parso')
         ([(TokenInfo(type=OP, string='{', start_pos=(1, 2), prefix=''),
@@ -124,7 +133,7 @@ def matching_parens(s, allow_intermediary_mismatches=True, tokenizer=None):
           (TokenInfo(type=OP, string='(', start_pos=(1, 3), prefix=''),
            TokenInfo(type=OP, string=')', start_pos=(1, 4), prefix=''))],
         [])
-        >>> matching_parens('f"{()}"', tokenizer='tokenize')
+        >>> matching_parens('f"{()}"', tokenizer='tokenize') # doctest: +SKIP
         ([], [])
 
     Example:
@@ -220,8 +229,8 @@ def inside_string(s, row, col, include_quotes=False):
             # Since tokenize only tokenizes complete valid string literals
             # as STRING, ""... must be a triple quoted string, unless it
             # is the empty string
-            assert string[start_offset] in '"\'', tokval
-            if tokval[start_offset] == tokval[start_offset+1] and len(string[start_offset:]) > 2:
+            assert string[start_offset] in '"\'', string
+            if len(string[start_offset:]) > 2 and string[start_offset] == string[start_offset+1]:
                 start_offset += 3
                 end_offset += 3
             else:
@@ -232,7 +241,23 @@ def inside_string(s, row, col, include_quotes=False):
 
     try:
         name_mark = False
+        interpolated = []
         for toknum, tokval, start, end, line in tokenize_string(s):
+            if toknum in _INTERPOLATED_STRING_START:
+                interpolated.append((start, tokval))
+                continue
+            if toknum in _INTERPOLATED_STRING_END:
+                string_start, opening = interpolated.pop()
+                # The whole literal counts as the string, including any nested
+                # replacement fields, like a STRING token before Python 3.12.
+                if not interpolated and string_start <= (row, col) < end:
+                    if include_quotes:
+                        return True
+                    return ((string_start[0], string_start[1] + len(opening))
+                            <= (row, col) < (end[0], end[1] - len(tokval)))
+                continue
+            if interpolated:
+                continue
             if toknum == NAME and include_quotes and start <= (row, col) < end:
                 # Something like r'... that is unclosed will tokenize as NAME,
                 # ERRORTOKEN. Mark here to check if the next token is
@@ -270,8 +295,16 @@ def inside_string(s, row, col, include_quotes=False):
         # Uncompleted docstring or braces. If it's the former, then (row, col)
         # must be after the start of the unclosed string, or else we would
         # have seen a prior token with start <= (row, col) <= end.
-        if 'string' in e.args[0] and (row, col) >= e.args[1]:
-            start = e.args[1]
+        if interpolated:
+            # Unclosed replacement field in an f-string or t-string
+            start, opening = interpolated[0]
+            start_offset = 0 if include_quotes else len(opening)
+            return (start[0], start[1] + start_offset) <= (row, col)
+        start = e.args[1]
+        if sys.version_info >= (3, 12):
+            # The C tokenizer reports a 1-based column
+            start = (start[0], start[1] - 1)
+        if 'string' in e.args[0] and (row, col) >= start:
             tokval = s.splitlines()[start[0]-1][start[1]:]
             start_offset, _ = _offsets(tokval)
             return (start[0], start[1] + start_offset) <= (row, col)
@@ -372,6 +405,16 @@ def is_multiline_python(text):
                         return True
 
     except TokenError as e:
+        # Python 3.12+ raises on an unclosed non-docstring instead of emitting
+        # ERRORTOKEN. Handle it like the unclosed string case below.
+        if e.args[0].startswith('unterminated') and 'triple-quoted' not in e.args[0]:
+            # A trailing backslash continues the string onto the next line
+            trailing_backslashes = len(text) - len(text.rstrip('\\'))
+            if '\n' in text or trailing_backslashes % 2 == 1:
+                return True
+            # An unclosed brace also continues onto the next line
+            _, mismatching = matching_parens(text, tokenizer='tokenize')
+            return any(tok.string in braces for tok in mismatching)
         # Uncompleted docstring or braces
         # Multiline unless there is an uncompleted non-docstring
         if ("multi-line statement" in e.args[0]

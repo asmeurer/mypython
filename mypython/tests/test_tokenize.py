@@ -1,5 +1,7 @@
 from ..tokenize import matching_parens, inside_string, is_multiline_python, nwise
 
+import sys
+
 import pytest
 
 @pytest.mark.parametrize('tokenizer', [None, 'tokenize', 'parso'])
@@ -746,3 +748,30 @@ def test_nwise():
     assert list(nwise(l, 3)) == [(0, 1, 2), (1, 2, 3), (2, 3, 4)]
     assert list(nwise(l, 2, fill=True)) == [(None, 0), (0, 1), (1, 2), (2, 3), (3, 4)]
     assert list(nwise(l, 3, fill=True)) == [(None, None, 0), (None, 0, 1), (0, 1, 2), (1, 2, 3), (2, 3, 4)]
+
+def test_inside_string_fstring():
+    def inside(s, row=1):
+        line = s.splitlines()[row-1]
+        return ''.join('Y' if inside_string(s, row, col) else '.'
+                       for col in range(len(line) + 1))
+
+    assert inside("f'abc'") == "..YYY.."
+    assert inside("rf'ab'") == "...YY.."
+    assert inside("f'a{b}c'") == "..YYYYY.."
+    assert inside("x = f'a{(1)}c' + 'd'") == "......YYYYYYY.....Y.."
+    assert inside("""f'a{f"{b}"}c'""") == "..YYYYYYYYYY.."
+    assert inside('f"""a\n  b{c}\n  d"""', 2) == "YYYYYYY"
+    assert inside('f"""a\n  b{c}\n  d"""', 3) == "YYY...."
+    # Unclosed
+    assert inside("f'abc") == "..YYYY"
+    assert inside("f'{a") == "..YYY"
+    assert inside('f"""abc') == "....YYYY"
+
+def test_is_multiline_python_unclosed_string():
+    for s in ["'", "'abc", "1 + 'a", "f'abc"]:
+        assert not is_multiline_python(s), s
+    if sys.version_info >= (3, 12):
+        # An escaped backslash does not continue the string
+        assert not is_multiline_python("'a\\\\")
+    for s in ["'a\\", "f'a\\", "('a", "[1, 'a", "x = 'a\nb", "f'''a", "'''a"]:
+        assert is_multiline_python(s), s

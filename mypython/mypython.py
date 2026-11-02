@@ -1023,11 +1023,11 @@ class MyStackSummary(traceback.StackSummary):
         # List of (stripped_line_text, start_char_offset, end_char_offset)
         self.highlight_ranges = []
 
-    def format(self):
+    def format(self, **kwargs):
         self.highlight_ranges = []
-        return super().format()
+        return super().format(**kwargs)
 
-    def format_frame_summary(self, frame_summary):
+    def format_frame_summary(self, frame_summary, **kwargs):
         """Format a frame summary without caret lines, recording highlight ranges instead."""
         row = []
         row.append('  File "{}", line {}, in {}\n'.format(
@@ -1042,13 +1042,14 @@ class MyStackSummary(traceback.StackSummary):
                 and frame_summary.colno is not None
                 and frame_summary.end_colno is not None
             ):
-                line = frame_summary._original_line
+                # colno and end_colno are UTF-8 byte offsets into the unstripped
+                # source line.
+                line = linecache.getline(frame_summary.filename, frame_summary.lineno)
                 leading_whitespace = len(line) - len(line.lstrip())
 
-                start_offset = traceback._byte_offset_to_character_offset(
-                    line, frame_summary.colno)
-                end_offset = traceback._byte_offset_to_character_offset(
-                    line, frame_summary.end_colno)
+                line_bytes = line.encode('utf-8')
+                start_offset = len(line_bytes[:frame_summary.colno].decode('utf-8', 'replace'))
+                end_offset = len(line_bytes[:frame_summary.end_colno].decode('utf-8', 'replace'))
 
                 if frame_summary.lineno != frame_summary.end_lineno:
                     end_offset = len(line.rstrip('\n'))
@@ -1137,7 +1138,7 @@ class MyTracebackException(traceback.TracebackException):
         super().__init__(exc_type, exc_value, exc_traceback, **kwargs)
         _rewrap_traceback_exceptions(self, remove_mypython)
 
-    def _format_syntax_error(self, stype):
+    def _format_syntax_error(self, stype, **kwargs):
         """Format SyntaxError without caret lines, recording highlight ranges."""
         self.syntax_highlight_ranges = []
         filename_suffix = ''

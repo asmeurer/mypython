@@ -80,10 +80,10 @@ def test_completions():
     assert _test_completion('%time copy\t\n') == '%time copyright'
 
     # Jedi completion
-    assert _test_completion('[1][0].bit\t\n') == '[1][0].bit_length'
+    assert _test_completion('[1][0].bit_l\t\n') == '[1][0].bit_length'
 
     # Jedi completion with magic
-    assert _test_completion('%time [1][9].bit\t\n') == '%time [1][9].bit_length'
+    assert _test_completion('%time [1][9].bit_l\t\n') == '%time [1][9].bit_length'
 
 def test_DirCompletion():
     # Only test the modifications
