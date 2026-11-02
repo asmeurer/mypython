@@ -34,15 +34,8 @@
 import sys
 from io import BytesIO
 
-try:
-    from iterm2_tools import display_image_bytes
-except ImportError:
-    import platform
-    if platform.system() == "Darwin":
-        raise
-    display_image_bytes = lambda x: ''
-
 from . import mypython
+from .iterm2 import image_sequence
 
 def can_print_sympy(o):
     """Return True if type o can be printed with sympy.pretty.
@@ -122,4 +115,4 @@ def latex_in_terminal(expr):
         # Setting the mode only works in my sympy branch
         # mode='equation*',
         )
-    print(display_image_bytes(obj.getvalue()))
+    print(image_sequence(obj.getvalue()))

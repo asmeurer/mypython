@@ -15,6 +15,7 @@ from ..mypython import (_default_globals, Session, normalize, magic,
     add_ansi_at_columns, MyStackSummary, MyTracebackException,
     _apply_inline_highlights)
 from .. import mypython
+from ..iterm2 import BEFORE_PROMPT, AFTER_PROMPT
 from ..theme import TRACEBACK_HIGHLIGHT_STYLES
 
 from pytest import raises, skip, fixture
@@ -546,24 +547,39 @@ class Test:
     a = 1
 """
 
+def test_after_prompt_with_empty_prompt():
+    with create_pipe_input() as _input:
+        session = _build_test_session(_input)
+        output = session.app.output
+        renders = []
+        session.app.after_render += lambda app: renders.append(
+            (app.is_done, output.written_raw_data))
+
+        _run_session_with_text(session, '\n')
+
+    # AFTER_PROMPT is sent as soon as the prompt is drawn, before anything is
+    # typed.
+    is_done, raw = renders[0]
+    assert not is_done
+    assert raw == BEFORE_PROMPT + AFTER_PROMPT
+
+    # It isn't sent after the final render, since the cursor has moved past the
+    # prompt by then.
+    is_done, raw = renders[-1]
+    assert is_done
+    assert raw.endswith(BEFORE_PROMPT)
+
 def test_main_loop(check_output):
     assert check_output('\n') == ('\n', '')
     assert check_output('1 + 1\n') == ('2\n\n', '')
     assert check_output('None\n') == ('None\n\n', '')
     assert check_output('a = 1\n') == ('\n', '')
 
-    if sys.platform == 'darwin' or mypython.iterm2_tools:
-        assert check_output('\n', remove_terminal_sequences=False) == ('\x1b]133;C\x07\n\x1b]133;D;0\x07', '')
-        assert check_output('1 + 1\n', remove_terminal_sequences=False) == ('\x1b]133;C\x072\n\n\x1b]133;D;0\x07', '')
+    assert check_output('\n', remove_terminal_sequences=False) == ('\x1b]133;C\x07\n\x1b]133;D;0\x07', '')
+    assert check_output('1 + 1\n', remove_terminal_sequences=False) == ('\x1b]133;C\x072\n\n\x1b]133;D;0\x07', '')
 
-        assert check_output('\n', remove_terminal_sequences=False, doctest_mode=True) == ('\x1b]133;C\x07\x1b]133;D;0\x07', '')
-        assert check_output('1 + 1\n', remove_terminal_sequences=False, doctest_mode=True) == ('\x1b]133;C\x072\n\x1b]133;D;0\x07', '')
-    else:
-        assert check_output('\n', remove_terminal_sequences=False) == ('\n', '')
-        assert check_output('1 + 1\n', remove_terminal_sequences=False) == ('2\n\n', '')
-
-        assert check_output('\n', remove_terminal_sequences=False, doctest_mode=True) == ('', '')
-        assert check_output('1 + 1\n', remove_terminal_sequences=False, doctest_mode=True) == ('2\n', '')
+    assert check_output('\n', remove_terminal_sequences=False, doctest_mode=True) == ('\x1b]133;C\x07\x1b]133;D;0\x07', '')
+    assert check_output('1 + 1\n', remove_terminal_sequences=False, doctest_mode=True) == ('\x1b]133;C\x072\n\x1b]133;D;0\x07', '')
 
     assert check_output('\n', doctest_mode=True) == ('', '')
     assert check_output('1 + 1\n', doctest_mode=True) == ('2\n', '')

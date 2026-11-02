@@ -74,14 +74,7 @@ if sys.version_info < (3, 11):
     except ImportError:
         print("Warning: Could not import exceptiongroup. Exception groups and notes will not work.", file=sys.stderr)
 
-try:
-    import iterm2_tools
-except ImportError:
-    import platform
-    if platform.system() == 'Darwin':
-        raise
-    iterm2_tools = None
-
+from .iterm2 import BEFORE_PROMPT, AFTER_PROMPT, Output
 from .multiline import document_is_multiline_python
 from .completion import PythonCompleter
 from .ai import OllamaSuggester
@@ -773,6 +766,27 @@ class Session(PromptSession):
 
         self.ai_auto_suggest = ai_auto_suggest or OllamaSuggester()
         super().__init__(*args, **kwargs)
+        self.app.after_render += self._send_after_prompt
+
+    def _send_after_prompt(self, app):
+        """
+        Send AFTER_PROMPT if the renderer won't have sent it itself.
+
+        The renderer only writes a zero width escape when it draws the cell the
+        escape is attached to. AFTER_PROMPT is attached to the cell after the
+        prompt, which isn't drawn until there is text in it. Without
+        AFTER_PROMPT, iTerm2 considers the previous command to still be running
+        when the prompt is empty, so Select Output of Last Command also selects
+        the new prompt.
+
+        If this repeats a previous AFTER_PROMPT, iTerm2 ignores it.
+        """
+        # When the app is done, the cursor is no longer at the end of the prompt.
+        if (app.is_done or self.default_buffer.text
+            or not app.layout.has_focus(self.default_buffer)):
+            return
+        app.output.write_raw(AFTER_PROMPT)
+        app.output.flush()
 
     def prompt(self, *args, **kwargs):
         # The inputhook runs the Cocoa event loop while waiting for input,
@@ -837,11 +851,8 @@ del sys
         setup_keyboard_interrupt_handler()
 
     def get_in_prompt(self):
-        if iterm2_tools:
-            before_prompt = (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT)
-            after_prompt = (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT)
-        else:
-            before_prompt = after_prompt = (Token.Nothing, "")
+        before_prompt = (Token.ZeroWidthEscape, BEFORE_PROMPT)
+        after_prompt = (Token.ZeroWidthEscape, AFTER_PROMPT)
 
         if NO_PROMPT_MODE:
             return MyPygmentsTokens([
@@ -1283,19 +1294,6 @@ def mypython_excepthook(etype, value, tb):
         print_formatted_text(MyPygmentsTokens([(Token.Newline, '\n'), (Token.InternalError,
             "Warning: RecursionError from mypython_excepthook")]),
             file=sys.stderr, end='')
-
-if iterm2_tools is None:
-    class NoOp:
-        def set_command_status(self, status):
-            return
-
-    class Output:
-        def __enter__(self):
-            return NoOp()
-        def __exit__(self, *args):
-            return
-else:
-    Output = iterm2_tools.Output
 
 def execute_command(command, prompt, *, _globals=None, _locals=None):
     _globals = _globals or _default_globals

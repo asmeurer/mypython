@@ -1,4 +1,3 @@
-iterm2-tools
 jedi
 exceptiongroup
 line_profiler
