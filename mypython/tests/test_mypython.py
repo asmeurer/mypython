@@ -15,6 +15,7 @@ from ..mypython import (_default_globals, Session, normalize, magic,
     add_ansi_at_columns, MyStackSummary, MyTracebackException,
     _apply_inline_highlights)
 from .. import mypython
+from ..iterm2 import BEFORE_PROMPT, AFTER_PROMPT
 from ..theme import TRACEBACK_HIGHLIGHT_STYLES
 
 from pytest import raises, skip, fixture
@@ -545,6 +546,28 @@ def test():
 class Test:
     a = 1
 """
+
+def test_after_prompt_with_empty_prompt():
+    with create_pipe_input() as _input:
+        session = _build_test_session(_input)
+        output = session.app.output
+        renders = []
+        session.app.after_render += lambda app: renders.append(
+            (app.is_done, output.written_raw_data))
+
+        _run_session_with_text(session, '\n')
+
+    # AFTER_PROMPT is sent as soon as the prompt is drawn, before anything is
+    # typed.
+    is_done, raw = renders[0]
+    assert not is_done
+    assert raw == BEFORE_PROMPT + AFTER_PROMPT
+
+    # It isn't sent after the final render, since the cursor has moved past the
+    # prompt by then.
+    is_done, raw = renders[-1]
+    assert is_done
+    assert raw.endswith(BEFORE_PROMPT)
 
 def test_main_loop(check_output):
     assert check_output('\n') == ('\n', '')

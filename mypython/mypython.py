@@ -766,6 +766,27 @@ class Session(PromptSession):
 
         self.ai_auto_suggest = ai_auto_suggest or OllamaSuggester()
         super().__init__(*args, **kwargs)
+        self.app.after_render += self._send_after_prompt
+
+    def _send_after_prompt(self, app):
+        """
+        Send AFTER_PROMPT if the renderer won't have sent it itself.
+
+        The renderer only writes a zero width escape when it draws the cell the
+        escape is attached to. AFTER_PROMPT is attached to the cell after the
+        prompt, which isn't drawn until there is text in it. Without
+        AFTER_PROMPT, iTerm2 considers the previous command to still be running
+        when the prompt is empty, so Select Output of Last Command also selects
+        the new prompt.
+
+        If this repeats a previous AFTER_PROMPT, iTerm2 ignores it.
+        """
+        # When the app is done, the cursor is no longer at the end of the prompt.
+        if (app.is_done or self.default_buffer.text
+            or not app.layout.has_focus(self.default_buffer)):
+            return
+        app.output.write_raw(AFTER_PROMPT)
+        app.output.flush()
 
     def prompt(self, *args, **kwargs):
         # The inputhook runs the Cocoa event loop while waiting for input,
