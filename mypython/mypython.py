@@ -74,14 +74,7 @@ if sys.version_info < (3, 11):
     except ImportError:
         print("Warning: Could not import exceptiongroup. Exception groups and notes will not work.", file=sys.stderr)
 
-try:
-    import iterm2_tools
-except ImportError:
-    import platform
-    if platform.system() == 'Darwin':
-        raise
-    iterm2_tools = None
-
+from .iterm2 import BEFORE_PROMPT, AFTER_PROMPT, Output
 from .multiline import document_is_multiline_python
 from .completion import PythonCompleter
 from .ai import OllamaSuggester
@@ -837,11 +830,8 @@ del sys
         setup_keyboard_interrupt_handler()
 
     def get_in_prompt(self):
-        if iterm2_tools:
-            before_prompt = (Token.ZeroWidthEscape, iterm2_tools.BEFORE_PROMPT)
-            after_prompt = (Token.ZeroWidthEscape, iterm2_tools.AFTER_PROMPT)
-        else:
-            before_prompt = after_prompt = (Token.Nothing, "")
+        before_prompt = (Token.ZeroWidthEscape, BEFORE_PROMPT)
+        after_prompt = (Token.ZeroWidthEscape, AFTER_PROMPT)
 
         if NO_PROMPT_MODE:
             return MyPygmentsTokens([
@@ -1282,19 +1272,6 @@ def mypython_excepthook(etype, value, tb):
         print_formatted_text(MyPygmentsTokens([(Token.Newline, '\n'), (Token.InternalError,
             "Warning: RecursionError from mypython_excepthook")]),
             file=sys.stderr, end='')
-
-if iterm2_tools is None:
-    class NoOp:
-        def set_command_status(self, status):
-            return
-
-    class Output:
-        def __enter__(self):
-            return NoOp()
-        def __exit__(self, *args):
-            return
-else:
-    Output = iterm2_tools.Output
 
 def execute_command(command, prompt, *, _globals=None, _locals=None):
     _globals = _globals or _default_globals

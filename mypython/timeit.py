@@ -1,13 +1,5 @@
 import sys
 import math
-import platform
-
-try:
-    from iterm2_tools.images import image_bytes
-except ImportError:
-    if platform.system() == 'Darwin':
-        raise
-    image_bytes = lambda x: ''
 
 def autorange(timer, callback=None):
     """Return the number of loops so that total time >= 10.
