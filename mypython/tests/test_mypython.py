@@ -12,7 +12,7 @@ from prompt_toolkit.validation import ValidationError
 
 from ..mypython import (_default_globals, Session, normalize, magic,
     PythonSyntaxValidator, execute_command, getsource, smart_eval, NoResult,
-    add_ansi_at_columns, MyStackSummary, MyTracebackException,
+    add_ansi_at_columns, MyTracebackException,
     _apply_inline_highlights)
 from .. import mypython
 from ..iterm2 import BEFORE_PROMPT, AFTER_PROMPT
@@ -1010,7 +1010,8 @@ def test_my_stack_summary_chained_exceptions():
         exec(compile(open(tf.name).read(), tf.name, 'exec'))
     except:
         tbexc = MyTracebackException(*sys.exc_info(), remove_mypython=False)
-        tb_str = ''.join(tbexc.format(chain=True))
+        # Formatting is what records the highlight ranges
+        ''.join(tbexc.format(chain=True))
 
         # Should have ranges from both the cause and the raising frame
         ranges = tbexc.collect_all_highlight_ranges()
