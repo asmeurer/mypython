@@ -1,5 +1,4 @@
 jedi
-exceptiongroup
 line_profiler
 matplotlib
 memory_profiler

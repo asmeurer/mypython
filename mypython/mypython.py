@@ -65,15 +65,6 @@ from prompt_toolkit import __version__ as prompt_toolkit_version
 if prompt_toolkit_version.startswith('2'):
     sys.exit("Error: prompt-toolkit version 2 is no longer supported in mypython. Please install prompt-toolkit version 3.")
 
-# This monkeypatches the traceback module to support exception groups and
-# exception notes. This must be imported before sys.excepthook is set. It is
-# not needed in Python 3.11+
-if sys.version_info < (3, 11):
-    try:
-        import exceptiongroup; exceptiongroup
-    except ImportError:
-        print("Warning: Could not import exceptiongroup. Exception groups and notes will not work.", file=sys.stderr)
-
 from .iterm2 import BEFORE_PROMPT, AFTER_PROMPT, Output
 from .multiline import document_is_multiline_python
 from .completion import PythonCompleter
