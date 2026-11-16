@@ -1356,3 +1356,68 @@ def test_run_shell_prompt_system_exit(monkeypatch):
         assert executed == ['a = 1']
         assert len(prompt_calls) == 2
         assert shown == []
+
+def test_run_shell_cmd_exitcode(monkeypatch):
+    def run(cmd, interactive=(), _exit=True):
+        prompts = [*cmd, *interactive]
+        executed, prompt_calls, shown = _fake_run_shell(monkeypatch, prompts,
+            failing=['fail', 'fail2'])
+        exitcode = mypython.run_shell(_globals={}, _locals={}, cmd=cmd,
+                                      _exit=_exit)
+        assert executed == prompts
+        assert [call['default'] for call in prompt_calls[:len(cmd)]] == cmd
+        assert shown == []
+        return exitcode
+
+    assert run([]) == 0
+    assert run(['a = 1']) == 0
+    assert run(['a = 1', 'b = 2']) == 0
+    assert run(['fail']) == 1
+    assert run(['fail', 'fail2']) == 1
+    # Every command is run, even if an earlier one failed
+    assert run(['fail', 'a = 1']) == 1
+    assert run(['a = 1', 'fail']) == 1
+    assert run(['a = 1', 'fail', 'b = 2']) == 1
+    # A single command can be passed as a string
+    executed, prompt_calls, shown = _fake_run_shell(monkeypatch, ['fail'],
+                                                    failing=['fail'])
+    assert mypython.run_shell(_globals={}, _locals={}, cmd='fail',
+                              _exit=True) == 1
+    assert executed == ['fail']
+
+    # Without --exit, the exit code still only depends on the cmd commands,
+    # not on the commands that are entered interactively.
+    assert run([], ['fail'], _exit=False) == 0
+    assert run(['a = 1'], ['fail'], _exit=False) == 0
+    assert run(['fail'], ['a = 1'], _exit=False) == 1
+    assert run(['a = 1', 'fail'], ['b = 2'], _exit=False) == 1
+
+def test_run_shell_cmd_history(monkeypatch):
+    # The history is only disabled for the cmd commands
+    cmd = ['a = 1', 'b = 2', 'c = 3']
+    prompts = [*cmd, 'd = 4', 'e = 5']
+    executed, prompt_calls, shown = _fake_run_shell(monkeypatch, prompts)
+    assert mypython.run_shell(_globals={}, _locals={}, cmd=cmd) == 0
+    assert executed == prompts
+    assert [call['history_disabled'] for call in prompt_calls] == [
+        True, True, True, False, False, False]
+
+    # Commands that are added to the queue later (e.g., from pasting multiple
+    # commands at once) are not cmd commands, even if the cmd commands were
+    # removed from the queue by a keyboard interrupt.
+    def interrupt_then_paste(command, prompt, **kwargs):
+        executed.append(command)
+        if command == 'a = 1':
+            # What keyboard_interrupt_handler() does
+            mypython.CMD_QUEUE.clear()
+        if command == 'd = 4':
+            mypython.CMD_QUEUE.extend(['fail', 'e = 5'])
+        return command != 'fail'
+
+    prompts = ['a = 1', 'd = 4', 'fail', 'e = 5']
+    executed, prompt_calls, shown = _fake_run_shell(monkeypatch, prompts)
+    monkeypatch.setattr(mypython, 'execute_command', interrupt_then_paste)
+    assert mypython.run_shell(_globals={}, _locals={}, cmd=cmd) == 0
+    assert executed == prompts
+    assert [call['history_disabled'] for call in prompt_calls] == [
+        True, False, False, False, False]

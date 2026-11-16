@@ -1340,10 +1340,15 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
     prompt = Session(_globals=_globals, _locals=_locals, quiet=quiet,
         history_file=history_file, IN_OUT=IN_OUT)
 
+    # The number of commands at the front of CMD_QUEUE that are from cmd.
+    # CMD_QUEUE is also used for other things, like pasting multiple commands
+    # at once.
+    cmd_remaining = 0
     if cmd:
         if isinstance(cmd, str):
             cmd = [cmd]
         CMD_QUEUE.extend(cmd)
+        cmd_remaining = len(cmd)
 
     exitcode = 0
     prompt_errors = 0
@@ -1353,10 +1358,15 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
             is_cmd_command = False
             if CMD_QUEUE:
                 default = CMD_QUEUE.popleft()
-                is_cmd_command = cmd
-                cmd = None
-            elif _exit:
-                return exitcode
+                if cmd_remaining:
+                    is_cmd_command = True
+                    cmd_remaining -= 1
+            else:
+                # The queue can be emptied before all the cmd commands are
+                # run (keyboard_interrupt_handler() clears it).
+                cmd_remaining = 0
+                if _exit:
+                    return exitcode
 
             if is_cmd_command:
                 with prompt.default_buffer.disable_history():
@@ -1386,5 +1396,5 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
             prompt_errors = 0
 
         res = execute_command(command, prompt, _globals=_globals, _locals=_locals)
-        if cmd:
-            exitcode |= res
+        if is_cmd_command and not res:
+            exitcode = 1
