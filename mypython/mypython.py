@@ -1089,11 +1089,15 @@ def _convert_traceback_stack(exc, remove_mypython):
 
     if (
         frame is not None
-        and mypython_error is None
         and frame.filename.startswith(mypython_dir)
-        and frame.name != 'keyboard_interrupt_handler'
     ):
-        mypython_error = True
+        if frame.name == 'keyboard_interrupt_handler':
+            # The exception is a KeyboardInterrupt raised by our signal
+            # handler. This is never an error from mypython, regardless of
+            # what code was running when the interrupt occurred.
+            mypython_error = None
+        elif mypython_error is None:
+            mypython_error = True
 
     if remove_mypython and not mypython_error:
         exc.stack = new_stack

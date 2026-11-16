@@ -1,3 +1,4 @@
+import os
 import sys
 import re
 from io import StringIO
@@ -841,6 +842,98 @@ Traceback (most recent call last):
     raise ValueError
 ValueError
 """
+
+def test_keyboard_interrupt_not_mypython_error(check_output):
+    import functools
+    import json
+    import signal
+
+    # Use the real handler from mypython.py, not the one defined in this file.
+    # functools.partial is used so that the handler is called directly from
+    # the json library code, with no Python frame in between.
+    interrupt = functools.partial(mypython.keyboard_interrupt_handler,
+                                  signal.SIGINT)
+
+    def frame_names(tbexc):
+        return [frame.name for frame in tbexc.stack]
+
+    def only_json_frames(tbexc):
+        # The exact frames depend on the internals of the json module, so
+        # only check that they are all from json and none are from mypython.
+        json_dir = os.path.dirname(json.__file__)
+        return (len(tbexc.stack) > 0
+                and all(frame.filename.startswith(json_dir)
+                        for frame in tbexc.stack))
+
+    # Interrupted inside of library code. Note that this test file is itself
+    # inside of the mypython directory, so its frames are also hidden.
+    try:
+        json.dumps(object(), default=interrupt)
+    except KeyboardInterrupt:
+        tbexc = MyTracebackException(*sys.exc_info())
+    assert not tbexc.mypython_error
+    assert only_json_frames(tbexc)
+
+    # Interrupted inside of mypython code that was called from library code
+    try:
+        json.dumps(object(), default=lambda o: interrupt(None))
+    except KeyboardInterrupt:
+        tbexc = MyTracebackException(*sys.exc_info())
+    assert not tbexc.mypython_error
+    assert only_json_frames(tbexc)
+
+    # Interrupted inside of mypython code
+    try:
+        interrupt(None)
+    except KeyboardInterrupt:
+        tbexc = MyTracebackException(*sys.exc_info())
+    assert not tbexc.mypython_error
+    assert frame_names(tbexc) == []
+
+    # In debug mode, the mypython frames are shown, but it still isn't an
+    # error from mypython.
+    try:
+        json.dumps(object(), default=interrupt)
+    except KeyboardInterrupt:
+        tbexc = MyTracebackException(*sys.exc_info(), remove_mypython=False)
+    assert not tbexc.mypython_error
+    names = frame_names(tbexc)
+    assert names[0] == 'test_keyboard_interrupt_not_mypython_error'
+    assert names[1] == 'dumps'
+    assert names[-1] == 'keyboard_interrupt_handler'
+
+    # A KeyboardInterrupt that is the context of another exception. (The
+    # ValueError itself is raised from this file, which is inside of the
+    # mypython directory, so only the context is checked.)
+    try:
+        try:
+            json.dumps(object(), default=interrupt)
+        except KeyboardInterrupt:
+            raise ValueError
+    except ValueError:
+        tbexc = MyTracebackException(*sys.exc_info())
+    assert not tbexc.__context__.mypython_error
+    assert only_json_frames(tbexc.__context__)
+
+    # A real error from mypython is still detected (the lambda counts as
+    # mypython code because this file is inside of the mypython directory).
+    try:
+        json.dumps(object(), default=lambda o: 1/0)
+    except ZeroDivisionError:
+        tbexc = MyTracebackException(*sys.exc_info())
+    assert tbexc.mypython_error
+    assert frame_names(tbexc)[-1] == '<lambda>'
+
+    out, err = check_output(
+        'import json, functools, signal, mypython.mypython\x1b\n'
+        'json.dumps(object(), default=functools.partial('
+        'mypython.mypython.keyboard_interrupt_handler, signal.SIGINT))\n\n')
+    assert out == '\n'
+    assert err.startswith('Traceback (most recent call last):\n'
+                          '  File "<mypython-1>", line 2, in <module>\n')
+    assert err.endswith('\nKeyboardInterrupt\n')
+    assert 'mypython.py"' not in err
+    assert 'in keyboard_interrupt_handler' not in err
 
 def test_local_scopes(check_output):
     out, err = check_output('[x for x in range(10)]\n')
