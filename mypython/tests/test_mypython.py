@@ -1222,3 +1222,137 @@ def test_traceback_no_carets(check_output):
     out, err = check_output('1/0\n')
     assert '~^~' not in err
     assert 'ZeroDivisionError' in err
+
+def _fake_run_shell(monkeypatch, prompts, failing=()):
+    """
+    Set up run_shell() to use a fake Session and a fake execute_command().
+
+    prompts is a list of the results of each call to Session.prompt(). Each
+    item is either a command to return or an exception to raise. Once the
+    list is used up, EOFError is raised, which exits run_shell(). Note that
+    the fake prompt does not automatically return the commands from the cmd
+    argument of run_shell(), so they must be included in prompts as well.
+
+    failing is a collection of commands for which execute_command() should
+    fail (i.e., return False).
+
+    Returns a tuple (executed, prompt_calls, shown) of lists, which are filled
+    in as run_shell() runs with the commands passed to execute_command(), the
+    keyword arguments passed to Session.prompt() (plus 'history_disabled',
+    which is whether the history was disabled during the call), and the
+    exceptions passed to sys.excepthook().
+    """
+    from collections import deque
+    from contextlib import contextmanager
+
+    prompts = list(prompts)
+    executed = []
+    prompt_calls = []
+    shown = []
+
+    class FakeBuffer:
+        history_disabled = False
+
+        @contextmanager
+        def disable_history(self):
+            self.history_disabled = True
+            try:
+                yield
+            finally:
+                self.history_disabled = False
+
+    class FakeSession:
+        def __init__(self, **kwargs):
+            self.default_buffer = FakeBuffer()
+
+        def prompt(self, **kwargs):
+            prompt_calls.append({
+                **kwargs,
+                'history_disabled': self.default_buffer.history_disabled,
+            })
+            if not prompts:
+                raise EOFError
+            item = prompts.pop(0)
+            if isinstance(item, BaseException):
+                raise item
+            return item
+
+    def fake_execute_command(command, prompt, **kwargs):
+        executed.append(command)
+        return command not in failing
+
+    monkeypatch.setattr(mypython, 'Session', FakeSession)
+    monkeypatch.setattr(mypython, 'execute_command', fake_execute_command)
+    monkeypatch.setattr(mypython, 'CMD_QUEUE', deque())
+    # sys.excepthook depends on whether a Session has been created by an
+    # earlier test.
+    monkeypatch.setattr(sys, 'excepthook',
+                        lambda etype, value, tb: shown.append(value))
+    return executed, prompt_calls, shown
+
+def test_run_shell_prompt_error(monkeypatch):
+    # An error from the first prompt should not execute anything
+    executed, prompt_calls, shown = _fake_run_shell(monkeypatch,
+        [RuntimeError("prompt error")])
+    assert mypython.run_shell(_globals={}, _locals={}) == 0
+    assert executed == []
+    assert len(prompt_calls) == 2
+    assert [str(e) for e in shown] == ["prompt error"]
+
+    # An error from a later prompt should not execute the previous command
+    # again
+    executed, prompt_calls, shown = _fake_run_shell(monkeypatch,
+        ['a = 1', RuntimeError("prompt error"), 'b = 2'])
+    assert mypython.run_shell(_globals={}, _locals={}) == 0
+    assert executed == ['a = 1', 'b = 2']
+    assert len(prompt_calls) == 4
+    assert [str(e) for e in shown] == ["prompt error"]
+
+def test_run_shell_repeated_prompt_errors(monkeypatch):
+    limit = mypython.MAX_PROMPT_ERRORS
+
+    # If the prompt keeps failing, give up instead of looping forever. The
+    # fake prompt raises EOFError once the list is used up, so this test
+    # cannot loop forever itself.
+    executed, prompt_calls, shown = _fake_run_shell(monkeypatch,
+        [RuntimeError("prompt error")]*(limit + 10))
+    with raises(RuntimeError, match="prompt error"):
+        mypython.run_shell(_globals={}, _locals={})
+    assert executed == []
+    assert len(prompt_calls) == limit
+    # The last error is only shown by whatever handles the raised exception
+    assert [str(e) for e in shown] == ["prompt error"]*(limit - 1)
+
+    # Only consecutive errors count
+    prompts = []
+    for i in range(limit + 10):
+        prompts.extend([RuntimeError("prompt error")]*(limit - 1))
+        prompts.append('a = %d' % i)
+    executed, prompt_calls, shown = _fake_run_shell(monkeypatch, prompts)
+    assert mypython.run_shell(_globals={}, _locals={}) == 0
+    assert executed == ['a = %d' % i for i in range(limit + 10)]
+    assert len(prompt_calls) == len(prompts) + 1
+
+def test_run_shell_prompt_error_exit(monkeypatch):
+    # With --exit, an error from the prompt means that a command wasn't run,
+    # so it should not be skipped over.
+    executed, prompt_calls, shown = _fake_run_shell(monkeypatch,
+        [RuntimeError("prompt error"), 'b = 2'])
+    with raises(RuntimeError, match="prompt error"):
+        mypython.run_shell(_globals={}, _locals={}, cmd=['a = 1', 'b = 2'],
+                           _exit=True)
+    assert executed == []
+    assert len(prompt_calls) == 1
+    assert shown == []
+
+def test_run_shell_prompt_system_exit(monkeypatch):
+    for exc, code in [(SystemExit(3), 3), (SystemExit(), None),
+                      (SystemExit("message"), "message")]:
+        executed, prompt_calls, shown = _fake_run_shell(monkeypatch,
+            ['a = 1', exc, 'b = 2'])
+        with raises(SystemExit) as excinfo:
+            mypython.run_shell(_globals={}, _locals={})
+        assert excinfo.value.code == code
+        assert executed == ['a = 1']
+        assert len(prompt_calls) == 2
+        assert shown == []

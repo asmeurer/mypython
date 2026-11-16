@@ -1329,6 +1329,10 @@ def execute_command(command, prompt, *, _globals=None, _locals=None):
 
 CMD_QUEUE = deque()
 
+# The number of consecutive unexpected errors from the prompt after which
+# run_shell() gives up and raises the error.
+MAX_PROMPT_ERRORS = 5
+
 def run_shell(_globals=_default_globals, _locals=_default_locals, *,
     quiet=False, cmd=None, history_file=None, _exit=False,
     IN_OUT=None):
@@ -1342,6 +1346,7 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
         CMD_QUEUE.extend(cmd)
 
     exitcode = 0
+    prompt_errors = 0
     while True:
         try:
             default = ''
@@ -1364,10 +1369,21 @@ def run_shell(_globals=_default_globals, _locals=_default_locals, *,
             continue
         except EOFError:
             return exitcode
-        except SystemExit as e:
-            e.args[0]
+        except SystemExit:
+            raise
         except:
+            # An unexpected error from the prompt itself. There is no new
+            # command to execute, so show the error and prompt again. Don't
+            # do this if the prompt keeps failing (e.g., if stdin is not a
+            # terminal), as that would loop forever, or with --exit, as that
+            # would skip the command and exit as if it had been run.
+            prompt_errors += 1
+            if _exit or prompt_errors >= MAX_PROMPT_ERRORS:
+                raise
             sys.excepthook(*sys.exc_info())
+            continue
+        else:
+            prompt_errors = 0
 
         res = execute_command(command, prompt, _globals=_globals, _locals=_locals)
         if cmd:
