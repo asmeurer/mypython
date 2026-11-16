@@ -1,7 +1,7 @@
 from pyflakes.messages import UndefinedName, UnusedVariable, DuplicateArgument
 
 from ..processors import (get_pyflakes_warnings, SyntaxErrorMessage,
-                          replace_newlines_with_spaces)
+                          replace_newlines_with_spaces, line_fills_last_row)
 
 def test_get_pyflakes_warnings():
     warnings = get_pyflakes_warnings("""\
@@ -454,3 +454,44 @@ def test_replace_newlines_with_spaces():
     )
     result = replace_newlines_with_spaces(text, column_width)
     assert result == expected
+
+def test_line_fills_last_row():
+    def fills(text, width, prefix_width):
+        return line_fills_last_row([('', text)], width, prefix_width)
+
+    # prompt-toolkit adds a cell to the end of every line for the cursor, so
+    # a line fills the row when it is one cell short of the width.
+    assert not fills('', 10, 0)
+    assert not fills('a'*8, 10, 0)
+    assert fills('a'*9, 10, 0)
+    # The cursor cell is on the next row
+    assert not fills('a'*10, 10, 0)
+
+    # The prompt takes up space
+    assert not fills('a'*4, 10, 4)
+    assert fills('a'*5, 10, 4)
+    assert not fills('a'*6, 10, 4)
+    assert fills('', 10, 9)
+
+    # Soft wrapped lines. Each row also has the prompt on it.
+    assert not fills('a'*10, 10, 4)
+    assert fills('a'*11, 10, 4)
+    assert not fills('a'*12, 10, 4)
+    assert fills('a'*17, 10, 4)
+
+    # Multiple fragments
+    assert line_fills_last_row([('', 'aaa'), ('class:b', 'bb')], 10, 4)
+    assert not line_fills_last_row([('', 'aaa'), ('class:b', 'b')], 10, 4)
+
+    # Double width characters
+    assert not fills('\N{SNAKE}', 10, 4)
+    assert fills('\N{SNAKE}'*2 + 'a', 10, 4)
+    assert not fills('\N{SNAKE}'*3, 10, 4)
+    # A double width character that doesn't fit at the end of a row is
+    # wrapped, leaving an empty cell.
+    assert fills('a'*5 + '\N{SNAKE}'*2 + 'a', 10, 4)
+    assert not fills('a'*4 + '\N{SNAKE}'*2 + 'a', 10, 4)
+
+    # The prompt doesn't fit
+    assert not fills('a', 10, 10)
+    assert not fills('a', 10, 11)

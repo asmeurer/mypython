@@ -34,7 +34,9 @@ from prompt_toolkit.layout.processors import (Transformation,
     HighlightMatchingBracketProcessor, Processor)
 from prompt_toolkit.layout.utils import explode_text_fragments
 from prompt_toolkit.application import get_app
-from prompt_toolkit.formatted_text import fragment_list_width, to_formatted_text
+from prompt_toolkit.formatted_text import (fragment_list_to_text,
+    fragment_list_width, to_formatted_text)
+from prompt_toolkit.utils import get_cwidth
 
 from pyflakes.checker import Checker
 from pyflakes.messages import (UnusedImport, UnusedVariable, UndefinedName,
@@ -287,6 +289,15 @@ class HighlightPyflakesErrorsProcessor(Processor):
                     continue
 
                 if col == len(fragments):
+                    # The warning is for the position after the end of the
+                    # line. prompt-toolkit adds a cell there for the cursor,
+                    # but only after the processors have run, so it cannot be
+                    # styled from here. Add a cell of our own to highlight
+                    # instead, unless that would make the line wrap onto an
+                    # otherwise empty row.
+                    if line_fills_last_row(fragments, width,
+                                           prompt_width(buffer_control.buffer)):
+                        continue
                     fragments += [('', ' ')]
 
                 style, char = fragments[col]
@@ -343,6 +354,34 @@ class AppendAIAutoSuggestion(Processor):
 
 def prompt_width(buffer):
     return fragment_list_width(to_formatted_text(buffer.session.message))
+
+def line_fills_last_row(fragments, width, prefix_width):
+    """
+    Return True if a line exactly fills the last terminal row that it is on.
+
+    fragments should be the fragments for the line. This includes the cell
+    that prompt-toolkit adds to the end of every line for the cursor, which
+    should not be in fragments. width is the width of the window, and
+    prefix_width is the width of the prompt, which is shown at the start of
+    every row, including rows from soft wrapping.
+
+    When this is True, adding another cell to the end of the line would
+    make it wrap onto a new row.
+    """
+    if prefix_width >= width:
+        # The prompt doesn't fit, so nothing is going to render correctly.
+        return False
+
+    x = prefix_width
+    # The ' ' is the cell that prompt-toolkit adds for the cursor
+    for char in fragment_list_to_text(fragments) + ' ':
+        char_width = get_cwidth(char)
+        # Same as the wrapping logic in
+        # prompt_toolkit.layout.containers.Window._copy_body()
+        if x + char_width > width:
+            x = prefix_width
+        x += char_width
+    return x >= width
 
 def replace_newlines_with_spaces(text, column_width):
     lines = text.split('\n')

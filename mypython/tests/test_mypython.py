@@ -17,6 +17,7 @@ from ..mypython import (_default_globals, Session, normalize, magic,
     _apply_inline_highlights)
 from .. import mypython
 from ..iterm2 import BEFORE_PROMPT, AFTER_PROMPT
+from ..processors import prompt_width
 from ..theme import TRACEBACK_HIGHLIGHT_STYLES
 
 from pytest import raises, skip, fixture
@@ -61,6 +62,38 @@ def _run_session_with_text(session, text, close=False):
     finally:
         if close:
             session.input.close()
+
+def _render_session_with_text(session, text, cursor_position=None):
+    """
+    Render text in the prompt of session without executing it.
+
+    Returns a tuple (rows, lines), where rows is a list of the number of
+    terminal rows that each line of text is rendered on, and lines is a list
+    of the fragments for each line.
+    """
+    rendered = []
+
+    def after_render(app):
+        if app.is_done:
+            return
+        render_info = app.layout.current_window.render_info
+        content = render_info.ui_content
+        linenos = [lineno for lineno, col in
+                   render_info.visible_line_to_row_col.values()]
+        rows = [linenos.count(lineno) for lineno in range(content.line_count)]
+        lines = [content.get_line(lineno) for lineno in range(content.line_count)]
+        rendered.append((rows, lines))
+        app.exit()
+
+    session.app.after_render += after_render
+    try:
+        session.default_buffer.reset(Document(text, cursor_position))
+        session.app.run()
+    finally:
+        session.app.after_render -= after_render
+
+    assert len(rendered) == 1
+    return rendered[0]
 
 def _history():
     h = InMemoryHistory()
@@ -172,6 +205,71 @@ def test():
         assert result == """\
 (
     123)"""
+
+@pytest.mark.parametrize('doctest_mode', [False, True])
+def test_syntax_error_highlighting_wrapping(doctest_mode):
+    # Highlighting a syntax error should never change how a line is wrapped.
+    # The syntax error highlighting adds an extra highlighted cell to the end
+    # of the line, which should not be added if it would make the line wrap
+    # onto a new row.
+    mypython.doctest_mode(doctest_mode)
+    try:
+        with create_pipe_input() as _input:
+            session = _build_test_session(_input)
+            width = (session.output.get_size().columns
+                - prompt_width(session.default_buffer))
+
+            def is_highlighted(line):
+                # The last cell is always the cell that prompt-toolkit adds
+                # for the cursor.
+                assert line[-1] == ('', ' ')
+                style, text = line[-2]
+                return text == ' ' and 'pyflakeserror' in style
+
+            # The length of the line that fills the row, including the cell
+            # that prompt-toolkit adds for the cursor, is width - 1.
+            for length, expected_rows, highlighted in [
+                (width - 3, 1, True),
+                (width - 2, 1, True),
+                (width - 1, 1, False),
+                (width, 2, True),
+                (width + 1, 2, True),
+                # Soft wrapped lines
+                (2*width - 2, 2, True),
+                (2*width - 1, 2, False),
+                (2*width, 3, True),
+            ]:
+                first_line = '(' + '1'*(length - 3) + ' +'
+                assert len(first_line) == length
+
+                # '(' was never closed
+                text = first_line + '\n1'
+                rows, lines = _render_session_with_text(session, text)
+                assert rows == [expected_rows, 1], length
+                assert is_highlighted(lines[0]) == highlighted, length
+
+                # No syntax error
+                rows, lines = _render_session_with_text(session, text + ')')
+                assert rows == [expected_rows, 1], length
+                assert not is_highlighted(lines[0]), length
+
+                # With the cursor on the line with the error
+                rows, lines = _render_session_with_text(session, first_line)
+                assert rows == [expected_rows], length
+                assert is_highlighted(lines[0]) == highlighted, length
+
+                # The error column is at the end of the line
+                text = 'x = ' + '1'*(length - 6) + ' +'
+                assert len(text) == length
+                for cursor_position in [0, length]:
+                    rows, lines = _render_session_with_text(session, text,
+                        cursor_position)
+                    assert rows == [expected_rows], length
+                    assert is_highlighted(lines[0]) == highlighted, length
+                    if highlighted:
+                        assert 'pyflakeserror.column' in lines[0][-2][0]
+    finally:
+        mypython.doctest_mode(False)
 
 def test_startup():
     with create_pipe_input() as _input:
